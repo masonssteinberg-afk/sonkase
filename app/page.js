@@ -89,6 +89,13 @@ function PageStyles() {
     <style>{`
       .sk-hero { padding: 140px 40px 100px; }
 
+      @keyframes float {
+        0%   { transform: translateY(0px); }
+        50%  { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+      .hero-icon { animation: float 3s ease-in-out infinite; }
+
       .sk-nav-link {
         font-family: Georgia, serif;
         font-size: 12px;
@@ -215,7 +222,7 @@ function Nav() {
         boxSizing: "border-box",
       }}>
         <a href="/" style={{ textDecoration: "none" }}>
-          <Image src="/sonkase-logo.svg" alt="Sonkase Private Dining" width={148} height={43} priority />
+          <Image src="/sonkase-logo-transparent.png" alt="Sonkase Private Dining" width={148} height={43} priority />
         </a>
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -246,7 +253,7 @@ function Hero() {
       id="top"
     >
       <a href="/" style={{ textDecoration: "none", marginBottom: 36 }}>
-        <Image src="/favicon-transparent.png" alt="Sonkase" width={80} height={80} priority />
+        <Image src="/favicon-transparent.png" alt="Sonkase" width={110} height={110} priority className="hero-icon" />
       </a>
 
       {/* Gold line */}
