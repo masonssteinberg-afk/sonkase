@@ -304,7 +304,7 @@ function ExperiencesSection() {
         </div>
 
         {/* Headline */}
-        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(32px, 5vw, 52px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 24, lineHeight: 1.1 }}>
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(32px, 5vw, 68px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 24, lineHeight: 1.1 }}>
           true omakase. your home.
         </h2>
 
@@ -370,7 +370,7 @@ function HowItWorksSection() {
         </div>
 
         {/* Headline */}
-        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 4vw, 44px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 80, lineHeight: 1.15 }}>
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 4vw, 60px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 80, lineHeight: 1.15 }}>
           simple from start to finish.
         </h2>
 
@@ -437,7 +437,7 @@ function ContactSection() {
         </div>
 
         {/* Headline */}
-        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 56, lineHeight: 1.2 }}>
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 4vw, 56px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 56, lineHeight: 1.2 }}>
           have a question?
         </h2>
 
