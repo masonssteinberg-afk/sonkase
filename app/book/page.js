@@ -423,7 +423,7 @@ function LoginScreen({ onLogin }) {
       email, options: { emailRedirectTo: "https://www.sonkase.com/auth/callback?next=/book" },
     });
     setLoading(false);
-    if (authError) setError("Failed to send link. Try again.");
+    if (authError) setError(authError.message || "Failed to send link. Try again.");
     else setSent(true);
   };
 

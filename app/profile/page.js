@@ -524,7 +524,8 @@ export default function Profile() {
     });
     setSigningIn(false);
     if (error) {
-      setSignInError(error.message || "Failed to send link. Try again.");
+      const detail = [error.status && `[${error.status}]`, error.message].filter(Boolean).join(" ");
+      setSignInError(detail || "Failed to send link. Try again.");
     } else {
       setSent(true);
     }
