@@ -20,11 +20,11 @@ const PACKAGES = [
   },
   {
     id: "smallgathering", name: "Small Gathering", guests: 6, price: 720,
-    includes: ["27 piece nigiri course", "2 appetizers of your choice", "14 rolls, chef's selection", "90 minute experience"],
+    includes: ["27 piece nigiri course", "3 appetizers of your choice", "14 rolls, chef's selection", "90 minute experience"],
   },
   {
     id: "gettogether", name: "Get Together", guests: 8, price: 900,
-    includes: ["36 piece nigiri course", "3 appetizers of your choice", "18 rolls, chef's selection", "90 minute experience"],
+    includes: ["36 piece nigiri course", "4 appetizers of your choice", "18 rolls, chef's selection", "90 minute experience"],
   },
 ];
 

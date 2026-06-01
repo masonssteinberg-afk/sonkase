@@ -62,10 +62,10 @@ const OMAKASE_PACKAGES = [
     id: "smallgathering",
     name: "Small Gathering",
     kanji: "集",
-    guests: 6, price: 720, deposit: 180, rolls: 14, nigiri: 27, appetizerCount: 2,
+    guests: 6, price: 720, deposit: 180, rolls: 14, nigiri: 27, appetizerCount: 3,
     includes: [
       "27 piece nigiri course",
-      "2 appetizers of your choice",
+      "3 appetizers of your choice",
       "14 rolls, chef's selection",
       "90 minute experience",
       "25% deposit locks your date",
@@ -75,10 +75,10 @@ const OMAKASE_PACKAGES = [
     id: "gettogether",
     name: "Get Together",
     kanji: "会",
-    guests: 8, price: 900, deposit: 225, rolls: 18, nigiri: 36, appetizerCount: 3,
+    guests: 8, price: 900, deposit: 225, rolls: 18, nigiri: 36, appetizerCount: 4,
     includes: [
       "36 piece nigiri course",
-      "3 appetizers of your choice",
+      "4 appetizers of your choice",
       "18 rolls, chef's selection",
       "90 minute experience",
       "25% deposit locks your date",
@@ -88,9 +88,10 @@ const OMAKASE_PACKAGES = [
 
 // ── Appetizers ────────────────────────────────────────────────
 const APPETIZER_OPTIONS = [
-  { id: "tuna_tataki",   name: "Tuna Tataki",         desc: "Seared rare, ponzu reduction",     price: 14, kanji: "鮪" },
-  { id: "salmon_pear",   name: "Salmon-Wrapped Pear", desc: "Japanese pear in raw salmon",       price: 16, kanji: "梨" },
-  { id: "hamachi_crudo", name: "Yellowtail Crudo",    desc: "Yuzu, chili oil, micro shiso",      price: 18, kanji: "鰤" },
+  { id: "tuna_tataki",   name: "Tuna Tataki",      desc: "Tuna, ponzu, sesame oil, scallion",                              price: 14, kanji: "鮪" },
+  { id: "salmon_pear",   name: "Nashi Karashi",    desc: "Japanese pear, house-cured salmon, sesame oil, black sesame",    price: 16, kanji: "梨" },
+  { id: "hamachi_crudo", name: "Yellowtail Crudo", desc: "Yellowtail, yuzu, chili oil, micro shiso",                       price: 18, kanji: "鰤" },
+  { id: "tako_usuzukuri",name: "Tako Usuzukuri",   desc: "Octopus, yuzu, sea salt, microgreens",                           price: 18, kanji: "蛸" },
 ];
 
 // ── Time Slots (11am – 11pm, 30-min increments) ───────────────
@@ -307,7 +308,7 @@ function BookStyles() {
         .book-step-label   { display: none !important; }
         .book-card         { padding: 24px 16px !important; }
         .book-pkg-grid     { grid-template-columns: 1fr !important; }
-        .book-app-grid     { grid-template-columns: 1fr !important; }
+        .book-app-grid     { grid-template-columns: 1fr 1fr !important; }
         .book-pay-inner    { flex-direction: column !important; }
       }
     `}</style>
@@ -592,7 +593,7 @@ function AppetizerStep({ pkg, selected, onToggle, onBack, onNext }) {
       <button onClick={onBack} style={CS.back}>← Back</button>
       <StepHeader kanji="参" eyebrow="Step 3 of 6" title="Choose Your Appetizer" subtitle={`Select ${needed} appetizer${needed > 1 ? "s" : ""} — included in your package.`} />
 
-      <div className="book-app-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 28 }}>
+      <div className="book-app-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 28 }}>
         {APPETIZER_OPTIONS.map((a) => {
           const active = selected.find((x) => x.id === a.id);
           return (
