@@ -292,7 +292,7 @@ function ExperiencesSection() {
 
         {/* Body */}
         <p style={{ fontFamily: "Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, textAlign: "center", maxWidth: 560, margin: "0 auto 80px", lineHeight: 1.8 }}>
-          A private chef arrives at your home, rolls course by course while your guests watch. You tell us what you don&rsquo;t eat. We handle everything else.
+          A private chef arrives at your home, rolls course by course while you watch. For sushi lovers of all kinds. Not a fan of cream cheese in your sushi? No worries. Don't like spicy food? We will make sure your experience is as sweet as can be!
         </p>
 
         {/* Package cards */}

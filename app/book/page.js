@@ -717,12 +717,24 @@ function SummaryRow({ label, value, highlight }) {
 function OmakasePaymentScreen({ pkg, user, eventDate, eventTime, appetizers, chefNotes, onBack, onConfirm }) {
   const [clientSecret, setClientSecret] = useState(null);
   const [intentError, setIntentError]   = useState(null);
+  const [promoInput, setPromoInput]     = useState("");
+  const [appliedPromo, setAppliedPromo] = useState(null); // { code, discount_amount, discount_type, discount_value }
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError]     = useState("");
+
+  // Effective amounts after promo
+  const effectiveTotal   = appliedPromo ? Math.max(0, pkg.price - appliedPromo.discount_amount) : pkg.price;
+  const effectiveDeposit = Math.round(effectiveTotal * 0.25 * 100) / 100;
+  const effectiveBalance = Math.round((effectiveTotal - effectiveDeposit) * 100) / 100;
 
   useEffect(() => {
+    if (!effectiveDeposit) return;
+    setClientSecret(null);
+    setIntentError(null);
     fetch("/api/create-payment-intent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: pkg.deposit }),
+      body: JSON.stringify({ amount: effectiveDeposit }),
     })
       .then((r) => r.json())
       .then((data) => {
@@ -730,7 +742,36 @@ function OmakasePaymentScreen({ pkg, user, eventDate, eventTime, appetizers, che
         else setIntentError(data.error || "Could not initialize payment");
       })
       .catch(() => setIntentError("Could not connect to payment service"));
-  }, [pkg.deposit]);
+  }, [effectiveDeposit]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const applyPromo = async () => {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+    setPromoLoading(true);
+    setPromoError("");
+    try {
+      const res  = await fetch("/api/validate-promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: pkg.price }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setAppliedPromo({ code, ...data });
+      } else {
+        setPromoError(data.error || "Invalid code");
+      }
+    } catch {
+      setPromoError("Could not validate code");
+    }
+    setPromoLoading(false);
+  };
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+    setPromoInput("");
+    setPromoError("");
+  };
 
   if (intentError) return (
     <div style={CS.card}>
@@ -756,17 +797,27 @@ function OmakasePaymentScreen({ pkg, user, eventDate, eventTime, appetizers, che
         pkg={pkg} user={user}
         eventDate={eventDate} eventTime={eventTime}
         appetizers={appetizers} chefNotes={chefNotes}
+        appliedPromo={appliedPromo}
+        effectiveTotal={effectiveTotal}
+        effectiveDeposit={effectiveDeposit}
+        effectiveBalance={effectiveBalance}
+        promoInput={promoInput}
+        setPromoInput={setPromoInput}
+        promoLoading={promoLoading}
+        promoError={promoError}
+        onApplyPromo={applyPromo}
+        onRemovePromo={removePromo}
         onBack={onBack} onConfirm={onConfirm}
       />
     </Elements>
   );
 }
 
-function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, appetizers, chefNotes, onBack, onConfirm }) {
+function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, appetizers, chefNotes, appliedPromo, effectiveTotal, effectiveDeposit, effectiveBalance, promoInput, setPromoInput, promoLoading, promoError, onApplyPromo, onRemovePromo, onBack, onConfirm }) {
   const stripe    = useStripe();
   const elements  = useElements();
-  const [processing, setProcessing]   = useState(false);
-  const [error, setError]             = useState("");
+  const [processing, setProcessing]     = useState(false);
+  const [error, setError]               = useState("");
   const [cardComplete, setCardComplete] = useState(false);
 
   const submit = async () => {
@@ -792,13 +843,14 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
         event_date: eventDate,
         event_time: eventTime,
         guest_count: pkg.guests,
-        total_price: pkg.price,
-        deposit_amount: pkg.deposit,
+        total_price: effectiveTotal,
+        deposit_amount: effectiveDeposit,
         appetizers_selected: appetizers.map((a) => a.name),
         special_requests: chefNotes,
         status: "pending",
         confirmation_number: confirmationId,
         stripe_payment_intent_id: paymentIntent.id,
+        ...(appliedPromo ? { promo_code: appliedPromo.code, discount_amount: appliedPromo.discount_amount } : {}),
       }),
     });
     const saveData = await saveRes.json();
@@ -818,10 +870,11 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
           packageName: pkg.name,
           eventDate, eventTime,
           guestCount: pkg.guests,
-          total: pkg.price,
-          deposit: pkg.deposit,
+          total: effectiveTotal,
+          deposit: effectiveDeposit,
           appetizersSelected: appetizers.map((a) => a.name),
           chefNotes,
+          ...(appliedPromo ? { promoCode: appliedPromo.code, discountAmount: appliedPromo.discount_amount } : {}),
         }),
       }),
       fetch("/api/notify-admin", {
@@ -834,12 +887,17 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
           packageName: pkg.name,
           eventDate, eventTime,
           guestCount: pkg.guests,
-          total: pkg.price,
-          deposit: pkg.deposit,
+          total: effectiveTotal,
+          deposit: effectiveDeposit,
           appetizersSelected: appetizers.map((a) => a.name),
           chefNotes,
         }),
       }),
+      ...(appliedPromo ? [fetch("/api/apply-promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: appliedPromo.code }),
+      })] : []),
     ]);
 
     setProcessing(false);
@@ -856,13 +914,76 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
         <div className="book-pay-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
           <div>
             <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: PERSIMMON, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 6 }}>Deposit Due Today</div>
-            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 40, fontWeight: 700, color: CREAM, lineHeight: 1 }}>{fmt2(pkg.deposit)}</div>
-            <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: "rgba(245,236,217,0.5)", marginTop: 6, fontStyle: "italic" }}>
-              Balance {fmt2(pkg.price - pkg.deposit)} due at the event
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 40, fontWeight: 400, color: CREAM, lineHeight: 1 }}>{fmt2(effectiveDeposit)}</div>
+            {appliedPromo && (
+              <div style={{ fontFamily: FONT_BODY, fontSize: 12, color: GOLD, marginTop: 6 }}>
+                {appliedPromo.discount_type === "percent"
+                  ? `${appliedPromo.discount_value}% off`
+                  : `${fmt2(appliedPromo.discount_amount)} off`} applied — total {fmt2(effectiveTotal)}
+              </div>
+            )}
+            <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: "rgba(245,236,217,0.45)", marginTop: 6, fontStyle: "italic" }}>
+              Balance {fmt2(effectiveBalance)} due at the event
             </div>
           </div>
-          <div style={{ fontFamily: FONT_DISPLAY, fontSize: 48, opacity: 0.15 }}>🔒</div>
+          <div style={{ fontSize: 36, opacity: 0.12 }}>🔒</div>
         </div>
+      </div>
+
+      {/* Promo code */}
+      <div style={{ marginBottom: 24 }}>
+        <label style={CS.label}>Promo Code</label>
+        {appliedPromo ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              flex: 1, padding: "12px 14px",
+              background: "rgba(232,201,126,0.08)", border: `1px solid rgba(232,201,126,0.4)`,
+              fontFamily: FONT_DISPLAY, fontSize: 14, color: GOLD, letterSpacing: "0.06em",
+            }}>
+              ✓ {appliedPromo.code} — {fmt2(appliedPromo.discount_amount)} off
+            </div>
+            <button onClick={onRemovePromo} style={{
+              background: "none", border: `1px solid rgba(232,201,126,0.3)`,
+              color: "rgba(232,201,126,0.6)", padding: "12px 14px",
+              fontFamily: FONT_BODY, fontSize: 13, cursor: "pointer",
+            }}>✕</button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              value={promoInput}
+              onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); }}
+              onKeyDown={(e) => e.key === "Enter" && onApplyPromo()}
+              placeholder="Optional"
+              disabled={promoLoading}
+              style={{
+                flex: 1, padding: "12px 14px",
+                background: "#0d0d0d", border: `1px solid rgba(232,201,126,0.25)`,
+                fontFamily: FONT_DISPLAY, fontSize: 14, color: CREAM, letterSpacing: "0.06em",
+                outline: "none",
+              }}
+            />
+            <button
+              onClick={onApplyPromo}
+              disabled={!promoInput.trim() || promoLoading}
+              style={{
+                background: promoInput.trim() && !promoLoading ? GOLD : "rgba(232,201,126,0.12)",
+                color: promoInput.trim() && !promoLoading ? NAVY : "rgba(232,201,126,0.3)",
+                border: "none", padding: "0 18px",
+                fontFamily: FONT_BODY, fontSize: 12, letterSpacing: "0.12em",
+                textTransform: "uppercase", cursor: promoInput.trim() ? "pointer" : "not-allowed",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {promoLoading ? "…" : "Apply"}
+            </button>
+          </div>
+        )}
+        {promoError && (
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: "rgba(232,201,126,0.7)", marginTop: 8, fontStyle: "italic" }}>
+            {promoError}
+          </div>
+        )}
       </div>
 
       {/* Card input */}
@@ -886,7 +1007,6 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
         Receipt will be sent to <strong>{user.email}</strong>
       </div>
 
-      {/* Cancellation reminder */}
       <div style={{ fontFamily: FONT_BODY, fontSize: 12, color: INK_FAINT, lineHeight: 1.6, marginBottom: 24 }}>
         Cancel 72 hours or more before your event for a full deposit refund. Cancellations within 72 hours forfeit the deposit.
       </div>
@@ -898,7 +1018,7 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
         disabled={processing || !stripe || !cardComplete}
         style={{ ...CS.cta, ...(processing || !stripe || !cardComplete ? CS.ctaDisabled : {}), width: "100%" }}
       >
-        {processing ? "Processing…" : `Pay ${fmt2(pkg.deposit)} & Confirm Booking`}
+        {processing ? "Processing…" : `Pay ${fmt2(effectiveDeposit)} & Confirm Booking`}
       </button>
     </div>
   );
