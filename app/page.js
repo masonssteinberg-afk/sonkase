@@ -222,7 +222,7 @@ function Nav() {
         boxSizing: "border-box",
       }}>
         <a href="/" style={{ textDecoration: "none" }}>
-          <img src="/sonkase-logo.svg" alt="Sonkase Private Dining" width={200} height={58} style={{ display: "block" }} />
+          <img src="/sonakase-logo.svg" alt="Sonakase Private Dining" width={200} height={58} style={{ display: "block" }} />
         </a>
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -253,7 +253,7 @@ function Hero() {
       id="top"
     >
       <a href="/" style={{ textDecoration: "none", marginBottom: 36 }}>
-        <Image src="/favicon-transparent.png" alt="Sonkase" width={110} height={110} priority className="hero-icon" />
+        <Image src="/favicon-transparent.png" alt="Sonakase" width={110} height={110} priority className="hero-icon" />
       </a>
 
       {/* Gold line */}
@@ -522,7 +522,7 @@ function SiteFooter() {
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 40px 36px", boxSizing: "border-box" }}>
         <div className="sk-footer-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 32, marginBottom: 48, flexWrap: "wrap" }}>
           <a href="/" style={{ textDecoration: "none" }}>
-            <Image src="/sonkase-logo.svg" alt="Sonkase Private Dining" width={136} height={40} />
+            <Image src="/sonakase-logo.svg" alt="Sonakase Private Dining" width={136} height={40} />
           </a>
           <a href="/book" className="sk-btn-fill" style={{ fontSize: 11 }}>
             Reserve Your Experience →
@@ -530,7 +530,7 @@ function SiteFooter() {
         </div>
         <div style={{ borderTop: `1px solid rgba(232,201,126,0.12)`, paddingTop: 24 }}>
           <p style={{ fontFamily: "Georgia, serif", fontSize: 11, color: `rgba(245,240,232,0.3)`, letterSpacing: "0.05em" }}>
-            © 2025 Sonkase™ · Gainesville, FL · All rights reserved.
+            © 2025 Sonakase™ · Gainesville, FL · All rights reserved.
           </p>
         </div>
       </div>

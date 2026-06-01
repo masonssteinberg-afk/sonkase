@@ -22,7 +22,7 @@ export async function POST(req) {
       };
       const html =
         `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#F5F0E8;">` +
-        `<div style="background:#0c0c0c;padding:20px 32px;text-align:center;"><img src="https://chefsspecialsushi.com/sonkase-logo.svg" alt="Sonkase" width="200" height="58" style="display:block;margin:0 auto;max-width:100%;border:0;" /></div>` +
+        `<div style="background:#0c0c0c;padding:20px 32px;text-align:center;"><img src="https://chefsspecialsushi.com/sonakase-logo.svg" alt="Sonakase" width="200" height="58" style="display:block;margin:0 auto;max-width:100%;border:0;" /></div>` +
         `<div style="background:#E8C97E;padding:10px;text-align:center;"><div style="font-size:10px;color:#0c0c0c;letter-spacing:0.35em;text-transform:uppercase;font-weight:bold;">Cancellation Request</div></div>` +
         `<div style="padding:32px 36px;">` +
         `<div style="background:#fff;border:1px solid rgba(26,18,8,0.1);padding:20px 24px;margin-bottom:20px;">` +
@@ -39,10 +39,10 @@ export async function POST(req) {
         `</div>` +
         `<div style="text-align:center;"><a href="https://chefsspecialsushi.com/admin" style="display:inline-block;background:#c5552d;color:#f5ecd9;padding:14px 28px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;font-family:Georgia,serif;">View in Admin Dashboard →</a></div>` +
         `</div>` +
-        `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonkase · chefsspecialsushi.com</p></div>` +
+        `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonakase · chefsspecialsushi.com</p></div>` +
         `</div>`;
       await resend.emails.send({
-        from: "Sonkase <bookings@sonkase.com>",
+        from: "Sonakase <bookings@sonakase.com>",
         to: "masonssteinberg@gmail.com",
         subject: `Cancellation Request — ${clientEmail}`,
         html,
@@ -132,7 +132,7 @@ export async function POST(req) {
       const appetizersStr = Array.isArray(appetizersSelected) ? appetizersSelected.join(", ") : (appetizersSelected || "—");
       const omHtml =
         `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#F5F0E8;">` +
-        `<div style="background:#0c0c0c;padding:20px 32px;text-align:center;"><img src="https://chefsspecialsushi.com/sonkase-logo.svg" alt="Sonkase" width="200" height="58" style="display:block;margin:0 auto;max-width:100%;border:0;" /></div>` +
+        `<div style="background:#0c0c0c;padding:20px 32px;text-align:center;"><img src="https://chefsspecialsushi.com/sonakase-logo.svg" alt="Sonakase" width="200" height="58" style="display:block;margin:0 auto;max-width:100%;border:0;" /></div>` +
         `<div style="background:#E8C97E;padding:10px;text-align:center;"><div style="font-size:10px;color:#0c0c0c;letter-spacing:0.35em;text-transform:uppercase;font-weight:bold;">New Omakase Booking</div></div>` +
         `<div style="padding:32px 36px;">` +
         `<div style="background:#fff;border:1px solid rgba(26,18,8,0.1);padding:20px 24px;margin-bottom:20px;">` +
@@ -156,10 +156,10 @@ export async function POST(req) {
         `<div style="font-size:14px;color:#5a4f3c;">Review their restrictions before the event. Arrive 30 minutes before ${fmtTime(eventTime)} to set up.</div></div>` +
         `<div style="text-align:center;"><a href="https://chefsspecialsushi.com/admin" style="display:inline-block;background:#c5552d;color:#f5ecd9;padding:14px 28px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">View in Admin →</a></div>` +
         `</div>` +
-        `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonkase · chefsspecialsushi.com</p></div>` +
+        `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonakase · chefsspecialsushi.com</p></div>` +
         `</div>`;
       await resend.emails.send({
-        from: "Sonkase <bookings@sonkase.com>",
+        from: "Sonakase <bookings@sonakase.com>",
         to: "masonssteinberg@gmail.com",
         subject: `New Booking — ${packageName} on ${fmtDate(eventDate)} at ${fmtTime(eventTime)}`,
         html: omHtml,
@@ -170,7 +170,7 @@ export async function POST(req) {
     if (isDateNight) {
       const dnHtml =
         `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#F5F0E8;">` +
-        `<div style="background:#0c0c0c;padding:20px 32px;text-align:center;"><img src="https://chefsspecialsushi.com/sonkase-logo.svg" alt="Sonkase" width="200" height="58" style="display:block;margin:0 auto;max-width:100%;border:0;" /></div>` +
+        `<div style="background:#0c0c0c;padding:20px 32px;text-align:center;"><img src="https://chefsspecialsushi.com/sonakase-logo.svg" alt="Sonakase" width="200" height="58" style="display:block;margin:0 auto;max-width:100%;border:0;" /></div>` +
         `<div style="background:#E8C97E;padding:10px;text-align:center;"><div style="font-size:10px;color:#0c0c0c;letter-spacing:0.35em;text-transform:uppercase;font-weight:bold;">New Date Night Omakase</div></div>` +
         `<div style="padding:32px 36px;">` +
         `<div style="background:#fff;border:1px solid rgba(26,18,8,0.1);padding:20px 24px;margin-bottom:20px;">` +
@@ -191,10 +191,10 @@ export async function POST(req) {
         `<div style="font-size:14px;color:#5a4f3c;">Review their restrictions before the event. Five rolls, chef's choice based on freshest catch. Nine-piece nigiri course included.</div></div>` +
         `<div style="text-align:center;"><a href="https://chefsspecialsushi.com/admin" style="display:inline-block;background:#a07736;color:#f5ecd9;padding:14px 28px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">View in Admin →</a></div>` +
         `</div>` +
-        `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonkase · chefsspecialsushi.com</p></div>` +
+        `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonakase · chefsspecialsushi.com</p></div>` +
         `</div>`;
       await resend.emails.send({
-        from: "Sonkase <bookings@sonkase.com>",
+        from: "Sonakase <bookings@sonakase.com>",
         to: "masonssteinberg@gmail.com",
         subject: `Date Night Omakase — ${fmtDate(eventDate)} · ${clientEmail}`,
         html: dnHtml,
@@ -204,7 +204,7 @@ export async function POST(req) {
 
     const html =
       `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#F5F0E8;">` +
-      `<div style="background:#0c0c0c;padding:20px 32px;text-align:center;"><img src="https://chefsspecialsushi.com/sonkase-logo.svg" alt="Sonkase" width="200" height="58" style="display:block;margin:0 auto;max-width:100%;border:0;" /></div>` +
+      `<div style="background:#0c0c0c;padding:20px 32px;text-align:center;"><img src="https://chefsspecialsushi.com/sonakase-logo.svg" alt="Sonakase" width="200" height="58" style="display:block;margin:0 auto;max-width:100%;border:0;" /></div>` +
       `<div style="background:#E8C97E;padding:10px;text-align:center;"><div style="font-size:10px;color:#0c0c0c;letter-spacing:0.35em;text-transform:uppercase;font-weight:bold;">${isDropoff ? "New Drop-Off Order" : "New Booking"}</div></div>` +
 
       `<div style="padding:32px 36px;">` +
@@ -240,7 +240,7 @@ export async function POST(req) {
       `</div>`;
 
     await resend.emails.send({
-      from: "Sonkase <bookings@sonkase.com>",
+      from: "Sonakase <bookings@sonakase.com>",
       to: "masonssteinberg@gmail.com",
       subject: isDropoff ? `Drop-Off Order — ${fmtDate(eventDate)}` : `New Booking — ${packageName} on ${fmtDate(eventDate)}`,
       html,

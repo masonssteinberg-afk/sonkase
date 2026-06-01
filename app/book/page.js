@@ -4,7 +4,7 @@ import Image from "next/image";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
-// ── Design Tokens (Sonkase™ palette) ──────────────────────────
+// ── Design Tokens (Sonakase™ palette) ──────────────────────────
 const NAVY        = "#0d0d0d";   // primary background
 const PERSIMMON   = "#E8C97E";   // gold accent (replaces persimmon)
 const PERSIMMON_D = "#c9a85e";   // darker gold for hover
@@ -334,7 +334,7 @@ function BookHeader({ user, onSignOut }) {
     <header style={{ background: NAVY, position: "sticky", top: 0, zIndex: 50, borderBottom: "1px solid rgba(232,201,126,0.15)" }}>
       <div className="book-header-inner" style={{ maxWidth: 760, margin: "0 auto", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" }}>
         <a href="/" style={{ textDecoration: "none" }}>
-          <Image src="/sonkase-logo.svg" alt="Sonkase Private Dining" width={280} height={82} priority />
+          <Image src="/sonakase-logo.svg" alt="Sonakase Private Dining" width={280} height={82} priority />
         </a>
         {user && (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -420,7 +420,7 @@ function LoginScreen({ onLogin }) {
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     const { error: authError } = await sb.auth.signInWithOtp({
-      email, options: { emailRedirectTo: "https://www.sonkase.com/auth/callback?next=/book" },
+      email, options: { emailRedirectTo: "https://www.sonakase.com/auth/callback?next=/book" },
     });
     setLoading(false);
     if (authError) setError(authError.message || "Failed to send link. Try again.");
@@ -443,7 +443,7 @@ function LoginScreen({ onLogin }) {
             Check your email for a sign-in link. Come back to this page after clicking it.
           </div>
           <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", lineHeight: 1.6 }}>
-            Don&rsquo;t see it? Check spam — look for bookings@sonkase.com
+            Don&rsquo;t see it? Check spam — look for bookings@sonakase.com
           </div>
         </div>
       ) : (
@@ -1049,7 +1049,7 @@ function ConfirmationStep({ confirmation, user, onReset }) {
       <div style={{ height: 2, width: 48, background: PERSIMMON, margin: "0 auto 24px" }} />
       <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: CREAM, marginBottom: 8 }}>Booking Confirmed</h1>
       <p style={{ fontFamily: FONT_BODY, fontSize: 15, color: INK_SOFT, fontStyle: "italic", marginBottom: 36 }}>
-        Your Sonkase™ experience is on the calendar.
+        Your Sonakase™ experience is on the calendar.
       </p>
 
       <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: PERSIMMON, letterSpacing: "0.1em", marginBottom: 32 }}>
@@ -1077,11 +1077,11 @@ function ConfirmationStep({ confirmation, user, onReset }) {
       </div>
 
       <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginBottom: 32, lineHeight: 1.6 }}>
-        Don&rsquo;t see the confirmation email? Check your spam — look for bookings@sonkase.com
+        Don&rsquo;t see the confirmation email? Check your spam — look for bookings@sonakase.com
       </div>
 
       <a href="/" style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK_SOFT, textDecoration: "underline" }}>
-        ← Back to Sonkase™
+        ← Back to Sonakase™
       </a>
     </div>
   );

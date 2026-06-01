@@ -6,7 +6,7 @@ const supabase = typeof window !== "undefined"
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
   : null;
 
-// ── Sonkase palette ───────────────────────────────────────────
+// ── Sonakase palette ───────────────────────────────────────────
 const BG    = "#0d0d0d";
 const BG2   = "#141414";
 const GOLD  = "#E8C97E";
@@ -520,7 +520,7 @@ export default function Profile() {
     setSignInError("");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: "https://www.sonkase.com/auth/callback" },
+      options: { emailRedirectTo: "https://www.sonakase.com/auth/callback" },
     });
     setSigningIn(false);
     if (error) {
@@ -579,7 +579,7 @@ export default function Profile() {
           </>
         )}
         <div style={{ marginTop: 24 }}>
-          <a href="/" style={{ fontFamily: F, fontSize: 12, color: FAINT, fontStyle: "italic", textDecoration: "none" }}>← Back to Sonkase™</a>
+          <a href="/" style={{ fontFamily: F, fontSize: 12, color: FAINT, fontStyle: "italic", textDecoration: "none" }}>← Back to Sonakase™</a>
         </div>
       </div>
     </div>

@@ -1,10 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 140" width="480" height="140" role="img" aria-label="Sonkase Private Dining">
-  <title>Sonkase — Private Dining</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 140" width="480" height="140" role="img" aria-label="Sonakase Private Dining">
+  <title>Sonakase — Private Dining</title>
   <defs>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&amp;family=Cormorant+Garamond:wght@300&amp;display=swap');
     </style>
   </defs>
+
+  <!-- Background -->
+  <rect width="480" height="140" fill="#0c0c0c"/>
 
   <!-- ── MARK: Triple wave chopsticks (90×100 scaled into 100×120 area, centered at x=68) ── -->
   <g transform="translate(18, 10) scale(0.9)">
@@ -32,7 +35,7 @@
         stroke="#b8892a" stroke-width="0.7" opacity="0.6"/>
 
   <!-- ── WORDMARK ── -->
-  <!-- "sonkase" — rendered as paths so no font dependency -->
+  <!-- "sonakase" — rendered as paths so no font dependency -->
   <!-- Using text with embedded font reference; SVG is self-contained for web use -->
   <text x="138" y="88"
         font-family="'Shippori Mincho', 'Hiragino Mincho Pro', 'Times New Roman', serif"
@@ -40,7 +43,7 @@
         font-size="52"
         letter-spacing="11"
         fill="#e6dac8"
-        dominant-baseline="auto">sonkase</text>
+        dominant-baseline="auto">sonakase</text>
 
   <!-- "Private Dining" sub -->
   <text x="140" y="108"

@@ -30,11 +30,11 @@ export async function POST(req) {
 
     // ── Shared building blocks ────────────────────────────────────
     const LOGO = `<div style="background:#0c0c0c;padding:24px 32px;text-align:center;">` +
-      `<img src="https://chefsspecialsushi.com/sonkase-logo.svg" alt="Sonkase Private Dining" width="220" height="64" style="display:block;margin:0 auto;max-width:100%;border:0;" />` +
+      `<img src="https://chefsspecialsushi.com/sonakase-logo.svg" alt="Sonakase Private Dining" width="220" height="64" style="display:block;margin:0 auto;max-width:100%;border:0;" />` +
       `</div>`;
 
     const FOOTER = `<div style="background:#0c0c0c;padding:20px;text-align:center;">` +
-      `<p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.2em;margin:0;">Don't see this email? Check spam — bookings@sonkase.com</p>` +
+      `<p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.2em;margin:0;">Don't see this email? Check spam — bookings@sonakase.com</p>` +
       `</div>`;
 
     const row = (label, value) =>
@@ -53,7 +53,7 @@ export async function POST(req) {
         `<div style="font-size:11px;color:#0c0c0c;letter-spacing:0.4em;text-transform:uppercase;font-weight:bold;">Experience Confirmed</div>` +
         `</div>` +
         `<div style="padding:36px 32px;">` +
-        `<p style="font-size:16px;color:#1a1208;font-style:italic;margin:0 0 28px;line-height:1.65;">Your Sonkase experience is confirmed. Here are your details.</p>` +
+        `<p style="font-size:16px;color:#1a1208;font-style:italic;margin:0 0 28px;line-height:1.65;">Your Sonakase experience is confirmed. Here are your details.</p>` +
         `<div style="background:#fff;border:1px solid rgba(184,137,42,0.25);padding:20px 24px;margin-bottom:24px;">` +
         row("Confirmation", confirmationId) +
         row("Experience", packageName) +
@@ -80,9 +80,9 @@ export async function POST(req) {
         FOOTER + `</div>`;
 
       await resend.emails.send({
-        from: "Sonkase <bookings@sonkase.com>",
+        from: "Sonakase <bookings@sonakase.com>",
         to: email,
-        subject: `Your Sonkase Experience — ${packageName} on ${fmtDate(eventDate)}`,
+        subject: `Your Sonakase Experience — ${packageName} on ${fmtDate(eventDate)}`,
         html,
       });
       return Response.json({ success: true });
@@ -123,9 +123,9 @@ export async function POST(req) {
         FOOTER + `</div>`;
 
       await resend.emails.send({
-        from: "Sonkase <bookings@sonkase.com>",
+        from: "Sonakase <bookings@sonakase.com>",
         to: email,
-        subject: `Your Sonkase Date Night — ${fmtDate(eventDate)}`,
+        subject: `Your Sonakase Date Night — ${fmtDate(eventDate)}`,
         html,
       });
       return Response.json({ success: true });
@@ -151,7 +151,7 @@ export async function POST(req) {
       `<div style="font-size:11px;color:#0c0c0c;letter-spacing:0.4em;text-transform:uppercase;font-weight:bold;">Booking Confirmed</div>` +
       `</div>` +
       `<div style="padding:36px 32px;">` +
-      `<p style="font-size:16px;color:#1a1208;font-style:italic;margin:0 0 28px;line-height:1.65;">Your Sonkase experience is on the calendar. Here are your details.</p>` +
+      `<p style="font-size:16px;color:#1a1208;font-style:italic;margin:0 0 28px;line-height:1.65;">Your Sonakase experience is on the calendar. Here are your details.</p>` +
       `<div style="background:#fff;border:1px solid rgba(184,137,42,0.25);padding:20px 24px;margin-bottom:24px;">` +
       row("Confirmation", confirmationId) +
       row("Package", packageName) +
@@ -172,9 +172,9 @@ export async function POST(req) {
       FOOTER + `</div>`;
 
     await resend.emails.send({
-      from: "Sonkase <bookings@sonkase.com>",
+      from: "Sonakase <bookings@sonakase.com>",
       to: email,
-      subject: `Booking Confirmed · ${confirmationId} · Sonkase`,
+      subject: `Booking Confirmed · ${confirmationId} · Sonakase`,
       html,
     });
 
