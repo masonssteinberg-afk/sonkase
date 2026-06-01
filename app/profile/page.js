@@ -451,6 +451,19 @@ export default function Profile() {
     const nextUrl = params.get("next") || null;
     if (nextUrl) setNextParam(nextUrl);
 
+    const code = params.get("code");
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ data }) => {
+        if (data?.user) {
+          setUser(data.user);
+          fetchBookings(data.user.email);
+        }
+        window.history.replaceState({}, "", "/profile");
+        setLoading(false);
+      });
+      return;
+    }
+
     if (token_hash && type) {
       supabase.auth.verifyOtp({ token_hash, type }).then(({ data }) => {
         if (data?.user) {
@@ -503,7 +516,7 @@ export default function Profile() {
     if (!email.includes("@")) return;
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/profile${nextParam ? `?next=${encodeURIComponent(nextParam)}` : ""}` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     if (!error) setSent(true);
   };

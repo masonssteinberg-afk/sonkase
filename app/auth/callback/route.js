@@ -1,23 +1,19 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
+  const code       = searchParams.get('code')
   const token_hash = searchParams.get('token_hash')
-  const type = searchParams.get('type')
+  const type       = searchParams.get('type')
+  const next       = searchParams.get('next') || '/profile'
 
   if (code) {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    )
-    await supabase.auth.exchangeCodeForSession(code)
-    return NextResponse.redirect(`${origin}/profile`)
+    // Pass code to the client page — browser-side exchangeCodeForSession stores session in localStorage
+    return NextResponse.redirect(`${origin}${next}?code=${encodeURIComponent(code)}`)
   }
 
   if (token_hash && type) {
-    return NextResponse.redirect(`${origin}/profile#token_hash=${token_hash}&type=${type}`)
+    return NextResponse.redirect(`${origin}${next}?token_hash=${encodeURIComponent(token_hash)}&type=${encodeURIComponent(type)}`)
   }
 
   return NextResponse.redirect(`${origin}/profile`)

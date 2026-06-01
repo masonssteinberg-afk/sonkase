@@ -154,6 +154,19 @@ export default function App() {
     (async () => {
       const { createClient } = await import("@supabase/supabase-js");
       const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+      const code = new URLSearchParams(window.location.search).get("code");
+      if (code) {
+        const { data } = await supabase.auth.exchangeCodeForSession(code);
+        window.history.replaceState({}, "", "/book");
+        if (data?.user) {
+          setUser({ email: data.user.email });
+          setSessionChecked(true);
+          setStep("pkg");
+          return;
+        }
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser({ email: session.user.email });
@@ -407,7 +420,7 @@ function LoginScreen({ onLogin }) {
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     const { error: authError } = await sb.auth.signInWithOtp({
-      email, options: { emailRedirectTo: `${window.location.origin}/book` },
+      email, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/book` },
     });
     setLoading(false);
     if (authError) setError("Failed to send link. Try again.");
