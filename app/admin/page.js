@@ -1,12 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
 
-const supabase = typeof window !== "undefined"
-  ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-  : null;
-
-const ADMIN_EMAIL = "masonssteinberg@gmail.com";
+const ADMIN_PW = "prettyyoungthing";
+const AUTH_KEY = "sk_admin_authed";
 
 const INDIGO      = "#1a2845";
 const INDIGO_DARK = "#0d1729";
@@ -259,29 +255,23 @@ const PREP_DAY_OF = [
 // MAIN DASHBOARD
 // ============================================================
 export default function AdminDashboard() {
-  const [user, setUser]         = useState(null);
-  const [bookings, setBookings] = useState([]);
+  const [authed, setAuthed]     = useState(false);
   const [loading, setLoading]   = useState(true);
+  const [bookings, setBookings] = useState([]);
   const [filter, setFilter]     = useState("all");
   const [activeTab, setActiveTab] = useState("bookings");
   const [promoCodes, setPromoCodes] = useState([]);
+
+  useEffect(() => {
+    if (localStorage.getItem(AUTH_KEY) === "1") setAuthed(true);
+    setLoading(false);
+  }, []);
 
   const fetchAllBookings = async () => {
     const res  = await fetch("/api/admin/get-bookings");
     const data = await res.json();
     setBookings(data.bookings || []);
   };
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) setUser(session.user);
-      setLoading(false);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
 
   const fetchPromoCodes = async () => {
     const res = await fetch("/api/admin/promo-codes");
@@ -290,12 +280,12 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (user?.email === ADMIN_EMAIL) fetchAllBookings();
-  }, [user]);
+    if (authed) fetchAllBookings();
+  }, [authed]);
 
   useEffect(() => {
-    if (activeTab === "promo" && user?.email === ADMIN_EMAIL) fetchPromoCodes();
-  }, [activeTab, user]);
+    if (activeTab === "promo" && authed) fetchPromoCodes();
+  }, [activeTab, authed]);
 
   const updateStatus = async (id, status) => {
     const res  = await fetch("/api/admin/update-booking", {
@@ -317,26 +307,13 @@ export default function AdminDashboard() {
     cancelled: bookings.filter((b) => b.status === "cancelled").length,
   };
 
-  if (loading) return (
-    <div style={{ minHeight: "100vh", background: INDIGO_DARK, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ fontFamily: FD, fontSize: 18, color: CREAM, opacity: 0.6 }}>Loading...</div>
-    </div>
-  );
+  if (loading) return null;
 
-  if (!user) return (
-    <div style={{ minHeight: "100vh", background: INDIGO_DARK, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
-      <div style={{ fontFamily: FD, fontSize: 32, color: PERSIMMON }}>管理</div>
-      <div style={{ fontFamily: FD, fontSize: 18, color: CREAM }}>Sign in required</div>
-      <a href="/profile" style={{ background: PERSIMMON, color: CREAM, padding: "12px 24px", fontFamily: FD, fontSize: 13, letterSpacing: "0.15em", textTransform: "uppercase", textDecoration: "none" }}>Sign In →</a>
-    </div>
-  );
-
-  if (user.email !== ADMIN_EMAIL) return (
-    <div style={{ minHeight: "100vh", background: INDIGO_DARK, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
-      <div style={{ fontFamily: FD, fontSize: 32, color: PERSIMMON }}>禁止</div>
-      <div style={{ fontFamily: FD, fontSize: 18, color: CREAM }}>Access denied</div>
-      <div style={{ fontFamily: FB, fontSize: 14, color: INK_FAINT, fontStyle: "italic" }}>Signed in as {user.email}</div>
-    </div>
+  if (!authed) return (
+    <PasswordScreen onAuth={() => {
+      localStorage.setItem(AUTH_KEY, "1");
+      setAuthed(true);
+    }} />
   );
 
   return (
@@ -397,9 +374,9 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
-            <span style={{ fontFamily: FB, fontSize: 12, color: "rgba(245,236,217,0.6)", fontStyle: "italic", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             <a href="/" style={{ background: "transparent", border: `1px solid ${PERSIMMON}`, color: PERSIMMON, padding: "6px 14px", fontFamily: FD, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", textDecoration: "none", whiteSpace: "nowrap", minHeight: 44, display: "flex", alignItems: "center" }}>← Site</a>
+            <button onClick={() => { localStorage.removeItem(AUTH_KEY); window.location.reload(); }} style={{ background: "transparent", border: `1px solid rgba(245,236,217,0.2)`, color: "rgba(245,236,217,0.45)", padding: "6px 14px", fontFamily: FD, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", whiteSpace: "nowrap", minHeight: 44 }}>Lock</button>
           </div>
         </div>
         <div style={{ height: 2, background: `linear-gradient(90deg, ${PERSIMMON} 0%, ${GOLD} 60%, transparent 100%)` }} />
@@ -494,6 +471,60 @@ export default function AdminDashboard() {
           <PromoCodesTab promoCodes={promoCodes} onRefresh={fetchPromoCodes} />
         )}
       </main>
+    </div>
+  );
+}
+
+// ============================================================
+// PASSWORD SCREEN
+// ============================================================
+function PasswordScreen({ onAuth }) {
+  const [value, setValue] = useState("");
+  const [shake, setShake] = useState(false);
+
+  const attempt = () => {
+    if (value === ADMIN_PW) {
+      onAuth();
+    } else {
+      setShake(true);
+      setValue("");
+      setTimeout(() => setShake(false), 500);
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <style>{`
+        @keyframes shake {
+          0%,100% { transform: translateX(0); }
+          20%,60%  { transform: translateX(-8px); }
+          40%,80%  { transform: translateX(8px); }
+        }
+        .pw-input { animation: none; }
+        .pw-input.shake { animation: shake 0.4s ease; }
+        .pw-input:focus { outline: none; border-color: rgba(255,255,255,0.4) !important; }
+      `}</style>
+      <input
+        className={`pw-input${shake ? " shake" : ""}`}
+        type="password"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && attempt()}
+        autoFocus
+        placeholder="••••••••"
+        style={{
+          background: "transparent",
+          border: "none",
+          borderBottom: "1px solid rgba(255,255,255,0.15)",
+          color: "#fff",
+          fontFamily: "Georgia, serif",
+          fontSize: 18,
+          letterSpacing: "0.2em",
+          padding: "12px 0",
+          width: 220,
+          textAlign: "center",
+        }}
+      />
     </div>
   );
 }
