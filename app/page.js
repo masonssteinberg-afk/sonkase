@@ -11,28 +11,28 @@ const CREAM = "#F5F0E8";
 // ── Packages (no ™ on individual names per brand guidelines) ──
 const PACKAGES = [
   {
-    id: "datenight", name: "Date Night", guests: 2, price: 300,
-    includes: ["9 piece nigiri course", "1 appetizer of your choice", "5 rolls, chef's selection", "90 minute experience"],
+    id: "datenight", name: "date night", guests: 2, price: 300,
+    includes: ["9 piece nigiri course", "1 appetizer of your choice", "5 rolls, chef's selection"],
   },
   {
-    id: "doubledatenight", name: "Double Date Night", guests: 4, price: 520,
-    includes: ["18 piece nigiri course", "2 appetizers of your choice", "10 rolls, chef's selection", "90 minute experience"],
+    id: "doubledatenight", name: "double date", guests: 4, price: 520,
+    includes: ["18 piece nigiri course", "2 appetizers of your choice", "10 rolls, chef's selection"],
   },
   {
-    id: "smallgathering", name: "Small Gathering", guests: 6, price: 720,
-    includes: ["27 piece nigiri course", "3 appetizers of your choice", "14 rolls, chef's selection", "90 minute experience"],
+    id: "smallgathering", name: "small gathering", guests: 6, price: 720,
+    includes: ["27 piece nigiri course", "3 appetizers of your choice", "14 rolls, chef's selection"],
   },
   {
-    id: "gettogether", name: "Get Together", guests: 8, price: 900,
-    includes: ["36 piece nigiri course", "4 appetizers of your choice", "18 rolls, chef's selection", "90 minute experience"],
+    id: "gettogether", name: "get together", guests: 8, price: 900,
+    includes: ["36 piece nigiri course", "4 appetizers of your choice", "18 rolls, chef's selection"],
   },
 ];
 
 const HOW_STEPS = [
-  { num: "一", title: "Reserve",    desc: "Book online, select your experience, pay a 25% deposit to lock your date." },
-  { num: "二", title: "We Prepare", desc: "Your chef sources fresh fish and preps everything the day before." },
-  { num: "三", title: "We Arrive",  desc: "Chef arrives 30 minutes early and sets up in your kitchen." },
-  { num: "四", title: "You Enjoy",  desc: "Sit back while your chef rolls course by course." },
+  { num: "一", title: "reserve",     desc: "book online, select your experience, pay a 25% deposit to lock your date." },
+  { num: "二", title: "we prepare",  desc: "your chef sources fresh fish and preps everything the day before." },
+  { num: "三", title: "we arrive",   desc: "chef arrives 30 minutes early and sets up in your kitchen." },
+  { num: "四", title: "you enjoy",   desc: "sit back while your chef rolls course by course." },
 ];
 
 /* ======================================================================
@@ -77,6 +77,7 @@ export default function Home() {
       <HowItWorksSection />
       <ContactSection />
       <PhotoSection />
+      <AboutSection />
       <SiteFooter />
     </div>
   );
@@ -89,12 +90,12 @@ function PageStyles() {
     <style>{`
       .sk-hero { padding: 140px 40px 100px; }
 
-      @keyframes float {
+      @keyframes bob {
         0%   { transform: translateY(0px); }
-        50%  { transform: translateY(-10px); }
+        50%  { transform: translateY(16px); }
         100% { transform: translateY(0px); }
       }
-      .hero-icon { animation: float 3s ease-in-out infinite; }
+      .hero-icon { animation: bob 2.5s ease-in-out infinite; }
 
       .sk-nav-link {
         font-family: Georgia, serif;
@@ -242,9 +243,9 @@ function Nav() {
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <div className="sk-nav-links" style={{ display: "flex", alignItems: "center" }}>
-            <a href="#experiences" className="sk-nav-link">Experiences</a>
-            <a href="#contact"     className="sk-nav-link">Contact</a>
-            <a href="/profile"     className="sk-nav-link">{loggedIn ? "My Bookings" : "Login"}</a>
+            <a href="#experiences" className="sk-nav-link">experiences</a>
+            <a href="#contact"     className="sk-nav-link">contact</a>
+            <a href="/profile"     className="sk-nav-link">{loggedIn ? "my bookings" : "login"}</a>
           </div>
           <a href="/book" className="sk-btn-fill" style={{ fontSize: 11, letterSpacing: "0.2em", minHeight: 44, padding: "0 22px" }}>
             Reserve
@@ -268,7 +269,7 @@ function Hero() {
       id="top"
     >
       <a href="/" style={{ textDecoration: "none", marginBottom: 36 }}>
-        <Image src="/favicon-transparent.png" alt="Sonakase" width={110} height={110} priority className="hero-icon" />
+        <Image src="/favicon-transparent.png" alt="Sonakase" width={180} height={180} priority className="hero-icon" />
       </a>
 
       {/* Gold line */}
@@ -303,13 +304,13 @@ function ExperiencesSection() {
       <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
         {/* Eyebrow */}
-        <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: GOLD, letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
-          The Experience
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
+          the experience
         </div>
 
         {/* Headline */}
         <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(32px, 5vw, 52px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 24, lineHeight: 1.1 }}>
-          True omakase. Your home.
+          true omakase. your home.
         </h2>
 
         {/* Body */}
@@ -327,7 +328,7 @@ function ExperiencesSection() {
               </div>
 
               {/* Guest count */}
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 11, color: GOLD, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 24 }}>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: 11, color: "#b8892a", letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 24 }}>
                 {p.guests} guests
               </div>
 
@@ -373,13 +374,13 @@ function HowItWorksSection() {
     <section style={{ background: BG }}>
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
         {/* Eyebrow */}
-        <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: GOLD, letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
-          The Process
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
+          the process
         </div>
 
         {/* Headline */}
         <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 4vw, 44px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 80, lineHeight: 1.15 }}>
-          Simple from start to finish.
+          simple from start to finish.
         </h2>
 
         {/* Steps */}
@@ -440,13 +441,13 @@ function ContactSection() {
       <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
         {/* Eyebrow */}
-        <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: GOLD, letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
-          Get In Touch
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
+          get in touch
         </div>
 
         {/* Headline */}
         <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 56, lineHeight: 1.2 }}>
-          Have a question?
+          have a question?
         </h2>
 
         {status === "success" ? (
@@ -529,6 +530,27 @@ function PhotoSection() {
   );
 }
 
+// ── About Section ─────────────────────────────────────────────
+function AboutSection() {
+  return (
+    <section style={{ background: "#111111" }}>
+      <div style={{ height: 1, background: "#b8892a" }} />
+      <div style={{ maxWidth: 720, margin: "0 auto", padding: "100px 40px", boxSizing: "border-box", textAlign: "center" }}>
+        <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "clamp(52px, 9vw, 88px)", color: "#e6dac8", letterSpacing: "0.22em", fontWeight: 400, lineHeight: 1, marginBottom: 12 }}>
+          sonakase
+        </div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", marginBottom: 56 }}>
+          private dining
+        </div>
+        <div style={{ width: 48, height: 1, background: "#b8892a", opacity: 0.4, margin: "0 auto 56px" }} />
+        <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 16, color: "#e6dac8", lineHeight: 2, opacity: 0.7, maxWidth: 560, margin: "0 auto" }}>
+          &ldquo;sona&rdquo; derives from the Sanskrit and Japanese root for gold, resonance, and sound. &ldquo;kase&rdquo; draws from the Japanese concept of layered presentation and quiet mastery. together, sonakase represents a golden experience built through intention, craft, and silence.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 // ── Footer ────────────────────────────────────────────────────
 function SiteFooter() {
   return (
@@ -537,7 +559,20 @@ function SiteFooter() {
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 40px 36px", boxSizing: "border-box" }}>
         <div className="sk-footer-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 32, marginBottom: 48, flexWrap: "wrap" }}>
           <a href="/" style={{ textDecoration: "none" }}>
-            <Image src="/sonakase-logo.svg" alt="Sonakase Private Dining" width={136} height={40} />
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="160" height="45" role="img" aria-label="Sonakase Private Dining">
+              <defs><style>{"@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Cormorant+Garamond:wght@300&display=swap');"}</style></defs>
+              <g transform="translate(18, 10) scale(0.9)">
+                <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+                <line x1="55" y1="12" x2="48" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+                <circle cx="45" cy="19" r="3" fill="#b8892a"/>
+                <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke="#b8892a" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke="#b8892a" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5"/>
+                <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke="#b8892a" strokeWidth="0.8" strokeLinecap="round" fill="none" opacity="0.22"/>
+              </g>
+              <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
+              <text x="138" y="88" fontFamily="'Shippori Mincho', 'Times New Roman', serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
+              <text x="140" y="108" fontFamily="'Cormorant Garamond', Georgia, serif" fontWeight="300" fontSize="11" letterSpacing="5.5" fill="#b8892a">PRIVATE DINING</text>
+            </svg>
           </a>
           <a href="/book" className="sk-btn-fill" style={{ fontSize: 11 }}>
             Reserve Your Experience →

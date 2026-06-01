@@ -34,53 +34,49 @@ const FONT_BODY    = `Georgia, 'Times New Roman', serif`;
 const OMAKASE_PACKAGES = [
   {
     id: "datenight",
-    name: "Date Night",
+    name: "date night",
     kanji: "宴",
     guests: 2, price: 300, deposit: 75, rolls: 5, nigiri: 9, appetizerCount: 1,
     includes: [
       "9 piece nigiri course",
       "1 appetizer of your choice",
       "5 rolls, chef's selection",
-      "90 minute experience",
       "25% deposit locks your date",
     ],
   },
   {
     id: "doubledatenight",
-    name: "Double Date Night",
+    name: "double date",
     kanji: "双",
     guests: 4, price: 520, deposit: 130, rolls: 10, nigiri: 18, appetizerCount: 2,
     includes: [
       "18 piece nigiri course",
       "2 appetizers of your choice",
       "10 rolls, chef's selection",
-      "90 minute experience",
       "25% deposit locks your date",
     ],
   },
   {
     id: "smallgathering",
-    name: "Small Gathering",
+    name: "small gathering",
     kanji: "集",
     guests: 6, price: 720, deposit: 180, rolls: 14, nigiri: 27, appetizerCount: 3,
     includes: [
       "27 piece nigiri course",
       "3 appetizers of your choice",
       "14 rolls, chef's selection",
-      "90 minute experience",
       "25% deposit locks your date",
     ],
   },
   {
     id: "gettogether",
-    name: "Get Together",
+    name: "get together",
     kanji: "会",
     guests: 8, price: 900, deposit: 225, rolls: 18, nigiri: 36, appetizerCount: 4,
     includes: [
       "36 piece nigiri course",
       "4 appetizers of your choice",
       "18 rolls, chef's selection",
-      "90 minute experience",
       "25% deposit locks your date",
     ],
   },
@@ -134,7 +130,7 @@ const fmtTime   = (v) => {
 };
 
 // ── Step Labels ───────────────────────────────────────────────
-const STEP_LABELS = ["Package", "When", "Appetizers", "Notes", "Review", "Payment"];
+const STEP_LABELS = ["package", "when", "appetizers", "preferences", "review", "payment"];
 const VISIBLE_STEPS = ["pkg", "datetime", "appetizer", "notes", "summary", "payment"];
 
 // ── Main App ──────────────────────────────────────────────────
@@ -449,7 +445,7 @@ function LoginScreen({ onLogin }) {
       ) : (
         <>
           <div style={{ marginBottom: 16 }}>
-            <label style={CS.label}>Email Address</label>
+            <label style={CS.label}>email address</label>
             <input
               type="email" value={email} autoFocus
               onChange={(e) => { setEmail(e.target.value); setError(""); }}
@@ -472,7 +468,7 @@ function LoginScreen({ onLogin }) {
 function PackageStep({ selected, onSelect, onNext }) {
   return (
     <div style={CS.card}>
-      <StepHeader kanji="壱" eyebrow="Step 1 of 6" title="Choose Your Experience" />
+      <StepHeader kanji="壱" eyebrow="step 1 of 6" title="choose your experience" />
 
       <div className="book-pkg-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
         {OMAKASE_PACKAGES.map((p) => {
@@ -537,10 +533,10 @@ function DateTimeStep({ eventDate, setEventDate, eventTime, setEventTime, onBack
   return (
     <div style={CS.card}>
       <button onClick={onBack} style={CS.back}>← Back to packages</button>
-      <StepHeader kanji="弐" eyebrow="Step 2 of 6" title="Choose Your Evening" />
+      <StepHeader kanji="弐" eyebrow="step 2 of 6" title="choose your evening" />
 
       <div style={{ marginBottom: 28 }}>
-        <label style={CS.label}>Date</label>
+        <label style={CS.label}>date</label>
         <input
           type="date" value={eventDate} min={minDate()}
           onChange={(e) => setEventDate(e.target.value)}
@@ -562,7 +558,7 @@ function DateTimeStep({ eventDate, setEventDate, eventTime, setEventTime, onBack
       </div>
 
       <div style={{ marginBottom: 28 }}>
-        <label style={CS.label}>Start Time</label>
+        <label style={CS.label}>start time</label>
         <select
           value={eventTime}
           onChange={(e) => setEventTime(e.target.value)}
@@ -604,7 +600,7 @@ function AppetizerStep({ pkg, selected, onToggle, onBack, onNext }) {
   return (
     <div style={CS.card}>
       <button onClick={onBack} style={CS.back}>← Back</button>
-      <StepHeader kanji="参" eyebrow="Step 3 of 6" title="Choose Your Appetizer" subtitle={`Select ${needed} appetizer${needed > 1 ? "s" : ""} — included in your package.`} />
+      <StepHeader kanji="参" eyebrow="step 3 of 6" title="choose your appetizer" subtitle={`select ${needed} appetizer${needed > 1 ? "s" : ""} — included in your package.`} />
 
       <div className="book-app-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 28 }}>
         {APPETIZER_OPTIONS.map((a) => {
@@ -637,40 +633,84 @@ function AppetizerStep({ pkg, selected, onToggle, onBack, onNext }) {
       </div>
 
       <button onClick={onNext} disabled={!canProceed} style={{ ...CS.cta, ...(!canProceed ? CS.ctaDisabled : {}) }}>
-        Continue to Chef&rsquo;s Notes →
+        CONTINUE TO PREFERENCES →
       </button>
     </div>
   );
 }
 
-// ── Step 4: Chef's Notes ──────────────────────────────────────
+// ── Step 4: Sushi Preferences ────────────────────────────────
+const PREFERENCE_OPTIONS = [
+  "heavier on tuna",
+  "heavier on salmon",
+  "light on rice",
+  "no cucumber",
+  "no avocado",
+  "no spicy",
+  "no shellfish",
+  "no raw fish",
+  "preference for lighter flavors",
+  "preference for richer flavors",
+];
+
 function NotesStep({ value, onChange, onBack, onNext }) {
-  const canProceed = value.trim().length >= 3;
+  const [selected, setSelected] = useState(() =>
+    value ? value.split(", ").filter((s) => PREFERENCE_OPTIONS.includes(s)) : []
+  );
+
+  const toggle = (opt) => {
+    const next = selected.includes(opt)
+      ? selected.filter((s) => s !== opt)
+      : [...selected, opt];
+    setSelected(next);
+    onChange(next.length > 0 ? next.join(", ") : "");
+  };
+
+  const canProceed = selected.length > 0;
 
   return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Back</button>
-      <StepHeader kanji="四" eyebrow="Step 4 of 6" title="What don't you eat?" />
+      <button onClick={onBack} style={CS.back}>← back</button>
+      <StepHeader kanji="四" eyebrow="step 4 of 6" title="sushi preferences" subtitle="select all that apply. your chef reads this before every event." />
 
-      <div style={{ marginBottom: 28 }}>
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="List any allergies, dietary restrictions, or ingredients you want avoided. This is required. Your chef reads this before every event."
-          style={{
-            ...CS.input,
-            width: "100%", height: 140, resize: "vertical",
-            lineHeight: 1.6, boxSizing: "border-box",
-          }}
-          autoFocus
-        />
-        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginTop: 10, lineHeight: 1.6 }}>
-          No shellfish, no spicy, no cucumber — whatever it is, we need to know. If there are no restrictions, type &ldquo;No restrictions.&rdquo;
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 28 }}>
+        {PREFERENCE_OPTIONS.map((opt) => {
+          const active = selected.includes(opt);
+          return (
+            <button
+              key={opt}
+              onClick={() => toggle(opt)}
+              style={{
+                background: active ? "rgba(232,201,126,0.08)" : "#0d0d0d",
+                border: `1px solid rgba(232,201,126,${active ? "0.45" : "0.2"})`,
+                padding: "14px 16px",
+                fontFamily: FONT_BODY, fontSize: 13,
+                color: active ? GOLD : CREAM,
+                textAlign: "left", cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 10,
+                transition: "border-color 0.15s, background 0.15s",
+              }}
+            >
+              <span style={{
+                width: 14, height: 14, border: `1px solid ${active ? GOLD : "rgba(232,201,126,0.3)"}`,
+                background: active ? GOLD : "transparent",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0, fontSize: 9, color: "#0d0d0d", fontWeight: 700,
+              }}>
+                {active ? "✓" : ""}
+              </span>
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginBottom: 24, lineHeight: 1.6 }}>
+        {selected.length === 0 ? "select at least one preference to continue." : `${selected.length} selected`}
       </div>
 
       <button onClick={onNext} disabled={!canProceed} style={{ ...CS.cta, ...(!canProceed ? CS.ctaDisabled : {}) }}>
-        Review Your Booking →
+        REVIEW YOUR BOOKING →
       </button>
     </div>
   );
@@ -683,7 +723,7 @@ function SummaryStep({ pkg, eventDate, eventTime, appetizers, chefNotes, onBack,
   return (
     <div style={CS.card}>
       <button onClick={onBack} style={CS.back}>← Edit notes</button>
-      <StepHeader kanji="五" eyebrow="Step 5 of 6" title="Review Your Booking" />
+      <StepHeader kanji="五" eyebrow="step 5 of 6" title="review your booking" />
 
       {/* Order recap */}
       <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 24 }}>
@@ -692,7 +732,7 @@ function SummaryStep({ pkg, eventDate, eventTime, appetizers, chefNotes, onBack,
         <SummaryRow label="Date"       value={fmtDate(eventDate)} />
         <SummaryRow label="Time"       value={fmtTime(eventTime)} />
         <SummaryRow label={`Appetizer${appetizers.length > 1 ? "s" : ""}`} value={appetizers.map((a) => a.name).join(", ")} />
-        <SummaryRow label="Chef's Notes" value={chefNotes} />
+        <SummaryRow label="preferences" value={chefNotes} />
       </div>
 
       {/* Pricing */}
@@ -704,7 +744,7 @@ function SummaryStep({ pkg, eventDate, eventTime, appetizers, chefNotes, onBack,
 
       {/* Cancellation */}
       <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, padding: "14px 16px", marginBottom: 28 }}>
-        <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 400, marginBottom: 6 }}>Cancellation Policy</div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 400, marginBottom: 6 }}>cancellation policy</div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, lineHeight: 1.6 }}>
           Cancel 72 hours or more before your event for a full deposit refund. Cancellations within 72 hours forfeit the deposit.
         </div>
@@ -921,13 +961,13 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
   return (
     <div style={CS.card}>
       <button onClick={onBack} style={CS.back}>← Back to review</button>
-      <StepHeader kanji="払" eyebrow="Step 6 of 6" title="Secure Payment" subtitle="Pay your 25% deposit to confirm the booking." />
+      <StepHeader kanji="払" eyebrow="step 6 of 6" title="secure payment" subtitle="pay your 25% deposit to confirm the booking." />
 
       {/* Deposit panel */}
       <div style={{ background: NAVY, color: CREAM, padding: "22px 26px", marginBottom: 28 }}>
         <div className="book-pay-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
           <div>
-            <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: PERSIMMON, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 6 }}>Deposit Due Today</div>
+            <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: PERSIMMON, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 6 }}>deposit due today</div>
             <div style={{ fontFamily: FONT_DISPLAY, fontSize: 40, fontWeight: 400, color: CREAM, lineHeight: 1 }}>{fmt2(effectiveDeposit)}</div>
             {appliedPromo && (
               <div style={{ fontFamily: FONT_BODY, fontSize: 12, color: GOLD, marginTop: 6 }}>
@@ -946,7 +986,7 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
 
       {/* Promo code */}
       <div style={{ marginBottom: 24 }}>
-        <label style={CS.label}>Promo Code</label>
+        <label style={CS.label}>promo code</label>
         {appliedPromo ? (
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
@@ -1002,7 +1042,7 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
 
       {/* Card input */}
       <div style={{ marginBottom: 20 }}>
-        <label style={CS.label}>Card Details</label>
+        <label style={CS.label}>card details</label>
         <div style={{ padding: "14px 16px", background: "#0d0d0d", border: `1px solid rgba(232,201,126,0.25)` }}>
           <CardElement
             options={{
@@ -1047,9 +1087,9 @@ function ConfirmationStep({ confirmation, user, onReset }) {
     <div style={{ ...CS.card, textAlign: "center" }}>
       <div style={{ fontFamily: FONT_DISPLAY, fontSize: 52, color: PERSIMMON, marginBottom: 4 }}>確認</div>
       <div style={{ height: 2, width: 48, background: PERSIMMON, margin: "0 auto 24px" }} />
-      <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: CREAM, marginBottom: 8 }}>Booking Confirmed</h1>
+      <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: CREAM, marginBottom: 8 }}>booking confirmed</h1>
       <p style={{ fontFamily: FONT_BODY, fontSize: 15, color: INK_SOFT, fontStyle: "italic", marginBottom: 36 }}>
-        Your Sonakase™ experience is on the calendar.
+        your Sonakase™ experience is on the calendar.
       </p>
 
       <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: PERSIMMON, letterSpacing: "0.1em", marginBottom: 32 }}>
@@ -1067,7 +1107,7 @@ function ConfirmationStep({ confirmation, user, onReset }) {
       </div>
 
       <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, padding: "16px 20px", marginBottom: 28, textAlign: "left" }}>
-        <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>What Happens Next</div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>what happens next</div>
         <ul style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.9, paddingLeft: 18, fontStyle: "italic", margin: 0 }}>
           <li>Your chef will review your notes before the event</li>
           <li>Chef arrives 30 minutes before your selected time to set up</li>
