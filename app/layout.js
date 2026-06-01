@@ -2,6 +2,9 @@ import "./globals.css";
 
 export const metadata = {
   metadataBase: new URL("https://sonkase.com"),
+  icons: {
+    icon: "/favicon.png",
+  },
   title: "Sonkase™ — Private Dining · Gainesville, FL",
   description: "Private omakase sushi dining in Gainesville, FL. A personal chef in your home, rolling course by course for your guests.",
   openGraph: {
