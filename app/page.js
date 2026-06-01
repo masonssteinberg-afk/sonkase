@@ -552,7 +552,7 @@ function AboutSection() {
             SONAKASE
           </div>
           <div style={{ fontFamily: F, fontSize: 18, fontStyle: "italic", color: G, letterSpacing: "0.02em" }}>
-            /&apos;sɒn &middot; keɪs/
+            /ˈsoʊ &middot; nə &middot; keɪs/
           </div>
         </div>
 
