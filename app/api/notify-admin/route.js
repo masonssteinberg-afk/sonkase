@@ -42,7 +42,7 @@ export async function POST(req) {
         `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonkase · chefsspecialsushi.com</p></div>` +
         `</div>`;
       await resend.emails.send({
-        from: "Sonkase <bookings@chefsspecialsushi.com>",
+        from: "Sonkase <bookings@sonkase.com>",
         to: "masonssteinberg@gmail.com",
         subject: `Cancellation Request — ${clientEmail}`,
         html,
@@ -159,7 +159,7 @@ export async function POST(req) {
         `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonkase · chefsspecialsushi.com</p></div>` +
         `</div>`;
       await resend.emails.send({
-        from: "Sonkase <bookings@chefsspecialsushi.com>",
+        from: "Sonkase <bookings@sonkase.com>",
         to: "masonssteinberg@gmail.com",
         subject: `New Booking — ${packageName} on ${fmtDate(eventDate)} at ${fmtTime(eventTime)}`,
         html: omHtml,
@@ -194,7 +194,7 @@ export async function POST(req) {
         `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonkase · chefsspecialsushi.com</p></div>` +
         `</div>`;
       await resend.emails.send({
-        from: "Sonkase <bookings@chefsspecialsushi.com>",
+        from: "Sonkase <bookings@sonkase.com>",
         to: "masonssteinberg@gmail.com",
         subject: `Date Night Omakase — ${fmtDate(eventDate)} · ${clientEmail}`,
         html: dnHtml,
@@ -240,7 +240,7 @@ export async function POST(req) {
       `</div>`;
 
     await resend.emails.send({
-      from: "Sonkase <bookings@chefsspecialsushi.com>",
+      from: "Sonkase <bookings@sonkase.com>",
       to: "masonssteinberg@gmail.com",
       subject: isDropoff ? `Drop-Off Order — ${fmtDate(eventDate)}` : `New Booking — ${packageName} on ${fmtDate(eventDate)}`,
       html,

@@ -34,7 +34,7 @@ export async function POST(req) {
       `</div>`;
 
     const FOOTER = `<div style="background:#0c0c0c;padding:20px;text-align:center;">` +
-      `<p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.2em;margin:0;">Don't see this email? Check spam — bookings@chefsspecialsushi.com</p>` +
+      `<p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.2em;margin:0;">Don't see this email? Check spam — bookings@sonkase.com</p>` +
       `</div>`;
 
     const row = (label, value) =>
@@ -80,7 +80,7 @@ export async function POST(req) {
         FOOTER + `</div>`;
 
       await resend.emails.send({
-        from: "Sonkase <bookings@chefsspecialsushi.com>",
+        from: "Sonkase <bookings@sonkase.com>",
         to: email,
         subject: `Your Sonkase Experience — ${packageName} on ${fmtDate(eventDate)}`,
         html,
@@ -123,7 +123,7 @@ export async function POST(req) {
         FOOTER + `</div>`;
 
       await resend.emails.send({
-        from: "Sonkase <bookings@chefsspecialsushi.com>",
+        from: "Sonkase <bookings@sonkase.com>",
         to: email,
         subject: `Your Sonkase Date Night — ${fmtDate(eventDate)}`,
         html,
@@ -172,7 +172,7 @@ export async function POST(req) {
       FOOTER + `</div>`;
 
     await resend.emails.send({
-      from: "Sonkase <bookings@chefsspecialsushi.com>",
+      from: "Sonkase <bookings@sonkase.com>",
       to: email,
       subject: `Booking Confirmed · ${confirmationId} · Sonkase`,
       html,

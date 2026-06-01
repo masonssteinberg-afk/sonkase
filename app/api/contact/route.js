@@ -10,7 +10,7 @@ export async function POST(req) {
     }
 
     await resend.emails.send({
-      from: "Sonkase <bookings@chefsspecialsushi.com>",
+      from: "Sonkase <bookings@sonkase.com>",
       to: "masonssteinberg@gmail.com",
       subject: `Sonkase™ Inquiry — ${name}`,
       html: `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#f5f0e8;padding:0;">` +

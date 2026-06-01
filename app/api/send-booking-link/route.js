@@ -28,11 +28,11 @@ export async function POST(req) {
       `<a href="https://chefsspecialsushi.com/book" style="display:block;background:#E8C97E;color:#0c0c0c;text-align:center;padding:16px;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;font-family:Georgia,serif;">Complete Your Booking →</a>` +
       `</div>` +
       `<div style="background:#0c0c0c;padding:16px;text-align:center;">` +
-      `<p style="font-size:10px;color:rgba(245,240,232,0.3);letter-spacing:0.2em;margin:0;">bookings@chefsspecialsushi.com</p>` +
+      `<p style="font-size:10px;color:rgba(245,240,232,0.3);letter-spacing:0.2em;margin:0;">bookings@sonkase.com</p>` +
       `</div></div>`;
 
     await resend.emails.send({
-      from: "Sonkase <bookings@chefsspecialsushi.com>",
+      from: "Sonkase <bookings@sonkase.com>",
       to: email,
       subject: "Your Sonkase Booking Link",
       html,
