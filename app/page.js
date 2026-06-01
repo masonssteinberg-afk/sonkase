@@ -75,9 +75,9 @@ export default function Home() {
       <Hero />
       <ExperiencesSection />
       <HowItWorksSection />
+      <AboutSection />
       <ContactSection />
       <PhotoSection />
-      <AboutSection />
       <SiteFooter />
     </div>
   );
@@ -584,13 +584,6 @@ function AboutSection() {
             An intimate omakase offered within the sanctity of a private home; the transformation of one&rsquo;s own table into a{" "}
             <em style={{ color: G }}>singular, unrepeatable</em>{" "}
             occasion.
-          </p>
-        </div>
-
-        {/* Blockquote */}
-        <div style={{ borderLeft: `2px solid ${G}`, paddingLeft: 24, marginBottom: 40 }}>
-          <p style={{ fontFamily: F, fontSize: 15, fontStyle: "italic", color: G, lineHeight: 1.8, margin: 0 }}>
-            &ldquo;Each evening at Sonakase unfolds as its own quiet ceremony — a meal composed entirely in the moment, for you alone.&rdquo;
           </p>
         </div>
 
