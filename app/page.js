@@ -222,7 +222,22 @@ function Nav() {
         boxSizing: "border-box",
       }}>
         <a href="/" style={{ textDecoration: "none" }}>
-          <img src="/sonakase-logo.svg" alt="Sonakase Private Dining" width={200} height={58} style={{ display: "block" }} />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="250" height="70" role="img" aria-label="Sonakase Private Dining">
+            <defs>
+              <style>{"@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Cormorant+Garamond:wght@300&display=swap');"}</style>
+            </defs>
+            <g transform="translate(18, 10) scale(0.9)">
+              <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+              <line x1="55" y1="12" x2="48" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+              <circle cx="45" cy="19" r="3" fill="#b8892a"/>
+              <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke="#b8892a" strokeWidth="2" strokeLinecap="round" fill="none"/>
+              <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke="#b8892a" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5"/>
+              <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke="#b8892a" strokeWidth="0.8" strokeLinecap="round" fill="none" opacity="0.22"/>
+            </g>
+            <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
+            <text x="138" y="88" fontFamily="'Shippori Mincho', 'Hiragino Mincho Pro', 'Times New Roman', serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
+            <text x="140" y="108" fontFamily="'Cormorant Garamond', 'Georgia', serif" fontWeight="300" fontSize="11" letterSpacing="5.5" fill="#b8892a">PRIVATE DINING</text>
+          </svg>
         </a>
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
