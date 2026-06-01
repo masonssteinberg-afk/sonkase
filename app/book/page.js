@@ -430,7 +430,7 @@ function LoginScreen({ onLogin }) {
             Check your email for a sign-in link. Come back to this page after clicking it.
           </div>
           <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", lineHeight: 1.6 }}>
-            Don&rsquo;t see it? Check spam — look for bookings@chefsspecialsushi.com
+            Don&rsquo;t see it? Check spam — look for bookings@sonkase.com
           </div>
         </div>
       ) : (
@@ -1064,7 +1064,7 @@ function ConfirmationStep({ confirmation, user, onReset }) {
       </div>
 
       <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginBottom: 32, lineHeight: 1.6 }}>
-        Don&rsquo;t see the confirmation email? Check your spam — look for bookings@chefsspecialsushi.com
+        Don&rsquo;t see the confirmation email? Check your spam — look for bookings@sonkase.com
       </div>
 
       <a href="/" style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK_SOFT, textDecoration: "underline" }}>
