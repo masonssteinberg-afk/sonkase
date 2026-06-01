@@ -1,6 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
+  metadataBase: new URL("https://sonkase.com"),
   title: "Sonkase™ — Private Dining · Gainesville, FL",
   description: "Private omakase sushi dining in Gainesville, FL. A personal chef in your home, rolling course by course for your guests.",
   icons: {
@@ -13,7 +14,7 @@ export const metadata = {
     type: "website",
     images: [
       {
-        url: "https://sonkase.com/og-image.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
       },
@@ -23,7 +24,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "Sonkase™ — Private Dining",
     description: "In-home personal sushi chef for gatherings in Gainesville, FL.",
-    images: ["https://sonkase.com/og-image.png"],
+    images: ["/og-image.png"],
   },
 };
 
