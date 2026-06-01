@@ -236,7 +236,6 @@ function Nav() {
             </g>
             <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
             <text x="138" y="88" fontFamily="'Shippori Mincho', 'Hiragino Mincho Pro', 'Times New Roman', serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
-            <text x="140" y="108" fontFamily="'Cormorant Garamond', 'Georgia', serif" fontWeight="300" fontSize="11" letterSpacing="5.5" fill="#b8892a">PRIVATE DINING</text>
           </svg>
         </a>
 
@@ -355,10 +354,6 @@ function ExperiencesSection() {
           ))}
         </div>
 
-        {/* Below cards note */}
-        <p style={{ fontFamily: "Georgia, serif", fontSize: 13, color: `rgba(245,240,232,0.4)`, fontStyle: "italic", textAlign: "center", lineHeight: 1.7 }}>
-          Gratuity appreciated, never expected. All experiences include wasabi, pickled ginger, soy sauce, and chopsticks.
-        </p>
       </div>
     </section>
   );
@@ -613,7 +608,6 @@ function SiteFooter() {
               </g>
               <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
               <text x="138" y="88" fontFamily="'Shippori Mincho', 'Times New Roman', serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
-              <text x="140" y="108" fontFamily="'Cormorant Garamond', Georgia, serif" fontWeight="300" fontSize="11" letterSpacing="5.5" fill="#b8892a">PRIVATE DINING</text>
             </svg>
           </a>
           <a href="/book" className="sk-btn-fill" style={{ fontSize: 11 }}>
