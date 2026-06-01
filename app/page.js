@@ -180,8 +180,10 @@ function PageStyles() {
         .sk-how-grid  { grid-template-columns: 1fr !important; }
         .sk-hero-logo { width: 220px !important; }
         .sk-section   { padding: 80px 24px !important; }
-        .sk-hero      { padding: 140px 24px 80px !important; }
+        .sk-hero      { padding: 120px 24px 80px !important; }
         .sk-footer-inner { flex-direction: column !important; gap: 32px !important; align-items: flex-start !important; }
+        .sk-nav-inner { height: 72px !important; padding: 0 16px !important; }
+        .sk-nav-logo  { width: 200px !important; height: 56px !important; }
       }
     `}</style>
   );
@@ -215,14 +217,14 @@ function Nav() {
       borderBottom: `1px solid rgba(232,201,126,${scrolled ? "0.18" : "0.1"})`,
       transition: "border-color 0.3s",
     }}>
-      <div style={{
+      <div className="sk-nav-inner" style={{
         maxWidth: 1200, margin: "0 auto",
-        padding: "0 32px", height: 72,
+        padding: "0 40px", height: 100,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         boxSizing: "border-box",
       }}>
         <a href="/" style={{ textDecoration: "none" }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="250" height="70" role="img" aria-label="Sonakase Private Dining">
+          <svg className="sk-nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="320" height="90" role="img" aria-label="Sonakase Private Dining">
             <defs>
               <style>{"@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Cormorant+Garamond:wght@300&display=swap');"}</style>
             </defs>
