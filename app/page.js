@@ -245,8 +245,8 @@ function Nav() {
           <div className="sk-nav-links" style={{ display: "flex", alignItems: "center" }}>
             <a href="#experiences" className="sk-nav-link">experiences</a>
             <a href="#contact"     className="sk-nav-link">contact</a>
-            <a href="/profile"     className="sk-nav-link">{loggedIn ? "my bookings" : "login"}</a>
           </div>
+          <a href="/profile" className="sk-nav-link">{loggedIn ? "my bookings" : "login"}</a>
           <a href="/book" className="sk-btn-fill" style={{ fontSize: 11, letterSpacing: "0.2em", minHeight: 44, padding: "0 22px" }}>
             Reserve
           </a>
