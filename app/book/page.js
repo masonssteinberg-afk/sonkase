@@ -420,7 +420,7 @@ function LoginScreen({ onLogin }) {
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     const { error: authError } = await sb.auth.signInWithOtp({
-      email, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/book` },
+      email, options: { emailRedirectTo: "https://www.sonkase.com/auth/callback?next=/book" },
     });
     setLoading(false);
     if (authError) setError("Failed to send link. Try again.");

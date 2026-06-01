@@ -427,6 +427,8 @@ export default function Profile() {
   const [sent, setSent]             = useState(false);
   const [expandedId, setExpandedId] = useState(null);
   const [nextParam, setNextParam]   = useState(null);
+  const [signingIn, setSigningIn]   = useState(false);
+  const [signInError, setSignInError] = useState("");
 
   const fetchBookings = async (userEmail) => {
     const { data } = await supabase
@@ -513,12 +515,19 @@ export default function Profile() {
   }, [user]);
 
   const signIn = async () => {
-    if (!email.includes("@")) return;
+    if (!email.includes("@")) { setSignInError("Enter a valid email address."); return; }
+    setSigningIn(true);
+    setSignInError("");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: "https://www.sonkase.com/auth/callback" },
     });
-    if (!error) setSent(true);
+    setSigningIn(false);
+    if (error) {
+      setSignInError(error.message || "Failed to send link. Try again.");
+    } else {
+      setSent(true);
+    }
   };
 
   const signOut = async () => {
@@ -554,8 +563,17 @@ export default function Profile() {
               autoFocus
               style={{ width: "100%", padding: "14px 16px", background: "#141414", border: "1px solid rgba(232,201,126,0.25)", fontFamily: F, fontSize: 15, color: CREAM, marginBottom: 12, boxSizing: "border-box", outline: "none" }}
             />
-            <button onClick={signIn} style={{ width: "100%", padding: 16, background: GOLD, color: BG, border: "none", fontFamily: F, fontSize: 13, letterSpacing: "0.2em", textTransform: "uppercase", cursor: "pointer", minHeight: 52 }}>
-              Send Sign-In Link →
+            {signInError && (
+              <div style={{ fontFamily: F, fontSize: 13, color: "#c5552d", fontStyle: "italic", marginBottom: 12 }}>
+                {signInError}
+              </div>
+            )}
+            <button
+              onClick={signIn}
+              disabled={signingIn}
+              style={{ width: "100%", padding: 16, background: signingIn ? "rgba(232,201,126,0.4)" : GOLD, color: BG, border: "none", fontFamily: F, fontSize: 13, letterSpacing: "0.2em", textTransform: "uppercase", cursor: signingIn ? "not-allowed" : "pointer", minHeight: 52 }}
+            >
+              {signingIn ? "Sending…" : "Send Sign-In Link →"}
             </button>
           </>
         )}
