@@ -8,7 +8,7 @@ export const metadata = {
     icon: "/favicon.png",
   },
   openGraph: {
-    title: "Sonkase™ — Private Dining",
+    title: "The Sonkase Experience",
     description: "In-home personal sushi chef for gatherings in Gainesville, FL.",
     url: "https://sonkase.com",
     type: "website",
@@ -22,7 +22,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sonkase™ — Private Dining",
+    title: "The Sonkase Experience",
     description: "In-home personal sushi chef for gatherings in Gainesville, FL.",
     images: ["/og-image.png"],
   },
