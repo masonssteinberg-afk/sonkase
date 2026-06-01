@@ -246,7 +246,7 @@ function Hero() {
       id="top"
     >
       <a href="/" style={{ textDecoration: "none", marginBottom: 36 }}>
-        <Image src="/favicon.png" alt="Sonkase" width={80} height={80} priority />
+        <Image src="/favicon-transparent.png" alt="Sonkase" width={80} height={80} priority />
       </a>
 
       {/* Gold line */}
