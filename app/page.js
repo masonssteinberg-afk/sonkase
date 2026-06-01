@@ -222,7 +222,7 @@ function Nav() {
         boxSizing: "border-box",
       }}>
         <a href="/" style={{ textDecoration: "none" }}>
-          <img src="/sonkase-logo.svg" alt="Sonkase Private Dining" width={280} height={82} style={{ display: "block" }} />
+          <img src="/sonkase-logo.svg" alt="Sonkase Private Dining" width={200} height={58} style={{ display: "block" }} />
         </a>
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>

@@ -6,9 +6,6 @@
     </style>
   </defs>
 
-  <!-- Background -->
-  <rect width="480" height="140" fill="#0c0c0c"/>
-
   <!-- ── MARK: Triple wave chopsticks (90×100 scaled into 100×120 area, centered at x=68) ── -->
   <g transform="translate(18, 10) scale(0.9)">
     <!-- Chopstick left -->
