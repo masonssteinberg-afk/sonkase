@@ -530,22 +530,75 @@ function PhotoSection() {
   );
 }
 
-// ── About Section ─────────────────────────────────────────────
+// ── About Section (Dictionary Card) ──────────────────────────
 function AboutSection() {
+  const G = "#b8892a";
+  const T = "#5a4a3a";
+  const F = "Georgia, 'Times New Roman', serif";
   return (
-    <section style={{ background: "#111111" }}>
-      <div style={{ height: 1, background: "#b8892a" }} />
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "100px 40px", boxSizing: "border-box", textAlign: "center" }}>
-        <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "clamp(52px, 9vw, 88px)", color: "#e6dac8", letterSpacing: "0.22em", fontWeight: 400, lineHeight: 1, marginBottom: 12 }}>
-          sonakase
+    <section style={{ background: "#f5f0e8", padding: "100px 40px", boxSizing: "border-box" }}>
+      <div style={{ maxWidth: 780, margin: "0 auto" }}>
+
+        {/* Top divider: line · dot · line */}
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 40 }}>
+          <div style={{ flex: 1, height: 1, background: G, opacity: 0.5 }} />
+          <div style={{ width: 5, height: 5, borderRadius: "50%", background: G, margin: "0 14px", opacity: 0.7 }} />
+          <div style={{ flex: 1, height: 1, background: G, opacity: 0.5 }} />
         </div>
-        <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", marginBottom: 56 }}>
-          private dining
+
+        {/* Word + pronunciation */}
+        <div style={{ display: "flex", alignItems: "baseline", gap: 24, marginBottom: 10, flexWrap: "wrap" }}>
+          <div style={{ fontFamily: F, fontSize: "clamp(44px, 7vw, 64px)", fontWeight: 400, color: G, letterSpacing: "12px", textTransform: "uppercase", lineHeight: 1 }}>
+            SONAKASE
+          </div>
+          <div style={{ fontFamily: F, fontSize: 18, fontStyle: "italic", color: G, letterSpacing: "0.02em" }}>
+            /&apos;sɒn &middot; keɪs/
+          </div>
         </div>
-        <div style={{ width: 48, height: 1, background: "#b8892a", opacity: 0.4, margin: "0 auto 56px" }} />
-        <p style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 16, color: "#e6dac8", lineHeight: 2, opacity: 0.7, maxWidth: 560, margin: "0 auto" }}>
-          &ldquo;sona&rdquo; derives from the Sanskrit and Japanese root for gold, resonance, and sound. &ldquo;kase&rdquo; draws from the Japanese concept of layered presentation and quiet mastery. together, sonakase represents a golden experience built through intention, craft, and silence.
-        </p>
+
+        {/* Noun line + rule */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
+          <span style={{ fontFamily: F, fontSize: 13, fontStyle: "italic", color: G, whiteSpace: "nowrap" }}>noun &middot; proper</span>
+          <div style={{ flex: 1, height: 1, background: G, opacity: 0.35 }} />
+        </div>
+
+        {/* Etymology */}
+        <div style={{ fontFamily: F, fontSize: 14, fontStyle: "italic", color: G, lineHeight: 1.8, marginBottom: 32 }}>
+          [ son &middot; from Japanese 尊 (son), meaning reverence, esteem + kase &middot; derived from omakase おまかせ, &ldquo;I leave it to you&rdquo; ]
+        </div>
+
+        {/* Definition 1 */}
+        <div style={{ display: "flex", gap: 16, marginBottom: 20 }}>
+          <span style={{ fontFamily: F, fontSize: 14, color: G, fontWeight: 400, flexShrink: 0, marginTop: 1 }}>1.</span>
+          <p style={{ fontFamily: F, fontSize: 16, color: T, lineHeight: 1.85, margin: 0 }}>
+            A private, chef-led dining experience in which the guest surrenders all culinary decisions to the chef, receiving each course as an act of{" "}
+            <em style={{ color: G }}>studied trust</em>{" "}
+            and mutual respect.
+          </p>
+        </div>
+
+        {/* Definition 2 */}
+        <div style={{ display: "flex", gap: 16, marginBottom: 36 }}>
+          <span style={{ fontFamily: F, fontSize: 14, color: G, fontWeight: 400, flexShrink: 0, marginTop: 1 }}>2.</span>
+          <p style={{ fontFamily: F, fontSize: 16, color: T, lineHeight: 1.85, margin: 0 }}>
+            An intimate omakase offered within the sanctity of a private home; the transformation of one&rsquo;s own table into a{" "}
+            <em style={{ color: G }}>singular, unrepeatable</em>{" "}
+            occasion.
+          </p>
+        </div>
+
+        {/* Blockquote */}
+        <div style={{ borderLeft: `2px solid ${G}`, paddingLeft: 24, marginBottom: 40 }}>
+          <p style={{ fontFamily: F, fontSize: 15, fontStyle: "italic", color: G, lineHeight: 1.8, margin: 0 }}>
+            &ldquo;Each evening at Sonakase unfolds as its own quiet ceremony — a meal composed entirely in the moment, for you alone.&rdquo;
+          </p>
+        </div>
+
+        {/* Footer line */}
+        <div style={{ fontFamily: F, fontSize: 11, color: G, letterSpacing: "0.25em", textTransform: "uppercase" }}>
+          SEE ALSO &middot; omakase &middot; kaiseki &middot; private dining
+        </div>
+
       </div>
     </section>
   );
