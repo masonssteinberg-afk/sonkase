@@ -100,9 +100,8 @@ function PageStyles() {
       .sk-nav-link {
         font-family: Georgia, serif;
         font-size: 12px;
-        letter-spacing: 0.25em;
-        text-transform: uppercase;
-        color: rgba(245,240,232,0.55);
+        letter-spacing: 0.12em;
+        color: #e6dac8;
         text-decoration: none;
         transition: color 0.2s;
         padding: 0 20px;
@@ -110,7 +109,7 @@ function PageStyles() {
         display: inline-flex;
         align-items: center;
       }
-      .sk-nav-link:hover { color: ${CREAM}; }
+      .sk-nav-link:hover { color: #fff; }
 
       .sk-btn-fill {
         background: ${GOLD};
