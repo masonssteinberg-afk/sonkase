@@ -13,7 +13,7 @@ const GOLD  = "#E8C97E";
 const CREAM = "#F5F0E8";
 const MUTED = "rgba(245,240,232,0.55)";
 const FAINT = "rgba(245,240,232,0.3)";
-const F     = "Georgia, 'Times New Roman', serif";
+const F     = "'Shippori Mincho', Georgia, serif";
 
 const STATUS_STYLE = {
   confirmed: { color: GOLD,                        border: GOLD },
