@@ -27,8 +27,35 @@ const _OLD_GOLD        = "#a07736";
 const _OLD_FOREST      = "#2d4a3a";
 */
 
-const FONT_DISPLAY = `Georgia, 'Times New Roman', serif`;
-const FONT_BODY    = `Georgia, 'Times New Roman', serif`;
+const FONT_DISPLAY = `'Shippori Mincho', Georgia, serif`;
+const FONT_BODY    = `'Shippori Mincho', Georgia, serif`;
+
+// ── Party Packages (per-guest pricing, 10–20 guests) ─────────
+const PARTY_PACKAGES = {
+  partyA: {
+    id: "partyA",
+    name: "Package A",
+    pricePerGuest: 95,
+    appetizerCount: 1,
+    includes: [
+      "2 rolls per guest, chef's selection",
+      "1 appetizer of your choice",
+      "Tricolor nigiri platter",
+    ],
+  },
+  partyB: {
+    id: "partyB",
+    name: "Package B",
+    pricePerGuest: 125,
+    allAppetizers: true,
+    includes: [
+      "3 rolls per guest, chef's selection",
+      "All 3 appetizers included",
+      "Tricolor nigiri platter",
+      "Tricolor sashimi platter",
+    ],
+  },
+};
 
 // ── Omakase Packages (no ™ on individual package names) ──────
 const OMAKASE_PACKAGES = [
@@ -36,48 +63,44 @@ const OMAKASE_PACKAGES = [
     id: "datenight",
     name: "date night",
     kanji: "宴",
-    guests: 2, price: 300, deposit: 75, rolls: 5, nigiri: 9, appetizerCount: 1,
+    guests: 2, price: 275, deposit: 68.75, rolls: 5, nigiri: 9, appetizerCount: 1,
     includes: [
       "9 piece nigiri course",
       "1 appetizer of your choice",
       "5 rolls, chef's selection",
-      "25% deposit locks your date",
     ],
   },
   {
     id: "doubledatenight",
     name: "double date",
     kanji: "双",
-    guests: 4, price: 520, deposit: 130, rolls: 10, nigiri: 18, appetizerCount: 2,
+    guests: 4, price: 420, deposit: 105, rolls: 10, nigiri: 18, appetizerCount: 2,
     includes: [
       "18 piece nigiri course",
       "2 appetizers of your choice",
       "10 rolls, chef's selection",
-      "25% deposit locks your date",
     ],
   },
   {
     id: "smallgathering",
     name: "small gathering",
     kanji: "集",
-    guests: 6, price: 720, deposit: 180, rolls: 14, nigiri: 27, appetizerCount: 3,
+    guests: 6, price: 580, deposit: 145, rolls: 14, nigiri: 27, appetizerCount: 3,
     includes: [
       "27 piece nigiri course",
       "3 appetizers of your choice",
       "14 rolls, chef's selection",
-      "25% deposit locks your date",
     ],
   },
   {
     id: "gettogether",
     name: "get together",
     kanji: "会",
-    guests: 8, price: 900, deposit: 225, rolls: 18, nigiri: 36, appetizerCount: 4,
+    guests: 8, price: 720, deposit: 180, rolls: 18, nigiri: 36, appetizerCount: 4,
     includes: [
       "36 piece nigiri course",
       "4 appetizers of your choice",
       "18 rolls, chef's selection",
-      "25% deposit locks your date",
     ],
   },
 ];
@@ -130,8 +153,13 @@ const fmtTime   = (v) => {
 };
 
 // ── Step Labels ───────────────────────────────────────────────
-const STEP_LABELS = ["package", "when", "appetizers", "preferences", "review", "payment"];
+const STEP_LABELS   = ["package", "when", "appetizers", "preferences", "review", "payment"];
 const VISIBLE_STEPS = ["pkg", "datetime", "appetizer", "notes", "summary", "payment"];
+
+const PARTY_A_STEP_LABELS   = ["guests", "when", "appetizer", "preferences", "review", "payment"];
+const PARTY_A_VISIBLE_STEPS = ["party-guests", "datetime", "party-appetizer-select", "notes", "summary", "payment"];
+const PARTY_B_STEP_LABELS   = ["guests", "when", "appetizers", "preferences", "review", "payment"];
+const PARTY_B_VISIBLE_STEPS = ["party-guests", "datetime", "party-appetizer-confirm", "notes", "summary", "payment"];
 
 // ── Main App ──────────────────────────────────────────────────
 export default function App() {
@@ -145,28 +173,49 @@ export default function App() {
   const [selectedAppetizers, setSelectedAppetizers] = useState([]);
   const [chefNotes, setChefNotes]             = useState("");
   const [confirmation, setConfirmation]       = useState(null);
+  // Party mode
+  const [partyPkg, setPartyPkg]               = useState(null);
+  const [guestCount, setGuestCount]           = useState("");
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const pkgParam     = searchParams.get("package");
+    const detectedPartyPkg = (pkgParam === "partyA" || pkgParam === "partyB") ? PARTY_PACKAGES[pkgParam] : null;
+    if (detectedPartyPkg) setPartyPkg(detectedPartyPkg);
+
     (async () => {
       const { createClient } = await import("@supabase/supabase-js");
       const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-      const code = new URLSearchParams(window.location.search).get("code");
+      const code = searchParams.get("code");
       if (code) {
         const { data } = await supabase.auth.exchangeCodeForSession(code);
-        window.history.replaceState({}, "", "/book");
-        if (data?.user) {
-          setUser({ email: data.user.email });
-          setSessionChecked(true);
-          setStep("pkg");
-          return;
+        const pendingPkg = sessionStorage.getItem("pendingPartyPkg");
+        if (pendingPkg && PARTY_PACKAGES[pendingPkg]) {
+          sessionStorage.removeItem("pendingPartyPkg");
+          window.history.replaceState({}, "", `/book?package=${pendingPkg}`);
+          if (data?.user) {
+            setUser({ email: data.user.email });
+            setPartyPkg(PARTY_PACKAGES[pendingPkg]);
+            setSessionChecked(true);
+            setStep("party-guests");
+            return;
+          }
+        } else {
+          window.history.replaceState({}, "", "/book");
+          if (data?.user) {
+            setUser({ email: data.user.email });
+            setSessionChecked(true);
+            setStep("pkg");
+            return;
+          }
         }
       }
 
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser({ email: session.user.email });
-        setStep("pkg");
+        setStep(detectedPartyPkg ? "party-guests" : "pkg");
       }
       setSessionChecked(true);
     })();
@@ -178,16 +227,26 @@ export default function App() {
     setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
+  const isPartyMode    = !!partyPkg;
+  const visibleSteps   = isPartyMode ? (partyPkg?.id === "partyB" ? PARTY_B_VISIBLE_STEPS : PARTY_A_VISIBLE_STEPS) : VISIBLE_STEPS;
+  const stepLabels     = isPartyMode ? (partyPkg?.id === "partyB" ? PARTY_B_STEP_LABELS   : PARTY_A_STEP_LABELS)   : STEP_LABELS;
+  const stepIndex      = visibleSteps.indexOf(step);
+
   const reset = () => {
     setSelectedPkg(null); setEventDate(""); setEventTime("");
     setSelectedAppetizers([]); setChefNotes(""); setConfirmation(null);
-    goTo("pkg");
+    setGuestCount("");
+    goTo(isPartyMode ? "party-guests" : "pkg");
   };
 
-  const stepIndex = VISIBLE_STEPS.indexOf(step);
+  // Back destination from datetime differs for party vs omakase
+  const dateTimeBack = isPartyMode ? "party-guests" : "pkg";
+  const dateTimeNext = isPartyMode
+    ? (partyPkg?.id === "partyB" ? "party-appetizer-confirm" : "party-appetizer-select")
+    : "appetizer";
 
   return (
-    <div style={{ minHeight: "100vh", background: NAVY, fontFamily: FONT_BODY, color: CREAM, overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: NAVY, fontFamily: FONT_BODY, color: CREAM, overflowX: "hidden" }} className="book-page-wrapper">
       <BookStyles />
       <BookHeader user={user} onSignOut={async () => {
         const { createClient } = await import("@supabase/supabase-js");
@@ -197,7 +256,7 @@ export default function App() {
       }} />
 
       {step !== "login" && step !== "done" && (
-        <BookStepIndicator steps={STEP_LABELS} current={stepIndex} />
+        <BookStepIndicator steps={stepLabels} current={stepIndex} />
       )}
 
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "32px 20px 120px", boxSizing: "border-box" }}>
@@ -208,8 +267,13 @@ export default function App() {
             <div style={{ textAlign: "center", padding: "120px 0", fontFamily: FONT_DISPLAY, fontSize: 15, color: "rgba(245,240,232,0.25)", letterSpacing: "0.1em" }}>Loading…</div>
           )}
           {step === "login" && sessionChecked && (
-            <LoginScreen onLogin={(email) => { setUser({ email }); goTo("pkg"); }} />
+            <LoginScreen onLogin={(email) => {
+              setUser({ email });
+              goTo(isPartyMode ? "party-guests" : "pkg");
+            }} />
           )}
+
+          {/* ── Omakase flow ── */}
 
           {/* Step 1 — Package */}
           {step === "pkg" && (
@@ -220,17 +284,7 @@ export default function App() {
             />
           )}
 
-          {/* Step 2 — Date & Time */}
-          {step === "datetime" && (
-            <DateTimeStep
-              eventDate={eventDate} setEventDate={setEventDate}
-              eventTime={eventTime} setEventTime={setEventTime}
-              onBack={() => goTo("pkg")}
-              onNext={() => goTo("appetizer")}
-            />
-          )}
-
-          {/* Step 3 — Appetizers */}
+          {/* Step 3 — Appetizers (omakase only) */}
           {step === "appetizer" && (
             <AppetizerStep
               pkg={selectedPkg}
@@ -248,17 +302,8 @@ export default function App() {
             />
           )}
 
-          {/* Step 4 — Chef's Notes */}
-          {step === "notes" && (
-            <NotesStep
-              value={chefNotes} onChange={setChefNotes}
-              onBack={() => goTo("appetizer")}
-              onNext={() => goTo("summary")}
-            />
-          )}
-
-          {/* Step 5 — Summary */}
-          {step === "summary" && (
+          {/* Step 5 — Summary (omakase) */}
+          {step === "summary" && !isPartyMode && (
             <SummaryStep
               pkg={selectedPkg}
               eventDate={eventDate} eventTime={eventTime}
@@ -269,8 +314,8 @@ export default function App() {
             />
           )}
 
-          {/* Step 6 — Payment */}
-          {step === "payment" && (
+          {/* Step 6 — Payment (omakase) */}
+          {step === "payment" && !isPartyMode && (
             <OmakasePaymentScreen
               pkg={selectedPkg}
               user={user}
@@ -285,7 +330,95 @@ export default function App() {
             />
           )}
 
-          {/* Done */}
+          {/* ── Party flow ── */}
+
+          {/* Party Step 1 — Guest Count */}
+          {step === "party-guests" && (
+            <PartyGuestStep
+              partyPkg={partyPkg}
+              guestCount={guestCount}
+              setGuestCount={setGuestCount}
+              onNext={() => goTo("datetime")}
+            />
+          )}
+
+          {/* Party Step 3 — Appetizer Confirm (Package B only) */}
+          {step === "party-appetizer-confirm" && (
+            <PartyAppetizerConfirmStep
+              onBack={() => goTo("datetime")}
+              onNext={() => goTo("notes")}
+            />
+          )}
+
+          {/* Party Step 4/5 — Summary */}
+          {step === "summary" && isPartyMode && (
+            <PartySummaryStep
+              partyPkg={partyPkg}
+              guestCount={Number(guestCount)}
+              eventDate={eventDate} eventTime={eventTime}
+              chefNotes={chefNotes}
+              appetizers={selectedAppetizers}
+              onBack={() => goTo("notes")}
+              onNext={() => goTo("payment")}
+            />
+          )}
+
+          {/* Party Step 5/6 — Payment */}
+          {step === "payment" && isPartyMode && (
+            <PartyPaymentScreen
+              partyPkg={partyPkg}
+              guestCount={Number(guestCount)}
+              user={user}
+              eventDate={eventDate} eventTime={eventTime}
+              chefNotes={chefNotes}
+              appetizers={selectedAppetizers}
+              onBack={() => goTo("summary")}
+              onConfirm={(id, totals) => {
+                setConfirmation({ id, isParty: true, partyPkg, guestCount: Number(guestCount), eventDate, eventTime, chefNotes, appetizers: selectedAppetizers, ...totals });
+                goTo("done");
+              }}
+            />
+          )}
+
+          {/* ── Shared steps ── */}
+
+          {/* Date & Time (shared) */}
+          {step === "datetime" && (
+            <DateTimeStep
+              eventDate={eventDate} setEventDate={setEventDate}
+              eventTime={eventTime} setEventTime={setEventTime}
+              onBack={() => goTo(dateTimeBack)}
+              onNext={() => goTo(dateTimeNext)}
+            />
+          )}
+
+          {/* Party Step 2b — Appetizer Select (Package A only) */}
+          {step === "party-appetizer-select" && (
+            <AppetizerStep
+              pkg={{ appetizerCount: 1 }}
+              selected={selectedAppetizers}
+              onToggle={(a) => {
+                setSelectedAppetizers((prev) => {
+                  if (prev.find((x) => x.id === a.id)) return prev.filter((x) => x.id !== a.id);
+                  return [a];
+                });
+              }}
+              onBack={() => goTo("datetime")}
+              onNext={() => goTo("notes")}
+            />
+          )}
+
+          {/* Notes/Preferences (shared) */}
+          {step === "notes" && (
+            <NotesStep
+              value={chefNotes} onChange={setChefNotes}
+              isParty={isPartyMode}
+              onBack={() => goTo(isPartyMode ? (partyPkg?.id === "partyB" ? "party-appetizer-confirm" : "party-appetizer-select") : "appetizer")}
+              onNext={() => goTo("summary")}
+            />
+          )}
+
+          {/* Done (shared) */}
           {step === "done" && (
             <ConfirmationStep confirmation={confirmation} user={user} onReset={reset} />
           )}
@@ -311,8 +444,15 @@ function BookStyles() {
       select:focus { outline: none; }
       select option { background: #141414; color: #F5F0E8; }
 
+      :root { --header-h: 100px; }
+      @media (max-width: 768px) { :root { --header-h: 72px; } }
+
+      .book-page-wrapper { padding-top: calc(100px + var(--banner-h, 0px)); }
+
       @media (max-width: 768px) {
-        .book-header-inner { padding: 12px 16px !important; }
+        .book-header-inner { padding: 7px 16px !important; }
+        .book-header-logo  { width: 200px !important; height: 58px !important; }
+        .book-page-wrapper { padding-top: calc(72px + var(--banner-h, 0px)); }
         .book-step-inner   { padding: 10px 16px !important; }
         .book-step-label   { display: none !important; }
         .book-card         { padding: 24px 16px !important; }
@@ -327,10 +467,10 @@ function BookStyles() {
 // ── Book Header ───────────────────────────────────────────────
 function BookHeader({ user, onSignOut }) {
   return (
-    <header style={{ background: NAVY, position: "sticky", top: 0, zIndex: 50, borderBottom: "1px solid rgba(232,201,126,0.15)" }}>
-      <div className="book-header-inner" style={{ maxWidth: 760, margin: "0 auto", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" }}>
+    <header style={{ background: NAVY, position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, borderBottom: "1px solid rgba(232,201,126,0.15)" }}>
+      <div className="book-header-inner" style={{ maxWidth: 760, margin: "0 auto", padding: "9px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" }}>
         <a href="/" style={{ textDecoration: "none" }}>
-          <Image src="/sonakase-logo.svg" alt="Sonakase Private Dining" width={280} height={82} priority />
+          <Image src="/sonakase-logo.svg" alt="Sonakase Private Dining" width={280} height={82} priority className="book-header-logo" />
         </a>
         {user && (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -367,8 +507,7 @@ function BookStepIndicator({ steps, current }) {
                 {done ? "✓" : i + 1}
               </div>
               <div className="book-step-label" style={{
-                fontFamily: FONT_BODY, fontSize: 10, letterSpacing: "0.12em",
-                textTransform: "uppercase",
+                fontFamily: FONT_BODY, fontSize: 10, letterSpacing: "0.08em",
                 color: active ? GOLD : done ? GOLD : "rgba(232,201,126,0.35)",
               }}>
                 {label}
@@ -413,6 +552,11 @@ function LoginScreen({ onLogin }) {
   const submit = async () => {
     if (!email.includes("@") || email.length < 5) { setError("Enter a valid email"); return; }
     setLoading(true);
+    // Persist party package through the auth redirect
+    const pkgParam = new URLSearchParams(window.location.search).get("package");
+    if (pkgParam === "partyA" || pkgParam === "partyB") {
+      sessionStorage.setItem("pendingPartyPkg", pkgParam);
+    }
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     const { error: authError } = await sb.auth.signInWithOtp({
@@ -555,6 +699,18 @@ function DateTimeStep({ eventDate, setEventDate, eventTime, setEventTime, onBack
             7-day minimum lead time required.
           </div>
         )}
+
+        {/* Rush booking note */}
+        <div style={{ marginTop: 16, padding: "14px 16px", background: "rgba(232,201,126,0.04)", border: "1px solid rgba(232,201,126,0.15)", borderLeft: `2px solid rgba(232,201,126,0.35)` }}>
+          <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 6 }}>Need it sooner?</div>
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, lineHeight: 1.65 }}>
+            Rush bookings may be available — reach out and we&rsquo;ll do our best to make it work.{" "}
+            <span style={{ color: "rgba(245,240,232,0.4)", fontStyle: "italic" }}>An upcharge applies at chef&rsquo;s discretion.</span>
+          </div>
+          <a href={`/?subject=${encodeURIComponent("I'd like to request an event within 7 days")}#contact`} style={{ display: "inline-block", marginTop: 8, fontFamily: FONT_BODY, fontSize: 12, color: GOLD, letterSpacing: "0.1em", textDecoration: "none" }}>
+            Contact us →
+          </a>
+        </div>
       </div>
 
       <div style={{ marginBottom: 28 }}>
@@ -649,64 +805,157 @@ const PREFERENCE_OPTIONS = [
   "no spicy",
   "no shellfish",
   "no raw fish",
+  "gluten free",
+  "dairy free",
+  "no sesame",
+  "nut allergy",
   "preference for lighter flavors",
   "preference for richer flavors",
 ];
 
-function NotesStep({ value, onChange, onBack, onNext }) {
-  const [selected, setSelected] = useState(() =>
-    value ? value.split(", ").filter((s) => PREFERENCE_OPTIONS.includes(s)) : []
-  );
+const TRUE_OMAKASE_VALUE = "true omakase — I leave it entirely to you";
+
+function NotesStep({ value, onChange, isParty, onBack, onNext }) {
+  const parseValue = (v) => {
+    if (!v || v === TRUE_OMAKASE_VALUE) return { selected: [], customNote: "" };
+    const [optionPart, ...rest] = v.split(" · ");
+    const selected = optionPart ? optionPart.split(", ").filter((s) => PREFERENCE_OPTIONS.includes(s)) : [];
+    return { selected, customNote: rest.join(" · ") };
+  };
+
+  const parsed = parseValue(value);
+  const [trueOmakase, setTrueOmakase] = useState(!isParty && value === TRUE_OMAKASE_VALUE);
+  const [selected, setSelected]       = useState(parsed.selected);
+  const [customNote, setCustomNote]   = useState(parsed.customNote);
+
+  const buildValue = (sel, note) => {
+    const parts = [];
+    if (sel.length > 0) parts.push(sel.join(", "));
+    if (note.trim()) parts.push(note.trim());
+    return parts.join(" · ");
+  };
+
+  const toggleTrueOmakase = () => {
+    if (trueOmakase) {
+      setTrueOmakase(false);
+      onChange(buildValue(selected, customNote));
+    } else {
+      setTrueOmakase(true);
+      setSelected([]);
+      setCustomNote("");
+      onChange(TRUE_OMAKASE_VALUE);
+    }
+  };
 
   const toggle = (opt) => {
     const next = selected.includes(opt)
       ? selected.filter((s) => s !== opt)
       : [...selected, opt];
     setSelected(next);
-    onChange(next.length > 0 ? next.join(", ") : "");
+    onChange(buildValue(next, customNote));
   };
 
-  const canProceed = selected.length > 0;
+  const handleCustomNote = (note) => {
+    setCustomNote(note);
+    if (trueOmakase) onChange(note.trim() ? `${TRUE_OMAKASE_VALUE} · ${note.trim()}` : TRUE_OMAKASE_VALUE);
+    else onChange(buildValue(selected, note));
+  };
+
+  const canProceed = trueOmakase || selected.length > 0 || customNote.trim().length > 0;
 
   return (
     <div style={CS.card}>
       <button onClick={onBack} style={CS.back}>← back</button>
-      <StepHeader kanji="四" eyebrow="step 4 of 6" title="sushi preferences" subtitle="select all that apply. your chef reads this before every event." />
+      <StepHeader kanji="四" eyebrow="step 4 of 6" title="sushi preferences" subtitle="select all that apply, and add any other notes below. your chef reads this before every event." />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 28 }}>
-        {PREFERENCE_OPTIONS.map((opt) => {
-          const active = selected.includes(opt);
-          return (
-            <button
-              key={opt}
-              onClick={() => toggle(opt)}
-              style={{
-                background: active ? "rgba(232,201,126,0.08)" : "#0d0d0d",
-                border: `1px solid rgba(232,201,126,${active ? "0.45" : "0.2"})`,
-                padding: "14px 16px",
-                fontFamily: FONT_BODY, fontSize: 13,
-                color: active ? GOLD : CREAM,
-                textAlign: "left", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 10,
-                transition: "border-color 0.15s, background 0.15s",
-              }}
-            >
-              <span style={{
-                width: 14, height: 14, border: `1px solid ${active ? GOLD : "rgba(232,201,126,0.3)"}`,
-                background: active ? GOLD : "transparent",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, fontSize: 9, color: "#0d0d0d", fontWeight: 700,
-              }}>
-                {active ? "✓" : ""}
-              </span>
-              {opt}
-            </button>
-          );
-        })}
+      {/* True Omakase — omakase packages only */}
+      {!isParty && (
+        <div style={{ marginBottom: 28 }}>
+          <button
+            onClick={toggleTrueOmakase}
+            style={{
+              width: "100%",
+              background: trueOmakase ? GOLD : "rgba(232,201,126,0.06)",
+              border: `2px solid ${GOLD}`,
+              color: trueOmakase ? NAVY : GOLD,
+              fontFamily: FONT_DISPLAY,
+              fontSize: 15,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              padding: "22px 32px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              transition: "background 0.2s, color 0.2s",
+              minHeight: 68,
+            }}
+          >
+            {trueOmakase && <span style={{ fontSize: 13, fontWeight: 700 }}>✓</span>}
+            True Omakase — Leave It All to the Chef
+          </button>
+          {trueOmakase && (
+            <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", marginTop: 10, lineHeight: 1.65 }}>
+              Your chef selects everything. Add anything to avoid below if needed.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Preference checkboxes — hidden when true omakase is active */}
+      {!trueOmakase && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
+          {PREFERENCE_OPTIONS.map((opt) => {
+            const active = selected.includes(opt);
+            return (
+              <button
+                key={opt}
+                onClick={() => toggle(opt)}
+                style={{
+                  background: active ? "rgba(232,201,126,0.08)" : "#0d0d0d",
+                  border: `1px solid rgba(232,201,126,${active ? "0.45" : "0.2"})`,
+                  padding: "14px 16px",
+                  fontFamily: FONT_BODY, fontSize: 13,
+                  color: active ? GOLD : CREAM,
+                  textAlign: "left", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 10,
+                  transition: "border-color 0.15s, background 0.15s",
+                }}
+              >
+                <span style={{
+                  width: 14, height: 14, border: `1px solid ${active ? GOLD : "rgba(232,201,126,0.3)"}`,
+                  background: active ? GOLD : "transparent",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0, fontSize: 9, color: "#0d0d0d", fontWeight: 700,
+                }}>
+                  {active ? "✓" : ""}
+                </span>
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ marginBottom: 28 }}>
+        <label style={CS.label}>{trueOmakase ? "anything to avoid?" : "anything else?"}</label>
+        <textarea
+          value={customNote}
+          onChange={(e) => handleCustomNote(e.target.value)}
+          placeholder={trueOmakase ? "allergies or anything your chef should keep off the menu…" : "allergies, strong dislikes, or anything your chef should know…"}
+          rows={3}
+          style={{ ...CS.input, resize: "vertical", lineHeight: 1.6, padding: "12px 14px" }}
+        />
       </div>
 
       <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginBottom: 24, lineHeight: 1.6 }}>
-        {selected.length === 0 ? "select at least one preference to continue." : `${selected.length} selected`}
+        {!canProceed
+          ? "select a preference or add a note to continue."
+          : trueOmakase
+            ? "true omakase selected"
+            : `${selected.length > 0 ? `${selected.length} selected` : ""}${selected.length > 0 && customNote.trim() ? " · " : ""}${customNote.trim() ? "note added" : ""}`
+        }
       </div>
 
       <button onClick={onNext} disabled={!canProceed} style={{ ...CS.cta, ...(!canProceed ? CS.ctaDisabled : {}) }}>
@@ -797,6 +1046,25 @@ function OmakasePaymentScreen({ pkg, user, eventDate, eventTime, appetizers, che
       })
       .catch(() => setIntentError("Could not connect to payment service"));
   }, [effectiveDeposit]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-apply promo stored from homepage/parties package cards
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("sonkase_promo");
+      if (!stored || appliedPromo) return;
+      const saved = JSON.parse(stored);
+      if (!saved?.code) return;
+      setPromoInput(saved.code);
+      fetch("/api/validate-promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: saved.code, subtotal: pkg.price }),
+      })
+        .then((r) => r.json())
+        .then((data) => { if (data.valid) setAppliedPromo({ code: saved.code, ...data }); })
+        .catch(() => {});
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const applyPromo = async () => {
     const code = promoInput.trim().toUpperCase();
@@ -1047,7 +1315,7 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
           <CardElement
             options={{
               style: {
-                base: { fontFamily: `Georgia, serif`, fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
+                base: { fontFamily: \`'Shippori Mincho', Georgia, serif\`, fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
                 invalid: { color: "#E8C97E" },
               },
               hidePostalCode: true,
@@ -1078,9 +1346,367 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
   );
 }
 
+// ── Party: Guest Count Step ───────────────────────────────────
+function PartyGuestStep({ partyPkg, guestCount, setGuestCount, onNext }) {
+  const count   = Number(guestCount);
+  const canNext = count >= 10 && count <= 20;
+
+  return (
+    <div style={CS.card}>
+      <a href="/parties" style={CS.back}>← Back to packages</a>
+      <StepHeader kanji="壱" eyebrow="step 1" title="how many guests?" subtitle="10 to 20 guests for this experience." />
+
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: GOLD, marginBottom: 6 }}>{partyPkg.name}</div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: "rgba(232,201,126,0.7)", fontStyle: "italic", marginBottom: 28 }}>
+          ${partyPkg.pricePerGuest} per guest · gratuity included
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 28 }}>
+        <label style={CS.label}>guest count</label>
+        <input
+          type="number"
+          min={10} max={20}
+          value={guestCount}
+          onChange={(e) => setGuestCount(e.target.value)}
+          placeholder="Enter number of guests"
+          style={{ ...CS.input, maxWidth: 260 }}
+        />
+        {guestCount && !canNext && (
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: PERSIMMON, marginTop: 8, fontStyle: "italic" }}>
+            This experience requires 10 to 20 guests.
+          </div>
+        )}
+        {canNext && (
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, marginTop: 10, fontStyle: "italic" }}>
+            Total: ${(partyPkg.pricePerGuest * count).toLocaleString()} · Deposit today: {fmt2(Math.round(partyPkg.pricePerGuest * count * 0.25 * 100) / 100)}
+          </div>
+        )}
+      </div>
+
+      <button onClick={onNext} disabled={!canNext} style={{ ...CS.cta, ...(!canNext ? CS.ctaDisabled : {}) }}>
+        Continue →
+      </button>
+    </div>
+  );
+}
+
+// ── Party: Appetizer Confirm Step (Package B) ─────────────────
+function PartyAppetizerConfirmStep({ onBack, onNext }) {
+  return (
+    <div style={CS.card}>
+      <button onClick={onBack} style={CS.back}>← Back</button>
+      <StepHeader kanji="参" eyebrow="step 3" title="appetizers included" subtitle="all three appetizers are included with Package B — no selection needed." />
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
+        {APPETIZER_OPTIONS.slice(0, 3).map((a) => (
+          <div key={a.id} style={{
+            background: "rgba(232,201,126,0.05)",
+            border: "1px solid rgba(232,201,126,0.25)",
+            padding: "18px 20px",
+            display: "flex", gap: 16, alignItems: "flex-start",
+          }}>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 28, color: GOLD, opacity: 0.5, lineHeight: 1, flexShrink: 0 }}>{a.kanji}</div>
+            <div>
+              <div style={{ fontFamily: FONT_DISPLAY, fontSize: 15, color: CREAM, marginBottom: 4 }}>{a.name}</div>
+              <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic" }}>{a.desc}</div>
+            </div>
+            <div style={{ marginLeft: "auto", fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.1em", flexShrink: 0 }}>✓ included</div>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={onNext} style={CS.cta}>
+        Continue to Preferences →
+      </button>
+    </div>
+  );
+}
+
+// ── Party: Summary Step ───────────────────────────────────────
+function PartySummaryStep({ partyPkg, guestCount, eventDate, eventTime, chefNotes, appetizers, onBack, onNext }) {
+  const total   = partyPkg.pricePerGuest * guestCount;
+  const deposit = Math.round(total * 0.25 * 100) / 100;
+  const balance = Math.round((total - deposit) * 100) / 100;
+
+  return (
+    <div style={CS.card}>
+      <button onClick={onBack} style={CS.back}>← Edit notes</button>
+      <StepHeader kanji="五" eyebrow="review" title="review your booking" />
+
+      <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 24 }}>
+        <SummaryRow label="Experience"    value={partyPkg.name} />
+        <SummaryRow label="Guests"        value={`${guestCount} guests`} />
+        <SummaryRow label="Price/Guest"   value={`$${partyPkg.pricePerGuest}`} />
+        <SummaryRow label="Date"          value={fmtDate(eventDate)} />
+        <SummaryRow label="Time"          value={fmtTime(eventTime)} />
+        {appetizers?.length > 0 && (
+          <SummaryRow label="Appetizer" value={appetizers.map((a) => a.name).join(", ")} />
+        )}
+        <SummaryRow label="Preferences"   value={chefNotes} />
+      </div>
+
+      <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 24 }}>
+        <SummaryRow label="Total"                  value={fmt2(total)} />
+        <SummaryRow label="Deposit due today (25%)" value={fmt2(deposit)} highlight />
+        <SummaryRow label="Balance due at event"   value={fmt2(balance)} />
+        <SummaryRow label="Gratuity"               value="Included" />
+      </div>
+
+      <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, padding: "14px 16px", marginBottom: 28 }}>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>cancellation policy</div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, lineHeight: 1.6 }}>
+          Cancel 72 hours or more before your event for a full deposit refund. Cancellations within 72 hours forfeit the deposit.
+        </div>
+      </div>
+
+      <button onClick={onNext} style={CS.cta}>
+        Confirm and Pay {fmt2(deposit)} →
+      </button>
+    </div>
+  );
+}
+
+// ── Party: Payment Screen ─────────────────────────────────────
+function PartyPaymentScreen({ partyPkg, guestCount, user, eventDate, eventTime, chefNotes, appetizers, onBack, onConfirm }) {
+  const total   = partyPkg.pricePerGuest * guestCount;
+  const deposit = Math.round(total * 0.25 * 100) / 100;
+  const balance = Math.round((total - deposit) * 100) / 100;
+
+  const [clientSecret, setClientSecret] = useState(null);
+  const [intentError, setIntentError]   = useState(null);
+
+  useEffect(() => {
+    fetch("/api/create-payment-intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: deposit }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.clientSecret) setClientSecret(data.clientSecret);
+        else setIntentError(data.error || "Could not initialize payment");
+      })
+      .catch(() => setIntentError("Could not connect to payment service"));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (intentError) return (
+    <div style={CS.card}>
+      <button onClick={onBack} style={CS.back}>← Back to review</button>
+      <div style={{ padding: "40px 0", fontFamily: FONT_BODY, fontSize: 15, color: PERSIMMON, fontStyle: "italic" }}>
+        {intentError} — please try again or contact us directly.
+      </div>
+    </div>
+  );
+
+  if (!clientSecret) return (
+    <div style={CS.card}>
+      <div style={{ textAlign: "center", padding: "100px 0", fontFamily: FONT_DISPLAY, fontSize: 15, color: INK_FAINT, letterSpacing: "0.1em" }}>
+        Preparing secure payment…
+      </div>
+    </div>
+  );
+
+  return (
+    <Elements key={clientSecret} stripe={stripePromise} options={{ clientSecret }}>
+      <PartyPaymentForm
+        clientSecret={clientSecret}
+        partyPkg={partyPkg} guestCount={guestCount} user={user}
+        eventDate={eventDate} eventTime={eventTime} chefNotes={chefNotes}
+        appetizers={appetizers}
+        total={total} deposit={deposit} balance={balance}
+        onBack={onBack} onConfirm={onConfirm}
+      />
+    </Elements>
+  );
+}
+
+function PartyPaymentForm({ clientSecret, partyPkg, guestCount, user, eventDate, eventTime, chefNotes, appetizers, total, deposit, balance, onBack, onConfirm }) {
+  const stripe    = useStripe();
+  const elements  = useElements();
+  const [processing, setProcessing]     = useState(false);
+  const [error, setError]               = useState("");
+  const [cardComplete, setCardComplete] = useState(false);
+
+  const submit = async () => {
+    if (!stripe || !elements || !cardComplete) return;
+    setProcessing(true); setError("");
+
+    const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: elements.getElement(CardElement), billing_details: { email: user.email } },
+    });
+
+    if (stripeError) { setError(stripeError.message); setProcessing(false); return; }
+    if (paymentIntent.status !== "succeeded") { setError("Payment did not complete. Please try again."); setProcessing(false); return; }
+
+    const confirmationId = `CS${Date.now().toString(36).toUpperCase().slice(-6)}`;
+
+    const saveRes = await fetch("/api/save-booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_email: user.email,
+        package: partyPkg.name,
+        service_type: "party",
+        event_date: eventDate,
+        event_time: eventTime,
+        guest_count: guestCount,
+        total_price: total,
+        deposit_amount: deposit,
+        appetizers_selected: appetizers?.map((a) => a.name) || [],
+        special_requests: chefNotes,
+        status: "pending",
+        confirmation_number: confirmationId,
+        stripe_payment_intent_id: paymentIntent.id,
+      }),
+    });
+    const saveData = await saveRes.json();
+    if (!saveData.success) {
+      setError(`Booking could not be saved: ${saveData.error}. Your payment was charged — please contact us directly.`);
+      setProcessing(false); return;
+    }
+
+    await Promise.allSettled([
+      fetch("/api/send-receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          confirmationId,
+          serviceType: "party",
+          packageName: partyPkg.name,
+          eventDate, eventTime,
+          guestCount,
+          pricePerGuest: partyPkg.pricePerGuest,
+          total, deposit,
+          chefNotes,
+          appetizersSelected: appetizers?.map((a) => a.name) || [],
+        }),
+      }),
+      fetch("/api/notify-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "party",
+          clientEmail: user.email,
+          confirmationId,
+          packageName: partyPkg.name,
+          eventDate, eventTime,
+          guestCount,
+          pricePerGuest: partyPkg.pricePerGuest,
+          total, deposit,
+          chefNotes,
+          appetizersSelected: appetizers?.map((a) => a.name) || [],
+        }),
+      }),
+    ]);
+
+    setProcessing(false);
+    onConfirm(confirmationId, { total, deposit, balance });
+  };
+
+  return (
+    <div style={CS.card}>
+      <button onClick={onBack} style={CS.back}>← Back to review</button>
+      <StepHeader kanji="払" eyebrow="payment" title="secure payment" subtitle="pay your 25% deposit to confirm the booking." />
+
+      <div style={{ background: NAVY, color: CREAM, padding: "22px 26px", marginBottom: 28 }}>
+        <div className="book-pay-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+          <div>
+            <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: PERSIMMON, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 6 }}>deposit due today</div>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 40, fontWeight: 400, color: CREAM, lineHeight: 1 }}>{fmt2(deposit)}</div>
+            <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: "rgba(245,236,217,0.45)", marginTop: 6, fontStyle: "italic" }}>
+              Balance {fmt2(balance)} due at the event · gratuity included
+            </div>
+          </div>
+          <div style={{ fontSize: 36, opacity: 0.12 }}>🔒</div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <label style={CS.label}>card details</label>
+        <div style={{ padding: "14px 16px", background: "#0d0d0d", border: `1px solid rgba(232,201,126,0.25)` }}>
+          <CardElement
+            options={{
+              style: {
+                base: { fontFamily: \`'Shippori Mincho', Georgia, serif\`, fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
+                invalid: { color: "#E8C97E" },
+              },
+              hidePostalCode: true,
+            }}
+            onChange={(e) => { setCardComplete(e.complete); if (e.error) setError(e.error.message); else if (error) setError(""); }}
+          />
+        </div>
+      </div>
+
+      <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginBottom: 20 }}>
+        Receipt will be sent to <strong>{user.email}</strong>
+      </div>
+
+      <div style={{ fontFamily: FONT_BODY, fontSize: 12, color: INK_FAINT, lineHeight: 1.6, marginBottom: 24 }}>
+        Cancel 72 hours or more before your event for a full deposit refund. Cancellations within 72 hours forfeit the deposit.
+      </div>
+
+      {error && <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: PERSIMMON, marginBottom: 16, fontStyle: "italic" }}>{error}</div>}
+
+      <button
+        onClick={submit}
+        disabled={processing || !stripe || !cardComplete}
+        style={{ ...CS.cta, ...(processing || !stripe || !cardComplete ? CS.ctaDisabled : {}), width: "100%" }}
+      >
+        {processing ? "Processing…" : `Pay ${fmt2(deposit)} & Confirm Booking`}
+      </button>
+    </div>
+  );
+}
+
 // ── Confirmation ──────────────────────────────────────────────
 function ConfirmationStep({ confirmation, user, onReset }) {
   if (!confirmation) return null;
+
+  if (confirmation.isParty) {
+    const { id, partyPkg, guestCount, eventDate, eventTime, total, deposit, balance, appetizers } = confirmation;
+    return (
+      <div style={{ ...CS.card, textAlign: "center" }}>
+        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 52, color: PERSIMMON, marginBottom: 4 }}>確認</div>
+        <div style={{ height: 2, width: 48, background: PERSIMMON, margin: "0 auto 24px" }} />
+        <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: CREAM, marginBottom: 8 }}>booking confirmed</h1>
+        <p style={{ fontFamily: FONT_BODY, fontSize: 15, color: INK_SOFT, fontStyle: "italic", marginBottom: 36 }}>
+          your Sonakase™ event is on the calendar.
+        </p>
+        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: PERSIMMON, letterSpacing: "0.1em", marginBottom: 32 }}>#{id}</div>
+        <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 28, textAlign: "left" }}>
+          <SummaryRow label="Experience"        value={partyPkg.name} />
+          <SummaryRow label="Date"              value={fmtDate(eventDate)} />
+          <SummaryRow label="Time"              value={fmtTime(eventTime)} />
+          <SummaryRow label="Guests"            value={`${guestCount} guests`} />
+          {appetizers?.length > 0 && (
+            <SummaryRow label="Appetizer" value={appetizers.map((a) => a.name).join(", ")} />
+          )}
+          <SummaryRow label="Total"             value={fmt2(total)} />
+          <SummaryRow label="Deposit Paid"      value={fmt2(deposit)} highlight />
+          <SummaryRow label="Balance Due"       value={fmt2(balance)} />
+        </div>
+        <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, padding: "16px 20px", marginBottom: 28, textAlign: "left" }}>
+          <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>what happens next</div>
+          <ul style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.9, paddingLeft: 18, fontStyle: "italic", margin: 0 }}>
+            <li>Your chef will review your notes and plan the menu</li>
+            <li>Chef arrives 30 minutes before your selected time to set up</li>
+            <li>Balance is due at the event — cash or card accepted</li>
+            <li>Check your email for your receipt</li>
+          </ul>
+        </div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginBottom: 32, lineHeight: 1.6 }}>
+          Don&rsquo;t see the confirmation email? Check your spam — look for bookings@sonakase.com
+        </div>
+        <a href="/" style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK_SOFT, textDecoration: "underline" }}>
+          ← Back to Sonakase™
+        </a>
+      </div>
+    );
+  }
+
   const { id, pkg, eventDate, eventTime, appetizers, chefNotes } = confirmation;
 
   return (

@@ -16,7 +16,7 @@ const GOLD        = "#a07736";
 const FOREST      = "#2d4a3a";
 const PLUM        = "#5a2a4a";
 const FD = `'Shippori Mincho', Georgia, serif`;
-const FB = `'Crimson Pro', Georgia, serif`;
+const FB = `'Shippori Mincho', Georgia, serif`;
 
 const STATUS_COLORS = { confirmed: FOREST, pending: GOLD, cancelled: PERSIMMON };
 const TIER_COLORS   = { classics: FOREST, signatures: INDIGO, specialty: GOLD, premium: PLUM };
@@ -284,7 +284,7 @@ export default function AdminDashboard() {
   }, [authed]);
 
   useEffect(() => {
-    if (activeTab === "promo" && authed) fetchPromoCodes();
+    if ((activeTab === "promo" || activeTab === "banner") && authed) fetchPromoCodes();
   }, [activeTab, authed]);
 
   const updateStatus = async (id, status) => {
@@ -390,6 +390,7 @@ export default function AdminDashboard() {
             { key: "bookings",  label: "予約  Bookings" },
             { key: "logistics", label: "算  Logistics" },
             { key: "promo",     label: "割  Promo Codes" },
+            { key: "banner",    label: "帯  Banner" },
           ].map((t) => (
             <button
               key={t.key}
@@ -470,6 +471,10 @@ export default function AdminDashboard() {
         {activeTab === "promo" && (
           <PromoCodesTab promoCodes={promoCodes} onRefresh={fetchPromoCodes} />
         )}
+
+        {activeTab === "banner" && (
+          <BannerTab promoCodes={promoCodes} />
+        )}
       </main>
     </div>
   );
@@ -517,7 +522,7 @@ function PasswordScreen({ onAuth }) {
           border: "none",
           borderBottom: "1px solid rgba(255,255,255,0.15)",
           color: "#fff",
-          fontFamily: "Georgia, serif",
+          fontFamily: "'Shippori Mincho', Georgia, serif",
           fontSize: 18,
           letterSpacing: "0.2em",
           padding: "12px 0",
@@ -1553,6 +1558,221 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
               </div>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// BANNER TAB
+// ============================================================
+function BannerTab({ promoCodes }) {
+  const [enabled, setEnabled]           = useState(false);
+  const [text, setText]                 = useState("");
+  const [selectedPromo, setSelectedPromo] = useState("");
+  const [saving, setSaving]             = useState(false);
+  const [saved, setSaved]               = useState(false);
+  const [saveError, setSaveError]       = useState("");
+  const [loaded, setLoaded]             = useState(false);
+
+  useEffect(() => {
+    fetch("/api/banner")
+      .then((r) => r.json())
+      .then((data) => { setEnabled(data.enabled); setText(data.text); setLoaded(true); })
+      .catch(() => setLoaded(true));
+  }, []);
+
+  const insertPromo = (code) => {
+    if (!code) return;
+    const sep = text && !text.endsWith(" ") && !text.endsWith("·") ? " · " : "";
+    setText((t) => `${t}${sep}${code}`);
+    setSelectedPromo("");
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setSaved(false);
+    setSaveError("");
+    try {
+      const res  = await fetch("/api/admin/save-banner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled, text }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        setSaveError(data.error || "Save failed. The site_settings table may not exist in Supabase — run the SQL from the banner API route file.");
+      }
+    } catch (err) {
+      setSaveError("Network error — could not save.");
+    }
+    setSaving(false);
+  };
+
+  const previewText = text || "Founding guest pricing ends July 31 · Use code FOUNDING for 20% off · Book now at sonakase.com";
+  const activeCodes = promoCodes.filter((p) => p.active);
+
+  if (!loaded) return (
+    <div style={{ padding: "60px 0", textAlign: "center", fontFamily: FB, fontSize: 14, color: INK_FAINT, fontStyle: "italic" }}>
+      Loading…
+    </div>
+  );
+
+  return (
+    <div>
+      <style>{`
+        @keyframes banner-admin-ticker {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        .banner-admin-track {
+          display: inline-flex;
+          align-items: center;
+          white-space: nowrap;
+          height: 38px;
+          animation: banner-admin-ticker 40s linear infinite;
+        }
+        .banner-admin-seg {
+          font-family: 'Shippori Mincho', Georgia, serif;
+          font-size: 12px;
+          color: #E8C97E;
+          letter-spacing: 0.15em;
+          padding: 0 40px;
+        }
+      `}</style>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
+        <span style={{ fontFamily: FD, fontSize: 22, color: PERSIMMON, opacity: 0.4 }}>帯</span>
+        <span style={{ fontFamily: FD, fontSize: 18, color: INK }}>Announcement Banner</span>
+      </div>
+
+      {/* Toggle */}
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28, padding: "18px 24px", background: PAPER, border: `1px solid rgba(26,18,8,0.08)` }}>
+        <div
+          onClick={() => setEnabled((v) => !v)}
+          style={{
+            width: 48, height: 26, borderRadius: 13, flexShrink: 0,
+            background: enabled ? GOLD : "rgba(26,18,8,0.12)",
+            border: `1.5px solid ${enabled ? GOLD : "rgba(26,18,8,0.2)"}`,
+            cursor: "pointer", position: "relative",
+            transition: "background 0.2s, border-color 0.2s",
+          }}
+        >
+          <div style={{
+            width: 18, height: 18, borderRadius: "50%", background: "#fff",
+            position: "absolute", top: 3, left: enabled ? 26 : 3,
+            transition: "left 0.2s",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+          }} />
+        </div>
+        <span style={{ fontFamily: FD, fontSize: 15, color: enabled ? GOLD : INK_FAINT, transition: "color 0.2s" }}>
+          {enabled ? "Banner Active" : "Banner Off"}
+        </span>
+      </div>
+
+      {/* Text input */}
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>
+          Banner Message
+        </label>
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Founding guest pricing ends July 31 · Use code FOUNDING for 20% off · Book now at sonakase.com"
+          style={{
+            width: "100%", boxSizing: "border-box", padding: "12px 14px",
+            border: `1.5px solid rgba(26,18,8,0.15)`, background: "#fff",
+            fontFamily: FB, fontSize: 14, color: INK, outline: "none",
+          }}
+        />
+      </div>
+
+      {/* Promo code picker */}
+      {activeCodes.length > 0 && (
+        <div style={{ marginBottom: 28, display: "flex", alignItems: "center", gap: 10 }}>
+          <label style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase", flexShrink: 0 }}>
+            Insert Code
+          </label>
+          <select
+            value={selectedPromo}
+            onChange={(e) => { setSelectedPromo(e.target.value); if (e.target.value) insertPromo(e.target.value); }}
+            style={{ padding: "8px 12px", border: `1.5px solid rgba(26,18,8,0.15)`, background: "#fff", fontFamily: FB, fontSize: 13, color: INK, cursor: "pointer", outline: "none" }}
+          >
+            <option value="">— select active code —</option>
+            {activeCodes.map((pc) => (
+              <option key={pc.id} value={pc.code}>
+                {pc.code} ({pc.discount_type === "percent" ? `${pc.discount_value}% off` : `$${Number(pc.discount_value).toFixed(0)} off`})
+              </option>
+            ))}
+          </select>
+          <span style={{ fontFamily: FB, fontSize: 12, color: INK_FAINT, fontStyle: "italic" }}>
+            Appends to message
+          </span>
+        </div>
+      )}
+
+      {/* Live preview */}
+      <div style={{ marginBottom: 28 }}>
+        <label style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 10 }}>
+          Live Preview
+        </label>
+        <div style={{
+          height: 38,
+          background: "#1A1A1A",
+          border: "1px solid rgba(232,201,126,0.2)",
+          overflow: "hidden",
+          position: "relative",
+        }}>
+          {enabled ? (
+            <div style={{ overflow: "hidden", height: "100%" }}>
+              <div className="banner-admin-track">
+                <span className="banner-admin-seg">{previewText}</span>
+                <span className="banner-admin-seg">{previewText}</span>
+                <span className="banner-admin-seg">{previewText}</span>
+                <span className="banner-admin-seg">{previewText}</span>
+              </div>
+            </div>
+          ) : (
+            <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontFamily: FB, fontSize: 11, color: "rgba(232,201,126,0.3)", fontStyle: "italic", letterSpacing: "0.15em" }}>
+                banner is off — toggle to enable
+              </span>
+            </div>
+          )}
+        </div>
+        <div style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, fontStyle: "italic", marginTop: 6 }}>
+          Preview updates as you type. Scrolling speed matches the live site.
+        </div>
+      </div>
+
+      {/* Save */}
+      <button
+        onClick={save}
+        disabled={saving}
+        style={{
+          width: "100%", height: 52, background: PERSIMMON, color: CREAM, border: "none",
+          fontFamily: FD, fontSize: 13, letterSpacing: "0.12em",
+          cursor: saving ? "not-allowed" : "pointer",
+          opacity: saving ? 0.7 : 1,
+          transition: "opacity 0.2s",
+        }}
+      >
+        {saving ? "Saving…" : "Save Banner"}
+      </button>
+
+      {saved && (
+        <div style={{ fontFamily: FB, fontSize: 14, color: FOREST, marginTop: 14, fontStyle: "italic" }}>
+          Banner saved.
+        </div>
+      )}
+      {saveError && (
+        <div style={{ fontFamily: FB, fontSize: 13, color: PERSIMMON, marginTop: 14, lineHeight: 1.6 }}>
+          {saveError}
         </div>
       )}
     </div>

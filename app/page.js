@@ -107,7 +107,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div style={{ background: BG, color: CREAM, fontFamily: "Georgia, 'Times New Roman', serif", overflowX: "hidden" }}>
+    <div style={{ background: BG, color: CREAM, fontFamily: "'Shippori Mincho', Georgia, serif", overflowX: "hidden" }}>
       <PageStyles />
       <Nav />
       <AboutSection />
@@ -137,7 +137,7 @@ function PageStyles() {
         50%       { opacity: 1;   transform: scale(1.06); }
       }
       .sk-promo-hint {
-        font-family: Georgia, serif;
+        font-family: 'Shippori Mincho', Georgia, serif;
         font-style: italic;
         font-size: 12px;
         color: #E8C97E;
@@ -155,7 +155,7 @@ function PageStyles() {
       .hero-icon { animation: bob 2.5s ease-in-out infinite; }
 
       .sk-nav-link {
-        font-family: Georgia, serif;
+        font-family: 'Shippori Mincho', Georgia, serif;
         font-size: 12px;
         letter-spacing: 0.12em;
         color: #e6dac8;
@@ -172,7 +172,7 @@ function PageStyles() {
         background: ${GOLD};
         color: ${BG};
         border: none;
-        font-family: Georgia, serif;
+        font-family: 'Shippori Mincho', Georgia, serif;
         font-size: 12px;
         letter-spacing: 0.2em;
         text-transform: uppercase;
@@ -191,7 +191,7 @@ function PageStyles() {
         background: transparent;
         color: ${GOLD};
         border: 1px solid ${GOLD};
-        font-family: Georgia, serif;
+        font-family: 'Shippori Mincho', Georgia, serif;
         font-size: 12px;
         letter-spacing: 0.2em;
         text-transform: uppercase;
@@ -211,7 +211,7 @@ function PageStyles() {
         border: none;
         border-bottom: 1px solid rgba(232,201,126,0.4);
         color: ${CREAM};
-        font-family: Georgia, serif;
+        font-family: 'Shippori Mincho', Georgia, serif;
         font-size: 16px;
         width: 100%;
         padding: 14px 0;
@@ -239,7 +239,7 @@ function PageStyles() {
         padding: 0 40px;
         border: 1px solid rgba(232,201,126,0.4);
         background: transparent;
-        font-family: Georgia, serif;
+        font-family: 'Shippori Mincho', Georgia, serif;
         font-size: 13px;
         color: ${GOLD};
         letter-spacing: 0.2em;
@@ -546,7 +546,7 @@ function Hero() {
 
         {/* Headline */}
         <h1 style={{
-          fontFamily: "Georgia, serif", fontWeight: 400,
+          fontFamily: "'Shippori Mincho', Georgia, serif", fontWeight: 400,
           fontSize: "clamp(28px, 5vw, 52px)",
           color: CREAM, letterSpacing: "0.04em",
           margin: "0 0 20px", lineHeight: 1.1,
@@ -556,7 +556,7 @@ function Hero() {
 
         {/* Tagline */}
         <div style={{
-          fontFamily: "Georgia, serif", fontSize: "clamp(14px, 2vw, 18px)",
+          fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(14px, 2vw, 18px)",
           color: GOLD, letterSpacing: "0.15em", fontStyle: "italic",
           marginBottom: 56,
         }}>
@@ -613,17 +613,17 @@ function ExperiencesSection() {
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
           {/* Eyebrow */}
-          <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
             the experience
           </div>
 
           {/* Headline */}
-          <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(32px, 5vw, 68px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 24, lineHeight: 1.1 }}>
+          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(32px, 5vw, 68px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 24, lineHeight: 1.1 }}>
             true omakase. your home.
           </h2>
 
           {/* Body */}
-          <p style={{ fontFamily: "Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, textAlign: "center", maxWidth: 560, margin: "0 auto 80px", lineHeight: 1.8 }}>
+          <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, textAlign: "center", maxWidth: 560, margin: "0 auto 80px", lineHeight: 1.8 }}>
             A private chef arrives at your home, rolls course by course while you watch. For sushi lovers of all kinds.
           </p>
         </Reveal>
@@ -640,28 +640,28 @@ function ExperiencesSection() {
               <Reveal key={p.id} delay={idx * 0.09}>
                 <div className="sk-pkg-card">
                 {/* Name */}
-                <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
                   {p.name}
                 </div>
 
                 {/* Guest count */}
-                <div style={{ fontFamily: "Georgia, serif", fontSize: 11, color: "#b8892a", letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 24 }}>
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: "#b8892a", letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 24 }}>
                   {p.guests} guests
                 </div>
 
                 {/* Price */}
                 {discounted !== null ? (
                   <div style={{ marginBottom: 28 }}>
-                    <div style={{ fontFamily: "Georgia, serif", fontSize: 38, color: "rgba(232,201,126,0.35)", fontWeight: 400, lineHeight: 1, textDecoration: "line-through" }}>
+                    <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 38, color: "rgba(232,201,126,0.35)", fontWeight: 400, lineHeight: 1, textDecoration: "line-through" }}>
                       ${p.price}
                     </div>
-                    <div style={{ fontFamily: "Georgia, serif", fontSize: 38, color: GOLD, fontWeight: 400, lineHeight: 1, marginTop: 6 }}>
+                    <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 38, color: GOLD, fontWeight: 400, lineHeight: 1, marginTop: 6 }}>
                       ${discounted}
                     </div>
                     <div className="sk-promo-hint">{hintParts && <HintDisplay parts={hintParts} />}</div>
                   </div>
                 ) : (
-                  <div style={{ fontFamily: "Georgia, serif", fontSize: 38, color: CREAM, fontWeight: 400, marginBottom: 28, lineHeight: 1 }}>
+                  <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 38, color: CREAM, fontWeight: 400, marginBottom: 28, lineHeight: 1 }}>
                     ${p.price}
                   </div>
                 )}
@@ -672,7 +672,7 @@ function ExperiencesSection() {
                 {/* Includes */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1, marginBottom: 36 }}>
                   {p.includes.map((item) => (
-                    <div key={item} style={{ fontFamily: "Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.7)`, lineHeight: 1.5 }}>
+                    <div key={item} style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.7)`, lineHeight: 1.5 }}>
                       {item}
                     </div>
                   ))}
@@ -682,7 +682,7 @@ function ExperiencesSection() {
                 <a
                   href="/book"
                   onClick={storePromo}
-                  style={{ fontFamily: "Georgia, serif", fontSize: 12, color: GOLD, letterSpacing: "0.2em", textDecoration: "none", textTransform: "uppercase", transition: "opacity 0.2s" }}
+                  style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12, color: GOLD, letterSpacing: "0.2em", textDecoration: "none", textTransform: "uppercase", transition: "opacity 0.2s" }}
                   onMouseEnter={(e) => e.currentTarget.style.opacity = "0.6"}
                   onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
                 >
@@ -717,12 +717,12 @@ function HowItWorksSection() {
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
           {/* Eyebrow */}
-          <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
             the process
           </div>
 
           {/* Headline */}
-          <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 4vw, 60px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 80, lineHeight: 1.15 }}>
+          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(28px, 4vw, 60px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 80, lineHeight: 1.15 }}>
             simple from start to finish.
           </h2>
         </Reveal>
@@ -738,15 +738,15 @@ function HowItWorksSection() {
               paddingLeft: i > 0 ? 32 : 0,
             }}>
               {/* Numeral */}
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 52, color: GOLD, opacity: 0.3, lineHeight: 1, marginBottom: 20, fontWeight: 400 }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 52, color: GOLD, opacity: 0.3, lineHeight: 1, marginBottom: 20, fontWeight: 400 }}>
                 {s.num}
               </div>
               {/* Title */}
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: CREAM, letterSpacing: "0.08em", marginBottom: 14, fontWeight: 400 }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: CREAM, letterSpacing: "0.08em", marginBottom: 14, fontWeight: 400 }}>
                 {s.title}
               </div>
               {/* Description */}
-              <p style={{ fontFamily: "Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.55)`, lineHeight: 1.75 }}>
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.55)`, lineHeight: 1.75 }}>
                 {s.desc}
               </p>
             </div>
@@ -780,17 +780,17 @@ function AboutChefSection() {
             {/* Right — Text content */}
             <div>
               {/* Eyebrow */}
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: GOLD, letterSpacing: "0.5em", textTransform: "uppercase", marginBottom: 20 }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: GOLD, letterSpacing: "0.5em", textTransform: "uppercase", marginBottom: 20 }}>
                 Meet Your Chef
               </div>
 
               {/* Name */}
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 36, color: CREAM, fontWeight: 400, marginBottom: 10 }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 36, color: CREAM, fontWeight: 400, marginBottom: 10 }}>
                 Mason Steinberg
               </div>
 
               {/* Title */}
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 12, color: GOLD, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 32 }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12, color: GOLD, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 32 }}>
                 Founder &amp; Executive Chef
               </div>
 
@@ -799,13 +799,13 @@ function AboutChefSection() {
 
               {/* Bio */}
               <div style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 0 }}>
-                <p style={{ fontFamily: "Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
+                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
                   Mason grew up sitting at the sushi bar as a kid, watching the chef work. He started practicing at home, rolling on his own with grocery store fish and YouTube. By 15 he had his first kitchen job as a dishwasher.
                 </p>
-                <p style={{ fontFamily: "Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
+                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
                   The week he turned 16 and got his license, he drove back to that same restaurant and asked for a job. They gave him one. Over the next few years he worked his way through some of Gainesville&rsquo;s most notable sushi spots, including Ichiban, Chopstix, and Arashi Yama, moving from prep to rolling, learning the craft the right way across multiple kitchens.
                 </p>
-                <p style={{ fontFamily: "Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
+                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
                   Along the way he started doing sushi nights for his family. Rolling for the people he grew up with, at home, around the table. It was always his favorite part. At 20 he decided other people deserved that too. That is Sonakase&trade;.
                 </p>
               </div>
@@ -814,13 +814,13 @@ function AboutChefSection() {
               <div style={{ width: 60, height: 1, background: GOLD, opacity: 0.2, margin: "32px 0" }} />
 
               {/* Sourcing */}
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 20, color: CREAM, marginBottom: 16 }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 20, color: CREAM, marginBottom: 16 }}>
                 The Sourcing
               </div>
-              <p style={{ fontFamily: "Georgia, serif", fontSize: 15, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: "0 0 16px" }}>
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 15, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: "0 0 16px" }}>
                 Every protein is sourced fresh from trusted local and regional seafood markets. Rice is seasoned the day of your event. Nothing is prepared days in advance.
               </p>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 13, color: "rgba(232,201,126,0.70)", fontStyle: "italic" }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(232,201,126,0.70)", fontStyle: "italic" }}>
                 ServSafe Food Manager Certified
               </div>
             </div>
@@ -875,19 +875,19 @@ function ContactSection() {
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
           {/* Eyebrow */}
-          <div style={{ fontFamily: "Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
             get in touch
           </div>
 
           {/* Headline */}
-          <h2 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 4vw, 56px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 56, lineHeight: 1.2 }}>
+          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(28px, 4vw, 56px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 56, lineHeight: 1.2 }}>
             have a question?
           </h2>
         </Reveal>
 
         <Reveal delay={0.1}>
         {status === "success" ? (
-          <div style={{ textAlign: "center", padding: "40px 0", fontFamily: "Georgia, serif", fontSize: 18, color: GOLD, fontStyle: "italic", lineHeight: 1.6 }}>
+          <div style={{ textAlign: "center", padding: "40px 0", fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 18, color: GOLD, fontStyle: "italic", lineHeight: 1.6 }}>
             Thank you. We&rsquo;ll be in touch.
           </div>
         ) : (
@@ -934,7 +934,7 @@ function ContactSection() {
             </div>
 
             {status === "error" && (
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 13, color: "#c5552d", fontStyle: "italic" }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "#c5552d", fontStyle: "italic" }}>
                 Something went wrong. Please try again.
               </div>
             )}
@@ -963,12 +963,12 @@ function PhotoSection() {
       <div style={{
         position: "absolute", inset: 0,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "Georgia, serif", fontSize: 300, fontWeight: 400,
+        fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 300, fontWeight: 400,
         color: GOLD, opacity: 0.05, lineHeight: 1,
         pointerEvents: "none", userSelect: "none",
       }}>S</div>
       <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "80px 40px" }}>
-        <p style={{ fontFamily: "Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.3)`, fontStyle: "italic" }}>
+        <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.3)`, fontStyle: "italic" }}>
           Photography coming soon.
         </p>
       </div>
@@ -980,7 +980,7 @@ function PhotoSection() {
 function AboutSection() {
   const G = "#b8892a";
   const T = "#5a4a3a";
-  const F = "Georgia, 'Times New Roman', serif";
+  const F = "'Shippori Mincho', Georgia, serif";
   return (
     <section style={{ background: "#f5f0e8", backgroundImage: N(0.90, 0.06), padding: "calc(100px + var(--header-h, 100px)) 40px 100px", boxSizing: "border-box" }}>
       <Reveal>
@@ -1070,7 +1070,7 @@ function SiteFooter() {
             </a>
           </div>
           <div style={{ borderTop: `1px solid rgba(232,201,126,0.12)`, paddingTop: 24 }}>
-            <p style={{ fontFamily: "Georgia, serif", fontSize: 11, color: `rgba(245,240,232,0.3)`, letterSpacing: "0.05em" }}>
+            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: `rgba(245,240,232,0.3)`, letterSpacing: "0.05em" }}>
               © 2026 Sonakase™ · All rights reserved.
             </p>
           </div>
