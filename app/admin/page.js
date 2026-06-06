@@ -4,116 +4,83 @@ import { useState, useEffect } from "react";
 const ADMIN_PW = "prettyyoungthing";
 const AUTH_KEY = "sk_admin_authed";
 
-const INDIGO      = "#1a2845";
-const INDIGO_DARK = "#0d1729";
-const PERSIMMON   = "#c5552d";
-const CREAM       = "#f5ecd9";
-const PAPER       = "#fbf6e8";
-const INK         = "#1a1208";
-const INK_SOFT    = "#5a4f3c";
-const INK_FAINT   = "#a89a82";
-const GOLD        = "#a07736";
-const FOREST      = "#2d4a3a";
-const PLUM        = "#5a2a4a";
-const FD = `'Shippori Mincho', Georgia, serif`;
-const FB = `'Shippori Mincho', Georgia, serif`;
+// ── Site palette (matches the live site exactly) ──────────────────────────────
+const BG    = "#0d0d0d";
+const BG2   = "#141414";
+const BG3   = "#1c1c1c";
+const GOLD  = "#E8C97E";
+const GOLD2 = "#b8892a";
+const CREAM = "#F5F0E8";
+const MUTED = "rgba(245,240,232,0.55)";
+const FAINT = "rgba(245,240,232,0.28)";
+const BORDER  = "rgba(232,201,126,0.14)";
+const BORDER2 = "rgba(232,201,126,0.30)";
+const GREEN = "#4a9a6a";
+const RED   = "#c5552d";
+const F = `'Shippori Mincho', Georgia, serif`;
 
-const STATUS_COLORS = { confirmed: FOREST, pending: GOLD, cancelled: PERSIMMON };
-const TIER_COLORS   = { classics: FOREST, signatures: INDIGO, specialty: GOLD, premium: PLUM };
+const STATUS_COLORS = { confirmed: GREEN, pending: GOLD2, cancelled: RED };
+const TIER_COLORS   = { classics: GREEN, signatures: GOLD2, specialty: "#6baed6", premium: "#9b59b6" };
 const TIER_LABELS   = { classics: "Classics", signatures: "Signatures", specialty: "Specialty", premium: "Premium" };
 
 const fmt2   = (n) => (n != null ? "$" + Number(n).toFixed(2) : "—");
 const fmtPct = (n) => (n != null ? n.toFixed(1) + "%" : "—");
 const fmtOz  = (n) => n > 0 ? `${n.toFixed(1)} oz (${(n / 16).toFixed(2)} lb)` : "0 oz";
 
-// ============================================================
-// ROLL COST & PROTEIN DATA
-// ============================================================
+// ── Roll cost & protein data (unchanged) ──────────────────────────────────────
 const ROLL_COSTS = {
-  // Classics
   "Cucumber": 0.50, "Avocado": 0.94, "Sweet Potato": 0.59, "California": 1.57,
   "Salmon Avocado": 2.25, "Tuna Avocado": 1.44, "Spicy Krab": 0.89,
   "Philadelphia": 2.00, "Garden": 1.05, "Spicy Veggie": 1.05,
-  // Signatures
   "Florida": 2.97, "So Down": 2.95, "Spicy Roll": 0.99, "Bagel": 2.00,
   "Isaac's": 2.02, "Stacey's Way": 3.14, "Groove": 1.13, "Swamp": 1.19,
-  // Specialty
   "Go Gator": 3.03, "Jibboo": 1.94, "Reba's": 2.27, "Haushinka's": 2.72,
   "Archer Road": 1.49, "Orlando": 1.51, "Gabi's": 3.76, "Steinberg": 4.19,
   "Foam": 2.67, "Black Pearl": 1.88,
-  // Premium
   "Trust Me": 4.29, "Sunset": 2.60, "Hamachi Crudo": 3.31, "Smoke Show": 2.00,
   "Tropic": 1.19, "West Palm": 2.32,
 };
 
-// Protein portions per roll served (1.5 oz/portion for fin fish, 2 oz for shrimp)
 const ROLL_PROTEINS = {
-  "Salmon Avocado":  { salmon: 1 },
-  "Philadelphia":    { salmon: 1 },
-  "Florida":         { salmon: 1, tuna: 1 },
-  "So Down":         { salmon: 1, tuna: 1 },
-  "Stacey's Way":    { salmon: 1, tuna: 1 },
-  "Bagel":           { smoked_salmon: 1 },
-  "Go Gator":        { salmon: 1, shrimp: 1 },
-  "Gabi's":          { salmon: 2 },
-  "Steinberg":       { salmon: 1, tuna: 1, yellowtail: 1 },
-  "Sunset":          { salmon: 1 },
-  "Smoke Show":      { smoked_salmon: 1, tuna: 1 },
-  "Trust Me":        { salmon: 1, yellowtail: 1 },
-  "Haushinka's":     { salmon: 1 },
-  "Tuna Avocado":    { tuna: 1 },
-  "Spicy Roll":      { tuna: 1 },
-  "Isaac's":         { tuna: 1, yellowtail: 1 },
-  "Archer Road":     { tuna: 1, shrimp: 1 },
-  "Foam":            { tuna: 1, yellowtail: 1 },
-  "Black Pearl":     { tuna: 2 },
-  "Reba's":          { yellowtail: 1 },
-  "West Palm":       { yellowtail: 2 },
-  "Hamachi Crudo":   { yellowtail: 2 },
-  "Jibboo":          { shrimp: 1 },
-  "Orlando":         { shrimp: 1 },
+  "Salmon Avocado":  { salmon: 1 }, "Philadelphia": { salmon: 1 },
+  "Florida":         { salmon: 1, tuna: 1 }, "So Down": { salmon: 1, tuna: 1 },
+  "Stacey's Way":    { salmon: 1, tuna: 1 }, "Bagel": { smoked_salmon: 1 },
+  "Go Gator":        { salmon: 1, shrimp: 1 }, "Gabi's": { salmon: 2 },
+  "Steinberg":       { salmon: 1, tuna: 1, yellowtail: 1 }, "Sunset": { salmon: 1 },
+  "Smoke Show":      { smoked_salmon: 1, tuna: 1 }, "Trust Me": { salmon: 1, yellowtail: 1 },
+  "Haushinka's":     { salmon: 1 }, "Tuna Avocado": { tuna: 1 }, "Spicy Roll": { tuna: 1 },
+  "Isaac's":         { tuna: 1, yellowtail: 1 }, "Archer Road": { tuna: 1, shrimp: 1 },
+  "Foam":            { tuna: 1, yellowtail: 1 }, "Black Pearl": { tuna: 2 },
+  "Reba's":          { yellowtail: 1 }, "West Palm": { yellowtail: 2 },
+  "Hamachi Crudo":   { yellowtail: 2 }, "Jibboo": { shrimp: 1 }, "Orlando": { shrimp: 1 },
 };
 
-// Non-protein ingredient quantities per roll (for checklist)
-// krab=2oz portions, avocado=half pieces, cream_cheese=oz, masago/tobiko=grams, cucumber/mango=quarter pieces
 const ROLL_INGREDIENT_QTY = {
-  "Cucumber":      { cucumber: 0.25 },
-  "Avocado":       { avocado: 0.5 },
+  "Cucumber":      { cucumber: 0.25 }, "Avocado": { avocado: 0.5 },
   "California":    { krab: 2, avocado: 0.5, cucumber: 0.25, masago: 5 },
-  "Salmon Avocado":{ avocado: 0.5 },
-  "Tuna Avocado":  { avocado: 0.5 },
+  "Salmon Avocado":{ avocado: 0.5 }, "Tuna Avocado": { avocado: 0.5 },
   "Spicy Krab":    { krab: 2, spicy_mayo: true },
   "Philadelphia":  { cream_cheese: 1, cucumber: 0.25 },
-  "Garden":        { avocado: 0.5, cucumber: 0.25 },
-  "Spicy Veggie":  { avocado: 0.5, cucumber: 0.25 },
-  "Florida":       { avocado: 0.5, masago: 5 },
-  "So Down":       { avocado: 0.5, spicy_mayo: true },
-  "Spicy Roll":    { spicy_mayo: true },
-  "Bagel":         { cream_cheese: 1, cucumber: 0.25 },
-  "Isaac's":       { spicy_mayo: true },
-  "Stacey's Way":  { avocado: 0.5, cream_cheese: 1 },
-  "Groove":     { avocado: 0.5, cream_cheese: 1, eel_sauce: true },
-  "Swamp":         { avocado: 0.5, mango: 0.25 },
-  "Go Gator":      { avocado: 0.5, tobiko: 5 },
-  "Jibboo":        { krab: 2, avocado: 0.5, cucumber: 0.25 },
-  "Reba's":        { krab: 2, mango: 0.25 },
+  "Garden":        { avocado: 0.5, cucumber: 0.25 }, "Spicy Veggie": { avocado: 0.5, cucumber: 0.25 },
+  "Florida":       { avocado: 0.5, masago: 5 }, "So Down": { avocado: 0.5, spicy_mayo: true },
+  "Spicy Roll":    { spicy_mayo: true }, "Bagel": { cream_cheese: 1, cucumber: 0.25 },
+  "Isaac's":       { spicy_mayo: true }, "Stacey's Way": { avocado: 0.5, cream_cheese: 1 },
+  "Groove":        { avocado: 0.5, cream_cheese: 1, eel_sauce: true },
+  "Swamp":         { avocado: 0.5, mango: 0.25 }, "Go Gator": { avocado: 0.5, tobiko: 5 },
+  "Jibboo":        { krab: 2, avocado: 0.5, cucumber: 0.25 }, "Reba's": { krab: 2, mango: 0.25 },
   "Haushinka's":   { avocado: 0.5, cream_cheese: 1, tobiko: 5, eel_sauce: true },
-  "Archer Road":   { spicy_mayo: true },
-  "Orlando":       { krab: 2, cream_cheese: 1, masago: 5 },
-  "Gabi's":        { eel_sauce: true },
-  "Steinberg":     { avocado: 0.5, cucumber: 0.25 },
-  "Foam":          { avocado: 0.5, spicy_mayo: true },
-  "Black Pearl":   { tobiko: 5, cucumber: 0.25 },
-  "Trust Me":      { avocado: 0.5, tobiko: 5 },
-  "Sunset":        { avocado: 0.5, mango: 0.25 },
+  "Archer Road":   { spicy_mayo: true }, "Orlando": { krab: 2, cream_cheese: 1, masago: 5 },
+  "Gabi's":        { eel_sauce: true }, "Steinberg": { avocado: 0.5, cucumber: 0.25 },
+  "Foam":          { avocado: 0.5, spicy_mayo: true }, "Black Pearl": { tobiko: 5, cucumber: 0.25 },
+  "Trust Me":      { avocado: 0.5, tobiko: 5 }, "Sunset": { avocado: 0.5, mango: 0.25 },
   "Hamachi Crudo": { avocado: 0.5, cucumber: 0.25 },
   "Smoke Show":    { cream_cheese: 1, cucumber: 0.25, avocado: 0.5 },
-  "Tropic":  { avocado: 0.5, cucumber: 0.25, mango: 0.25, cream_cheese: 1 },
+  "Tropic":        { avocado: 0.5, cucumber: 0.25, mango: 0.25, cream_cheese: 1 },
   "West Palm":     { avocado: 0.5, mango: 0.25, eel_sauce: true },
 };
 
-const RICE_SEASONING_PER_ROLL = 0.08; // rice vinegar + kombu
-const CONDIMENT_PER_GUEST     = 0.23; // wasabi $0.10 + ginger $0.08 + soy $0.05
+const RICE_SEASONING_PER_ROLL = 0.08;
+const CONDIMENT_PER_GUEST     = 0.23;
 const LABOR_COST              = 70;
 
 function calcLogistics(booking) {
@@ -123,8 +90,7 @@ function calcLogistics(booking) {
   const deposit = Number(booking.deposit_amount) || 0;
   const balance = total - deposit;
 
-  let rollFoodCost = 0;
-  let totalRolls   = 0;
+  let rollFoodCost = 0, totalRolls = 0;
   const rollBreakdown = rolls.map((r) => {
     const costPerRoll = ROLL_COSTS[r.name] ?? null;
     const lineCost    = costPerRoll != null ? costPerRoll * r.qty : null;
@@ -136,7 +102,6 @@ function calcLogistics(booking) {
   const riceSeasoningCost = totalRolls * RICE_SEASONING_PER_ROLL;
   const condimentCost     = guests * CONDIMENT_PER_GUEST;
   const totalFoodCost     = rollFoodCost + riceSeasoningCost + condimentCost;
-
   const grossProfit = total - totalFoodCost;
   const grossMargin = total > 0 ? (grossProfit / total) * 100 : 0;
   const laborHours  = guests >= 15 ? 3 : 2.5;
@@ -146,30 +111,18 @@ function calcLogistics(booking) {
   const proteins = { salmon: 0, tuna: 0, yellowtail: 0, shrimp: 0, smoked_salmon: 0 };
   rolls.forEach((r) => {
     const p = ROLL_PROTEINS[r.name] || {};
-    for (const [k, v] of Object.entries(p)) {
-      if (k in proteins) proteins[k] += v * r.qty;
-    }
+    for (const [k, v] of Object.entries(p)) { if (k in proteins) proteins[k] += v * r.qty; }
   });
 
   return {
-    total, deposit, balance,
-    rollFoodCost, riceSeasoningCost, condimentCost, totalFoodCost,
-    grossProfit, grossMargin,
-    laborHours, netProfit, netMargin,
-    totalRolls, rollBreakdown,
-    plates:       guests * 3,
-    chopsticks:   guests,
-    soySauceCups: guests,
-    napkins:      guests * 3,
-    gloves:       4,
-    cuttingBoards: 2,
-    riceCups:     Math.ceil(totalRolls / 3),
+    total, deposit, balance, rollFoodCost, riceSeasoningCost, condimentCost, totalFoodCost,
+    grossProfit, grossMargin, laborHours, netProfit, netMargin, totalRolls, rollBreakdown,
+    plates: guests * 3, chopsticks: guests, soySauceCups: guests, napkins: guests * 3,
+    gloves: 4, cuttingBoards: 2, riceCups: Math.ceil(totalRolls / 3),
     proteins,
     fishOz: {
-      salmon:       proteins.salmon * 1.5,
-      tuna:         proteins.tuna * 1.5,
-      yellowtail:   proteins.yellowtail * 1.5,
-      shrimp:       proteins.shrimp * 2,
+      salmon: proteins.salmon * 1.5, tuna: proteins.tuna * 1.5,
+      yellowtail: proteins.yellowtail * 1.5, shrimp: proteins.shrimp * 2,
       smoked_salmon: proteins.smoked_salmon * 1.5,
     },
   };
@@ -178,9 +131,7 @@ function calcLogistics(booking) {
 function calcIngredients(booking, calc) {
   const rolls  = Array.isArray(booking.rolls_selected) ? booking.rolls_selected : [];
   const guests = Number(booking.guest_count) || 0;
-
   const totals = { krab: 0, avocado: 0, cream_cheese: 0, masago: 0, tobiko: 0, cucumber: 0, mango: 0, eel_sauce: false, spicy_mayo: false };
-
   rolls.forEach((r) => {
     const iq = ROLL_INGREDIENT_QTY[r.name] || {};
     for (const [k, v] of Object.entries(iq)) {
@@ -188,43 +139,32 @@ function calcIngredients(booking, calc) {
       else { totals[k] = (totals[k] || 0) + Number(v) * r.qty; }
     }
   });
-
-  return {
-    ...totals,
-    salmon:       calc.fishOz.salmon,
-    tuna:         calc.fishOz.tuna,
-    yellowtail:   calc.fishOz.yellowtail,
-    shrimp:       calc.fishOz.shrimp,
-    smoked_salmon: calc.fishOz.smoked_salmon,
-    nori:         calc.totalRolls,
-    rice:         calc.riceCups,
-    guests,
-  };
+  return { ...totals, salmon: calc.fishOz.salmon, tuna: calc.fishOz.tuna, yellowtail: calc.fishOz.yellowtail, shrimp: calc.fishOz.shrimp, smoked_salmon: calc.fishOz.smoked_salmon, nori: calc.totalRolls, rice: calc.riceCups, guests };
 }
 
 function buildFoodOrderItems(ing) {
   const lbs = (oz) => oz >= 16 ? `${(oz / 16).toFixed(2)} lb` : `${oz.toFixed(1)} oz`;
   const items = [];
-  if (ing.salmon > 0)       items.push({ id: "order_salmon",        text: "Order salmon",                    detail: `~${lbs(ing.salmon)} needed` });
-  if (ing.tuna > 0)         items.push({ id: "order_tuna",          text: "Order tuna",                      detail: `~${lbs(ing.tuna)} needed` });
-  if (ing.yellowtail > 0)   items.push({ id: "order_yellowtail",    text: "Order yellowtail",                detail: `~${lbs(ing.yellowtail)} needed` });
-  if (ing.shrimp > 0)       items.push({ id: "order_shrimp",        text: "Order shrimp",                    detail: `~${lbs(ing.shrimp)} needed` });
-  if (ing.krab > 0)         items.push({ id: "order_krab",          text: "Order imitation krab",            detail: `~${lbs(ing.krab)} needed` });
-  if (ing.smoked_salmon > 0)items.push({ id: "order_smoked_salmon", text: "Order smoked salmon",             detail: `~${lbs(ing.smoked_salmon)} needed` });
-  if (ing.avocado > 0)      items.push({ id: "check_avocado",       text: "Check avocado stock",             detail: `${Math.ceil(ing.avocado)} avocados needed` });
-  if (ing.cream_cheese > 0) items.push({ id: "check_cream_cheese",  text: "Check cream cheese stock",        detail: `${Math.round(ing.cream_cheese)} oz needed` });
-  if (ing.masago > 0)       items.push({ id: "check_masago",        text: "Check masago stock",              detail: `${Math.round(ing.masago)} g needed` });
-  if (ing.tobiko > 0)       items.push({ id: "check_tobiko",        text: "Check tobiko / blue tobiko stock",detail: `${Math.round(ing.tobiko)} g needed` });
-  if (ing.cucumber > 0)     items.push({ id: "check_cucumber",      text: "Check cucumber stock",            detail: `${Math.ceil(ing.cucumber)} cucumbers needed` });
-  if (ing.mango > 0)        items.push({ id: "check_mango",         text: "Check mango stock",               detail: `${Math.ceil(ing.mango)} mangoes needed` });
-  if (ing.nori > 0)         items.push({ id: "check_nori",          text: "Check nori stock",                detail: `${ing.nori} sheets needed` });
-  if (ing.rice > 0)         items.push({ id: "check_rice",          text: "Check sushi rice stock",          detail: `${ing.rice} cups dry rice` });
-  if (ing.eel_sauce)        items.push({ id: "check_eel_sauce",     text: "Check eel sauce stock",           detail: null });
-  items.push({ id: "check_wasabi",       text: "Check wasabi stock",        detail: `${ing.guests} guests` });
-  items.push({ id: "check_ginger",       text: "Check pickled ginger stock",detail: `${ing.guests} guests` });
-  items.push({ id: "check_soy",          text: "Check soy sauce stock",     detail: `${ing.guests} guests` });
-  items.push({ id: "check_rice_vinegar", text: "Check rice vinegar stock",  detail: null });
-  items.push({ id: "check_kombu",        text: "Check kombu stock",         detail: null });
+  if (ing.salmon > 0)        items.push({ id: "order_salmon",        text: "Order salmon",                     detail: `~${lbs(ing.salmon)} needed` });
+  if (ing.tuna > 0)          items.push({ id: "order_tuna",          text: "Order tuna",                       detail: `~${lbs(ing.tuna)} needed` });
+  if (ing.yellowtail > 0)    items.push({ id: "order_yellowtail",    text: "Order yellowtail",                 detail: `~${lbs(ing.yellowtail)} needed` });
+  if (ing.shrimp > 0)        items.push({ id: "order_shrimp",        text: "Order shrimp",                     detail: `~${lbs(ing.shrimp)} needed` });
+  if (ing.krab > 0)          items.push({ id: "order_krab",          text: "Order imitation krab",             detail: `~${lbs(ing.krab)} needed` });
+  if (ing.smoked_salmon > 0) items.push({ id: "order_smoked_salmon", text: "Order smoked salmon",              detail: `~${lbs(ing.smoked_salmon)} needed` });
+  if (ing.avocado > 0)       items.push({ id: "check_avocado",       text: "Check avocado stock",              detail: `${Math.ceil(ing.avocado)} avocados` });
+  if (ing.cream_cheese > 0)  items.push({ id: "check_cream_cheese",  text: "Check cream cheese",               detail: `${Math.round(ing.cream_cheese)} oz` });
+  if (ing.masago > 0)        items.push({ id: "check_masago",        text: "Check masago",                     detail: `${Math.round(ing.masago)} g` });
+  if (ing.tobiko > 0)        items.push({ id: "check_tobiko",        text: "Check tobiko / blue tobiko",        detail: `${Math.round(ing.tobiko)} g` });
+  if (ing.cucumber > 0)      items.push({ id: "check_cucumber",      text: "Check cucumber",                   detail: `${Math.ceil(ing.cucumber)} cucumbers` });
+  if (ing.mango > 0)         items.push({ id: "check_mango",         text: "Check mango",                      detail: `${Math.ceil(ing.mango)} mangoes` });
+  if (ing.nori > 0)          items.push({ id: "check_nori",          text: "Check nori",                       detail: `${ing.nori} sheets` });
+  if (ing.rice > 0)          items.push({ id: "check_rice",          text: "Check sushi rice",                 detail: `${ing.rice} cups dry` });
+  if (ing.eel_sauce)         items.push({ id: "check_eel_sauce",     text: "Check eel sauce",                  detail: null });
+  items.push({ id: "check_wasabi",       text: "Check wasabi",             detail: `${ing.guests} guests` });
+  items.push({ id: "check_ginger",       text: "Check pickled ginger",     detail: `${ing.guests} guests` });
+  items.push({ id: "check_soy",          text: "Check soy sauce",          detail: `${ing.guests} guests` });
+  items.push({ id: "check_rice_vinegar", text: "Check rice vinegar",       detail: null });
+  items.push({ id: "check_kombu",        text: "Check kombu",              detail: null });
   if (ing.spicy_mayo) items.push({ id: "check_spicy_mayo", text: "Check spicy mayo ingredients", detail: "mayo, sriracha, sesame oil" });
   return items;
 }
@@ -251,14 +191,12 @@ const PREP_DAY_OF = [
   "Collect balance payment before or at start of service",
 ];
 
-// ============================================================
-// MAIN DASHBOARD
-// ============================================================
+// ── Main Dashboard ────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
-  const [authed, setAuthed]     = useState(false);
-  const [loading, setLoading]   = useState(true);
-  const [bookings, setBookings] = useState([]);
-  const [filter, setFilter]     = useState("all");
+  const [authed, setAuthed]       = useState(false);
+  const [loading, setLoading]     = useState(true);
+  const [bookings, setBookings]   = useState([]);
+  const [filter, setFilter]       = useState("all");
   const [activeTab, setActiveTab] = useState("bookings");
   const [promoCodes, setPromoCodes] = useState([]);
 
@@ -274,424 +212,330 @@ export default function AdminDashboard() {
   };
 
   const fetchPromoCodes = async () => {
-    const res = await fetch("/api/admin/promo-codes");
+    const res  = await fetch("/api/admin/promo-codes");
     const data = await res.json();
     setPromoCodes(data.promoCodes || []);
   };
 
-  useEffect(() => {
-    if (authed) fetchAllBookings();
-  }, [authed]);
-
-  useEffect(() => {
-    if ((activeTab === "promo" || activeTab === "banner") && authed) fetchPromoCodes();
-  }, [activeTab, authed]);
+  useEffect(() => { if (authed) fetchAllBookings(); }, [authed]);
+  useEffect(() => { if ((activeTab === "promo" || activeTab === "banner") && authed) fetchPromoCodes(); }, [activeTab, authed]);
 
   const updateStatus = async (id, status) => {
-    const res  = await fetch("/api/admin/update-booking", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status }),
-    });
+    const res  = await fetch("/api/admin/update-booking", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) });
     const data = await res.json();
-    if (data.success) {
-      setBookings((prev) => prev.map((b) => b.id === id ? { ...b, status } : b));
-    }
+    if (data.success) setBookings((prev) => prev.map((b) => b.id === id ? { ...b, status } : b));
   };
 
   const filtered = filter === "all" ? bookings : bookings.filter((b) => b.status === filter);
   const counts   = {
-    all:       bookings.length,
+    all: bookings.length,
     pending:   bookings.filter((b) => b.status === "pending").length,
     confirmed: bookings.filter((b) => b.status === "confirmed").length,
     cancelled: bookings.filter((b) => b.status === "cancelled").length,
   };
 
   if (loading) return null;
-
-  if (!authed) return (
-    <PasswordScreen onAuth={() => {
-      localStorage.setItem(AUTH_KEY, "1");
-      setAuthed(true);
-    }} />
-  );
+  if (!authed) return <PasswordScreen onAuth={() => { localStorage.setItem(AUTH_KEY, "1"); setAuthed(true); }} />;
 
   return (
-    <div style={{ minHeight: "100vh", background: CREAM, fontFamily: FB, color: INK, overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: BG, color: CREAM, fontFamily: F, overflowX: "hidden" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: ${BG2}; }
+        ::-webkit-scrollbar-thumb { background: ${GOLD2}; opacity: 0.4; }
+
+        .atab { transition: color 0.2s, border-color 0.2s; }
+        .atab:hover { color: ${CREAM} !important; }
+
+        .arow:hover { background: ${BG3} !important; }
+        .abtn:hover { opacity: 0.8; }
 
         @media (max-width: 768px) {
-          /* Header */
-          .admin-header-inner { padding: 14px 16px !important; flex-wrap: wrap !important; gap: 10px !important; }
-          .admin-header-title { font-size: 15px !important; }
-          .admin-header-sub { font-size: 9px !important; }
-
-          /* Stat cards: 2x2 grid */
           .admin-stat-grid { grid-template-columns: 1fr 1fr !important; }
-
-          /* Filter buttons: wrap */
           .admin-filter-row { flex-wrap: wrap !important; }
-          .admin-filter-btn { min-height: 44px !important; }
-
-          /* Booking rows: stack vertically */
-          .admin-booking-row { display: flex !important; flex-direction: column !important; padding: 14px 16px !important; gap: 6px !important; }
-          .admin-booking-row-item { width: 100% !important; }
-
-          /* Expanded rows: scrollable */
-          .admin-booking-detail { overflow-x: auto !important; }
-          .admin-detail-grid { grid-template-columns: 1fr 1fr !important; }
-
-          /* Logistics tab */
-          .admin-logistics-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
-          .admin-logistics-table { overflow-x: auto !important; }
-          .admin-stat-grid-logistics { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
-
-          /* Checklist */
-          .admin-checklist-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
-          .admin-checklist-item { min-height: 44px !important; }
-          .admin-checklist-checkbox { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
-
-          /* Main padding */
           .admin-main { padding: 20px 14px 60px !important; }
-
-          /* Upcoming events table */
-          .admin-upcoming-table { overflow-x: auto !important; }
-          .admin-upcoming-row { min-width: 600px !important; }
-          .admin-all-bookings-table { overflow-x: auto !important; }
-          .admin-all-bookings-row { min-width: 700px !important; }
+          .admin-booking-row { display: flex !important; flex-direction: column !important; padding: 14px 16px !important; gap: 6px !important; }
+          .admin-detail-grid { grid-template-columns: 1fr 1fr !important; }
+          .admin-logistics-grid { grid-template-columns: 1fr !important; }
+          .admin-checklist-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
-      <header style={{ background: INDIGO_DARK, color: CREAM }}>
-        <div className="admin-header-inner" style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
-            <span style={{ fontFamily: FD, fontSize: 24, color: PERSIMMON, fontWeight: 600, flexShrink: 0 }}>管理</span>
-            <div style={{ minWidth: 0 }}>
-              <div className="admin-header-title" style={{ fontFamily: FD, fontSize: 20, fontWeight: 500 }}>Admin Dashboard</div>
-              <div className="admin-header-sub" style={{ fontFamily: FB, fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", fontStyle: "italic" }}>
-                <span style={{ color: PERSIMMON }}>Son</span><span style={{ color: "#6baed6" }}>kase</span><span style={{ color: GOLD }}>™ · Bookings</span>
-              </div>
-            </div>
+      {/* Header */}
+      <header style={{ position: "sticky", top: 0, zIndex: 50, background: BG, borderBottom: `1px solid ${BORDER}` }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 32px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="120" height="34">
+                <g transform="translate(18, 10) scale(0.9)">
+                  <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+                  <line x1="55" y1="12" x2="48" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+                  <circle cx="45" cy="19" r="3" fill="#b8892a"/>
+                  <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke="#b8892a" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke="#b8892a" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5"/>
+                  <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke="#b8892a" strokeWidth="0.8" strokeLinecap="round" fill="none" opacity="0.22"/>
+                </g>
+                <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
+                <text x="138" y="88" fontFamily="'Shippori Mincho', serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
+              </svg>
+            </a>
+            <div style={{ width: 1, height: 28, background: BORDER2 }} />
+            <span style={{ fontFamily: F, fontSize: 11, letterSpacing: "0.3em", textTransform: "uppercase", color: FAINT }}>admin</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-            <a href="/" style={{ background: "transparent", border: `1px solid ${PERSIMMON}`, color: PERSIMMON, padding: "6px 14px", fontFamily: FD, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", textDecoration: "none", whiteSpace: "nowrap", minHeight: 44, display: "flex", alignItems: "center" }}>← Site</a>
-            <button onClick={() => { localStorage.removeItem(AUTH_KEY); window.location.reload(); }} style={{ background: "transparent", border: `1px solid rgba(245,236,217,0.2)`, color: "rgba(245,236,217,0.45)", padding: "6px 14px", fontFamily: FD, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", whiteSpace: "nowrap", minHeight: 44 }}>Lock</button>
-          </div>
+          <button
+            onClick={() => { localStorage.removeItem(AUTH_KEY); window.location.reload(); }}
+            style={{ background: "transparent", border: `1px solid ${BORDER}`, color: FAINT, padding: "7px 16px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}
+          >
+            lock
+          </button>
         </div>
-        <div style={{ height: 2, background: `linear-gradient(90deg, ${PERSIMMON} 0%, ${GOLD} 60%, transparent 100%)` }} />
       </header>
 
-      <main className="admin-main" style={{ maxWidth: 1100, margin: "0 auto", padding: "36px 16px 80px", boxSizing: "border-box" }}>
+      <main className="admin-main" style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 32px 100px" }}>
 
-        {/* Top-level tab bar */}
-        <div style={{ display: "flex", gap: 2, marginBottom: 32, borderBottom: `2px solid rgba(26,18,8,0.1)` }}>
+        {/* Tab bar */}
+        <div style={{ display: "flex", gap: 0, marginBottom: 48, borderBottom: `1px solid ${BORDER}` }}>
           {[
-            { key: "bookings",  label: "予約  Bookings" },
-            { key: "logistics", label: "算  Logistics" },
-            { key: "promo",     label: "割  Promo Codes" },
-            { key: "banner",    label: "帯  Banner" },
+            { key: "bookings",  label: "bookings" },
+            { key: "logistics", label: "logistics" },
+            { key: "promo",     label: "promo codes" },
+            { key: "banner",    label: "banner" },
           ].map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setActiveTab(t.key)}
-              style={{
-                background: activeTab === t.key ? INDIGO_DARK : "transparent",
-                color: activeTab === t.key ? CREAM : INK_SOFT,
-                border: "none",
-                padding: "12px 24px",
-                fontFamily: FD,
-                fontSize: 14,
-                letterSpacing: "0.06em",
-                cursor: "pointer",
-                borderBottom: activeTab === t.key ? `2px solid ${PERSIMMON}` : "2px solid transparent",
-                marginBottom: -2,
-              }}
-            >
+            <button key={t.key} className="atab" onClick={() => setActiveTab(t.key)} style={{
+              background: "transparent",
+              color: activeTab === t.key ? GOLD : FAINT,
+              border: "none",
+              borderBottom: activeTab === t.key ? `1px solid ${GOLD}` : "1px solid transparent",
+              padding: "14px 28px",
+              fontFamily: F, fontSize: 12,
+              letterSpacing: "0.18em", textTransform: "uppercase",
+              cursor: "pointer", marginBottom: -1,
+            }}>
               {t.label}
             </button>
           ))}
         </div>
 
         {activeTab === "bookings" && (
-          <>
-            {/* Stats row */}
-            <div className="admin-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
-              {[
-                { label: "Total",     count: counts.all,       color: INDIGO },
-                { label: "Pending",   count: counts.pending,   color: GOLD },
-                { label: "Confirmed", count: counts.confirmed, color: FOREST },
-                { label: "Cancelled", count: counts.cancelled, color: PERSIMMON },
-              ].map((s) => (
-                <div key={s.label} style={{ background: PAPER, border: `1px solid rgba(26,18,8,0.08)`, borderTop: `3px solid ${s.color}`, padding: "20px 22px" }}>
-                  <div style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>{s.label}</div>
-                  <div style={{ fontFamily: FD, fontSize: 36, fontWeight: 600, color: s.color, lineHeight: 1 }}>{s.count}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Filter tabs */}
-            <div className="admin-filter-row" style={{ display: "flex", gap: 2, marginBottom: 20, borderBottom: `1px solid rgba(26,18,8,0.1)`, flexWrap: "wrap" }}>
-              {["all", "pending", "confirmed", "cancelled"].map((f) => (
-                <button key={f} onClick={() => setFilter(f)} className="admin-filter-btn" style={{
-                  background: filter === f ? PERSIMMON : "transparent",
-                  color: filter === f ? CREAM : INK_SOFT,
-                  border: "none",
-                  padding: "10px 18px",
-                  fontFamily: FD,
-                  fontSize: 13,
-                  letterSpacing: "0.08em",
-                  textTransform: "capitalize",
-                  cursor: "pointer",
-                  minHeight: 44,
-                }}>
-                  {f} {f !== "all" && `(${counts[f]})`}
-                </button>
-              ))}
-            </div>
-
-            {filtered.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "60px 0", fontFamily: FB, fontSize: 16, color: INK_FAINT, fontStyle: "italic" }}>
-                No bookings yet.
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {filtered.map((b) => (
-                  <BookingRow key={b.id} booking={b} onUpdateStatus={updateStatus} />
-                ))}
-              </div>
-            )}
-          </>
+          <BookingsTab
+            bookings={bookings}
+            filtered={filtered}
+            counts={counts}
+            filter={filter}
+            setFilter={setFilter}
+            onUpdateStatus={updateStatus}
+            onRefresh={fetchAllBookings}
+          />
         )}
-
-        {activeTab === "logistics" && (
-          <LogisticsTab bookings={bookings} />
-        )}
-
-        {activeTab === "promo" && (
-          <PromoCodesTab promoCodes={promoCodes} onRefresh={fetchPromoCodes} />
-        )}
-
-        {activeTab === "banner" && (
-          <BannerTab promoCodes={promoCodes} />
-        )}
+        {activeTab === "logistics"  && <LogisticsTab bookings={bookings} />}
+        {activeTab === "promo"      && <PromoCodesTab promoCodes={promoCodes} onRefresh={fetchPromoCodes} />}
+        {activeTab === "banner"     && <BannerTab promoCodes={promoCodes} />}
       </main>
     </div>
   );
 }
 
-// ============================================================
-// PASSWORD SCREEN
-// ============================================================
+// ── Password screen ───────────────────────────────────────────────────────────
 function PasswordScreen({ onAuth }) {
   const [value, setValue] = useState("");
   const [shake, setShake] = useState(false);
 
   const attempt = () => {
-    if (value === ADMIN_PW) {
-      onAuth();
-    } else {
-      setShake(true);
-      setValue("");
-      setTimeout(() => setShake(false), 500);
-    }
+    if (value === ADMIN_PW) { onAuth(); }
+    else { setShake(true); setValue(""); setTimeout(() => setShake(false), 500); }
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ minHeight: "100vh", background: BG, display: "flex", alignItems: "center", justifyContent: "center" }}>
       <style>{`
-        @keyframes shake {
-          0%,100% { transform: translateX(0); }
-          20%,60%  { transform: translateX(-8px); }
-          40%,80%  { transform: translateX(8px); }
-        }
-        .pw-input { animation: none; }
-        .pw-input.shake { animation: shake 0.4s ease; }
-        .pw-input:focus { outline: none; border-color: rgba(255,255,255,0.4) !important; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+        .pw-shake { animation: shake 0.4s ease; }
+        .pw-input:focus { outline: none; border-bottom-color: ${GOLD} !important; }
       `}</style>
       <input
-        className={`pw-input${shake ? " shake" : ""}`}
-        type="password"
-        value={value}
+        className={`pw-input${shake ? " pw-shake" : ""}`}
+        type="password" value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && attempt()}
-        autoFocus
-        placeholder="••••••••"
+        autoFocus placeholder="••••••••"
         style={{
-          background: "transparent",
-          border: "none",
-          borderBottom: "1px solid rgba(255,255,255,0.15)",
-          color: "#fff",
-          fontFamily: "'Shippori Mincho', Georgia, serif",
-          fontSize: 18,
-          letterSpacing: "0.2em",
-          padding: "12px 0",
-          width: 220,
-          textAlign: "center",
+          background: "transparent", border: "none",
+          borderBottom: `1px solid ${BORDER2}`,
+          color: CREAM, fontFamily: F, fontSize: 18,
+          letterSpacing: "0.3em", padding: "12px 0",
+          width: 220, textAlign: "center",
         }}
       />
     </div>
   );
 }
 
-// ============================================================
-// BOOKINGS TAB — existing components
-// ============================================================
+// ── Bookings tab ──────────────────────────────────────────────────────────────
+function BookingsTab({ bookings, filtered, counts, filter, setFilter, onUpdateStatus, onRefresh }) {
+  const [clearing, setClearing]   = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  const clearAll = async () => {
+    setClearing(true);
+    const res  = await fetch("/api/admin/clear-bookings", { method: "DELETE" });
+    const data = await res.json();
+    setClearing(false);
+    setConfirmClear(false);
+    if (data.success) onRefresh();
+  };
+
+  return (
+    <>
+      {/* Stat cards */}
+      <div className="admin-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, marginBottom: 40 }}>
+        {[
+          { label: "Total",     count: counts.all,       color: CREAM },
+          { label: "Pending",   count: counts.pending,   color: GOLD },
+          { label: "Confirmed", count: counts.confirmed, color: GREEN },
+          { label: "Cancelled", count: counts.cancelled, color: RED },
+        ].map((s) => (
+          <div key={s.label} style={{ background: BG2, border: `1px solid ${BORDER}`, padding: "28px 28px 24px" }}>
+            <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.35em", textTransform: "uppercase", marginBottom: 12 }}>{s.label}</div>
+            <div style={{ fontFamily: F, fontSize: 44, color: s.color, lineHeight: 1, fontWeight: 400 }}>{s.count}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter + clear */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div className="admin-filter-row" style={{ display: "flex", gap: 2 }}>
+          {["all", "pending", "confirmed", "cancelled"].map((f) => (
+            <button key={f} onClick={() => setFilter(f)} style={{
+              background: filter === f ? GOLD : "transparent",
+              color: filter === f ? BG : FAINT,
+              border: `1px solid ${filter === f ? GOLD : BORDER}`,
+              padding: "8px 18px", fontFamily: F, fontSize: 11,
+              letterSpacing: "0.15em", textTransform: "capitalize",
+              cursor: "pointer",
+            }}>
+              {f}{f !== "all" && ` (${counts[f]})`}
+            </button>
+          ))}
+        </div>
+        <div>
+          {confirmClear ? (
+            <span style={{ fontFamily: F, fontSize: 12, color: MUTED }}>
+              Delete all {bookings.length} bookings?{" "}
+              <button onClick={clearAll} disabled={clearing} style={{ background: "none", border: "none", color: RED, fontFamily: F, fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>
+                {clearing ? "clearing…" : "yes, clear"}
+              </button>
+              {" · "}
+              <button onClick={() => setConfirmClear(false)} style={{ background: "none", border: "none", color: FAINT, fontFamily: F, fontSize: 12, cursor: "pointer" }}>cancel</button>
+            </span>
+          ) : (
+            <button onClick={() => setConfirmClear(true)} style={{
+              background: "transparent", border: `1px solid rgba(197,85,45,0.3)`,
+              color: RED, padding: "8px 16px", fontFamily: F,
+              fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer",
+            }}>
+              clear all
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Bookings list */}
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "80px 0", fontFamily: F, fontSize: 14, color: FAINT, fontStyle: "italic" }}>
+          No bookings.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          {filtered.map((b) => <BookingRow key={b.id} booking={b} onUpdateStatus={onUpdateStatus} />)}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── Booking row ───────────────────────────────────────────────────────────────
 function BookingRow({ booking: b, onUpdateStatus }) {
   const [open, setOpen] = useState(false);
-  const statusColor = STATUS_COLORS[b.status] || INK_FAINT;
+  const statusColor = STATUS_COLORS[b.status] || FAINT;
   const fmt = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" }) : "—";
 
   return (
-    <div style={{ background: PAPER, border: `1px solid rgba(26,18,8,0.08)`, borderLeft: `4px solid ${statusColor}` }}>
-      <div onClick={() => setOpen((o) => !o)} className="admin-booking-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 140px 40px", alignItems: "center", padding: "16px 20px", gap: 12, cursor: "pointer" }}>
-        <div className="admin-booking-row-item">
-          <div style={{ fontFamily: FD, fontSize: 14, fontWeight: 500, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.user_email}</div>
-          <div style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, fontStyle: "italic", marginTop: 2 }}>
+    <div style={{ background: BG2, borderLeft: `2px solid ${statusColor}` }}>
+      <div
+        onClick={() => setOpen((o) => !o)}
+        className="admin-booking-row arow"
+        style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 0.8fr 100px 32px", alignItems: "center", padding: "18px 24px", gap: 16, cursor: "pointer", transition: "background 0.15s" }}
+      >
+        <div>
+          <div style={{ fontFamily: F, fontSize: 13, color: CREAM, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.user_email}</div>
+          <div style={{ fontFamily: F, fontSize: 11, color: FAINT, marginTop: 3 }}>
             {b.created_at ? new Date(b.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}
           </div>
         </div>
-        <div className="admin-booking-row-item" style={{ fontFamily: FD, fontSize: 14, color: INK }}>{b.package || "—"}</div>
-        <div className="admin-booking-row-item" style={{ fontFamily: FB, fontSize: 14, color: INK }}>{fmt(b.event_date)}</div>
-        <div className="admin-booking-row-item" style={{ fontFamily: FB, fontSize: 14, color: INK }}>{b.guest_count ? `${b.guest_count} guests` : "—"}</div>
-        <div className="admin-booking-row-item">
-          <span style={{ background: statusColor, color: CREAM, padding: "3px 10px", fontFamily: FD, fontSize: 11, letterSpacing: "0.1em", textTransform: "capitalize" }}>
+        <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{b.package || "—"}</div>
+        <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{fmt(b.event_date)}</div>
+        <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{b.guest_count ? `${b.guest_count} guests` : "—"}</div>
+        <div>
+          <span style={{ fontFamily: F, fontSize: 10, letterSpacing: "0.15em", textTransform: "capitalize", color: statusColor }}>
             {b.status}
           </span>
         </div>
-        <div className="admin-booking-row-item" style={{ fontFamily: FD, fontSize: 14, color: INK_FAINT, textAlign: "center" }}>{open ? "▴" : "▾"}</div>
+        <div style={{ color: FAINT, textAlign: "right", fontSize: 10 }}>{open ? "▴" : "▾"}</div>
       </div>
 
       {open && (
-        <div className="admin-booking-detail" style={{ borderTop: `1px solid rgba(26,18,8,0.06)`, padding: "20px 24px", background: "#fff", overflowX: "auto" }}>
-          <div className="admin-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20, minWidth: 280 }}>
-            <Detail label="Service Type"   value={b.service_type === "dropoff" ? "Drop-Off" : b.service_type === "datenight" ? "Date Night Omakase" : b.service_type === "omakase" ? "Omakase" : "Chef-Attended"} />
-            <Detail label="Confirmation"   value={b.confirmation_number || "—"} />
-            <Detail label="Booking ID"     value={b.id} />
-            <Detail label="Total"          value={fmt2(b.total_price) || "—"} />
-            <Detail label="Deposit"        value={fmt2(b.deposit_amount) || "—"} />
-            <Detail label="Balance Due"    value={b.total_price != null && b.deposit_amount != null ? fmt2(Number(b.total_price) - Number(b.deposit_amount)) : "—"} />
-            {b.promo_code && <Detail label="Promo Code" value={b.promo_code} />}
-            {b.discount_amount != null && <Detail label="Discount Applied" value={`−${fmt2(b.discount_amount)}`} />}
+        <div style={{ borderTop: `1px solid ${BORDER}`, padding: "24px 28px", background: BG3 }}>
+          <div className="admin-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 24 }}>
+            <D label="Service Type" value={b.service_type === "dropoff" ? "Drop-Off" : b.service_type === "datenight" ? "Date Night" : b.service_type === "omakase" ? "Omakase" : "Chef-Attended"} />
+            <D label="Confirmation" value={b.confirmation_number || "—"} />
+            <D label="Booking ID"   value={b.id} small />
+            <D label="Total"        value={fmt2(b.total_price) || "—"} />
+            <D label="Deposit"      value={fmt2(b.deposit_amount) || "—"} />
+            <D label="Balance Due"  value={b.total_price != null && b.deposit_amount != null ? fmt2(Number(b.total_price) - Number(b.deposit_amount)) : "—"} highlight />
+            {b.promo_code && <D label="Promo Code" value={b.promo_code} />}
+            {b.discount_amount != null && <D label="Discount" value={`−${fmt2(b.discount_amount)}`} />}
           </div>
 
-          {b.service_type === "omakase" && (
+          {b.service_type === "omakase" && b.appetizers_selected?.length > 0 && (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>Omakase Details</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                {b.event_time && <Detail label="Event Time" value={(() => { const [h,m] = b.event_time.split(":").map(Number); const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h); return `${h12}:${String(m).padStart(2,"0")} ${h >= 12 ? "PM" : "AM"}`; })()} />}
-                {b.guest_count && <Detail label="Guests" value={`${b.guest_count} guests`} />}
-                {Array.isArray(b.appetizers_selected) && b.appetizers_selected.length > 0 && (
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>Appetizers</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {b.appetizers_selected.map((a) => (
-                        <span key={a} style={{ fontFamily: FB, fontSize: 13, color: INK, background: PAPER, border: `1px solid rgba(26,18,8,0.1)`, padding: "4px 10px" }}>{a}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {b.special_requests && (
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>Chef&rsquo;s Notes / Restrictions</div>
-                    <div style={{ fontFamily: FB, fontSize: 14, color: INK_SOFT, fontStyle: "italic" }}>{b.special_requests}</div>
-                  </div>
-                )}
+              <Label>Appetizers</Label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                {b.appetizers_selected.map((a) => <Tag key={a}>{a}</Tag>)}
               </div>
             </div>
           )}
 
           {b.service_type === "datenight" && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>Date Night Omakase</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div style={{ background: "rgba(160,119,54,0.07)", border: `1px solid rgba(160,119,54,0.2)`, padding: "12px 16px" }}>
-                  <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 4 }}>Appetizer</div>
-                  <div style={{ fontFamily: FD, fontSize: 14, color: INK }}>{b.appetizer_choice || "—"}</div>
-                </div>
-                <div style={{ background: "rgba(160,119,54,0.07)", border: `1px solid rgba(160,119,54,0.2)`, padding: "12px 16px" }}>
-                  <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 4 }}>Guests</div>
-                  <div style={{ fontFamily: FD, fontSize: 14, color: INK }}>2 · Chef chooses 5 rolls</div>
-                </div>
+            <div style={{ marginBottom: 20, display: "flex", gap: 12 }}>
+              <div style={{ flex: 1, background: BG2, border: `1px solid ${BORDER}`, padding: "14px 18px" }}>
+                <Label>Appetizer</Label>
+                <div style={{ fontFamily: F, fontSize: 13, color: CREAM, marginTop: 6 }}>{b.appetizer_choice || "—"}</div>
               </div>
-              {b.special_requests && (
-                <div style={{ marginTop: 12, padding: "12px 16px", background: "rgba(160,119,54,0.07)", border: `1px solid rgba(160,119,54,0.2)` }}>
-                  <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 4 }}>Chef's Notes / Restrictions</div>
-                  <div style={{ fontFamily: FB, fontSize: 14, color: INK_SOFT, fontStyle: "italic" }}>{b.special_requests}</div>
-                </div>
-              )}
+              <div style={{ flex: 1, background: BG2, border: `1px solid ${BORDER}`, padding: "14px 18px" }}>
+                <Label>Guests</Label>
+                <div style={{ fontFamily: F, fontSize: 13, color: CREAM, marginTop: 6 }}>2 · Chef chooses 5 rolls</div>
+              </div>
             </div>
           )}
 
-          {b.service_type !== "datenight" && b.special_requests && (
+          {b.service_type !== "datenight" && b.service_type !== "omakase" && Array.isArray(b.rolls_selected) && b.rolls_selected.length > 0 && (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>Special Requests</div>
-              <div style={{ fontFamily: FB, fontSize: 14, color: INK_SOFT, fontStyle: "italic" }}>{b.special_requests}</div>
-            </div>
-          )}
-
-          {b.service_type === "dropoff" && Array.isArray(b.platters_ordered) && b.platters_ordered.length > 0 && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>Platters Ordered</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {b.platters_ordered.map((po, i) => (
-                  <div key={i} style={{ background: PAPER, border: `1px solid rgba(26,18,8,0.1)`, padding: "12px 16px" }}>
-                    <div style={{ fontFamily: FD, fontSize: 14, color: INK, fontWeight: 500, marginBottom: 4 }}>
-                      {po.quantity}× {po.platter_name}
-                      <span style={{ fontFamily: FB, fontSize: 13, color: GOLD, marginLeft: 10 }}>
-                        ${(po.base_price * po.quantity).toFixed(0)}
-                      </span>
-                    </div>
-                    {Array.isArray(po.substitutions) && po.substitutions.length > 0 ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 6 }}>
-                        {po.substitutions.map((s, j) => (
-                          <div key={j} style={{ fontFamily: FB, fontSize: 12, color: INK_SOFT, fontStyle: "italic" }}>
-                            {s.original_roll} → {s.replacement_roll}
-                            {s.upcharge_per_roll > 0 && (
-                              <span style={{ color: PERSIMMON, marginLeft: 6 }}>+${(s.upcharge_per_roll * s.slot_qty * po.quantity).toFixed(0)}</span>
-                            )}
-                          </div>
-                        ))}
+              <Label>Rolls Selected</Label>
+              <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+                {["classics", "signatures", "specialty", "premium"].map((tier) => {
+                  const items = b.rolls_selected.filter((r) => r.tier === tier);
+                  if (!items.length) return null;
+                  return (
+                    <div key={tier}>
+                      <div style={{ fontFamily: F, fontSize: 10, color: TIER_COLORS[tier], letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>{TIER_LABELS[tier]}</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {items.map((r) => <Tag key={r.name}>{r.name} × {r.qty}</Tag>)}
                       </div>
-                    ) : (
-                      <div style={{ fontFamily: FB, fontSize: 12, color: INK_FAINT, fontStyle: "italic", marginTop: 4 }}>No substitutions</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {b.delivery_address && (
-                <div style={{ marginTop: 10, fontFamily: FB, fontSize: 13, color: INK }}>
-                  <span style={{ color: GOLD, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", fontSize: 10 }}>Delivery: </span>
-                  {b.delivery_address}
-                </div>
-              )}
-              {b.upcharge_total > 0 && (
-                <div style={{ marginTop: 6, fontFamily: FB, fontSize: 13, color: PERSIMMON, fontStyle: "italic" }}>
-                  Upcharge total: ${Number(b.upcharge_total).toFixed(2)}
-                </div>
-              )}
-            </div>
-          )}
-
-          {b.service_type !== "dropoff" && b.service_type !== "datenight" && b.service_type !== "omakase" && Array.isArray(b.rolls_selected) && b.rolls_selected.length > 0 && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>Rolls Selected</div>
-              {["classics", "signatures", "specialty", "premium"].map((tier) => {
-                const items = b.rolls_selected.filter((r) => r.tier === tier);
-                if (!items.length) return null;
-                return (
-                  <div key={tier} style={{ marginBottom: 8 }}>
-                    <div style={{ fontFamily: FB, fontSize: 10, color: TIER_COLORS[tier], letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600, marginBottom: 4 }}>{TIER_LABELS[tier]}</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {items.map((r) => (
-                        <span key={r.name} style={{ fontFamily: FB, fontSize: 13, color: INK, background: PAPER, border: `1px solid rgba(26,18,8,0.1)`, padding: "4px 10px" }}>
-                          {r.name} × {r.qty}
-                        </span>
-                      ))}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -701,55 +545,37 @@ function BookingRow({ booking: b, onUpdateStatus }) {
             return (
               <div style={{ marginBottom: 20 }}>
                 {included.length > 0 && (
-                  <>
-                    <div style={{ fontFamily: FB, fontSize: 10, color: FOREST, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 8 }}>Included Appetizers</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
-                      {included.map((a) => (
-                        <span key={`inc-${a.name}`} style={{ fontFamily: FB, fontSize: 13, color: FOREST, background: "rgba(45,74,58,0.07)", border: `1px solid rgba(45,74,58,0.2)`, padding: "4px 10px" }}>
-                          {a.name} × {a.included_qty}
-                        </span>
-                      ))}
-                    </div>
-                  </>
+                  <><Label>Included Appetizers</Label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "8px 0 12px" }}>
+                    {included.map((a) => <Tag key={`inc-${a.name}`} color={GREEN}>{a.name} × {a.included_qty}</Tag>)}
+                  </div></>
                 )}
                 {extras.length > 0 && (
-                  <>
-                    <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 8 }}>Extra Appetizers</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {extras.map((a) => (
-                        <span key={`ext-${a.name}`} style={{ fontFamily: FB, fontSize: 13, color: INK, background: PAPER, border: `1px solid rgba(26,18,8,0.1)`, padding: "4px 10px" }}>
-                          {a.name} × {a.extra_qty}{a.extra_cost ? ` · $${Number(a.extra_cost).toFixed(0)}` : ""}
-                        </span>
-                      ))}
-                    </div>
-                  </>
+                  <><Label>Extra Appetizers</Label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                    {extras.map((a) => <Tag key={`ext-${a.name}`}>{a.name} × {a.extra_qty}{a.extra_cost ? ` · $${Number(a.extra_cost).toFixed(0)}` : ""}</Tag>)}
+                  </div></>
                 )}
               </div>
             );
           })()}
 
-          {(b.promo_code || b.discount_amount) && (
+          {b.special_requests && (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: FB, fontSize: 10, color: FOREST, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>Promo Applied</div>
-              <div style={{ fontFamily: FB, fontSize: 14, color: INK, display: "flex", gap: 12, alignItems: "baseline" }}>
-                {b.promo_code && <span style={{ fontFamily: FD, fontSize: 14, color: FOREST, fontWeight: 500, letterSpacing: "0.06em" }}>{b.promo_code}</span>}
-                {b.discount_amount && <span style={{ color: FOREST }}>−{fmt2(b.discount_amount)}</span>}
-              </div>
+              <Label>Chef's Notes</Label>
+              <div style={{ fontFamily: F, fontSize: 13, color: MUTED, fontStyle: "italic", marginTop: 6 }}>{b.special_requests}</div>
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 8, paddingTop: 4, borderTop: `1px solid rgba(26,18,8,0.06)` }}>
+          {/* Status buttons */}
+          <div style={{ display: "flex", gap: 8, paddingTop: 16, borderTop: `1px solid ${BORDER}` }}>
             {["pending", "confirmed", "cancelled"].map((s) => (
               <button key={s} onClick={() => onUpdateStatus(b.id, s)} style={{
                 background: b.status === s ? STATUS_COLORS[s] : "transparent",
-                color: b.status === s ? CREAM : INK_SOFT,
+                color: b.status === s ? BG : FAINT,
                 border: `1px solid ${STATUS_COLORS[s]}`,
-                padding: "6px 14px",
-                fontFamily: FD,
-                fontSize: 11,
-                letterSpacing: "0.1em",
-                textTransform: "capitalize",
-                cursor: "pointer",
+                padding: "7px 16px", fontFamily: F, fontSize: 11,
+                letterSpacing: "0.12em", textTransform: "capitalize", cursor: "pointer",
               }}>
                 {s}
               </button>
@@ -761,41 +587,46 @@ function BookingRow({ booking: b, onUpdateStatus }) {
   );
 }
 
-function Detail({ label, value }) {
+// ── Small helpers ─────────────────────────────────────────────────────────────
+function D({ label, value, small, highlight }) {
   return (
     <div>
-      <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 3 }}>{label}</div>
-      <div style={{ fontFamily: FB, fontSize: 14, color: INK }}>{value}</div>
+      <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontFamily: F, fontSize: small ? 11 : 13, color: highlight ? GOLD : CREAM, wordBreak: small ? "break-all" : "normal" }}>{value}</div>
     </div>
   );
 }
 
-// ============================================================
-// LOGISTICS TAB
-// ============================================================
+function Label({ children }) {
+  return <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.25em", textTransform: "uppercase" }}>{children}</div>;
+}
+
+function Tag({ children, color }) {
+  return (
+    <span style={{ fontFamily: F, fontSize: 12, color: color || MUTED, background: BG2, border: `1px solid ${BORDER}`, padding: "4px 12px" }}>
+      {children}
+    </span>
+  );
+}
+
+// ── Logistics tab ─────────────────────────────────────────────────────────────
 function LogisticsTab({ bookings }) {
   const [selected, setSelected] = useState(null);
-
-  if (selected) {
-    return <LogisticsDetail booking={selected} onBack={() => setSelected(null)} />;
-  }
-
+  if (selected) return <LogisticsDetail booking={selected} onBack={() => setSelected(null)} />;
   return <LogisticsSummary bookings={bookings} onSelect={setSelected} />;
 }
 
-// ---- Summary view ----
 function LogisticsSummary({ bookings, onSelect }) {
   const now = new Date();
-
   const withRevenue = bookings.filter((b) => b.total_price != null && b.status !== "cancelled");
   const allCalc     = withRevenue.map((b) => ({ b, c: calcLogistics(b) }));
   const chefCalc    = allCalc.filter(({ b }) => b.service_type !== "dropoff");
 
-  const totalRevenue   = allCalc.reduce((s, { c }) => s + c.total, 0);
-  const totalFoodCost  = chefCalc.reduce((s, { c }) => s + c.totalFoodCost, 0);
-  const totalGross     = chefCalc.reduce((s, { c }) => s + c.grossProfit, 0);
-  const totalNet       = chefCalc.reduce((s, { c }) => s + c.netProfit, 0);
-  const avgNetMargin   = chefCalc.length > 0 ? chefCalc.reduce((s, { c }) => s + c.netMargin, 0) / chefCalc.length : null;
+  const totalRevenue  = allCalc.reduce((s, { c }) => s + c.total, 0);
+  const totalFoodCost = chefCalc.reduce((s, { c }) => s + c.totalFoodCost, 0);
+  const totalGross    = chefCalc.reduce((s, { c }) => s + c.grossProfit, 0);
+  const totalNet      = chefCalc.reduce((s, { c }) => s + c.netProfit, 0);
+  const avgNetMargin  = chefCalc.length > 0 ? chefCalc.reduce((s, { c }) => s + c.netMargin, 0) / chefCalc.length : null;
 
   const upcoming = bookings
     .filter((b) => b.event_date && b.status !== "cancelled" && b.total_price != null)
@@ -805,70 +636,53 @@ function LogisticsSummary({ bookings, onSelect }) {
 
   const fmtDate = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "—";
 
-  const pill = (color, text) => (
-    <span style={{ background: color + "18", border: `1px solid ${color}44`, color, fontFamily: FD, fontSize: 12, padding: "2px 10px", letterSpacing: "0.04em" }}>
-      {text}
-    </span>
-  );
-
   return (
     <div>
-      {/* Aggregate stat cards */}
-      <div className="admin-stat-grid admin-stat-grid-logistics" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 36 }}>
+      {/* Stats */}
+      <div className="admin-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, marginBottom: 40 }}>
         {[
-          { label: "Total Revenue",   value: fmt2(totalRevenue),  color: INDIGO,    kanji: "収" },
-          { label: "Total Food Cost", value: fmt2(totalFoodCost), color: PERSIMMON, kanji: "材" },
-          { label: "Gross Profit",    value: fmt2(totalGross),    color: FOREST,    kanji: "益" },
-          { label: "Avg Net Margin",  value: fmtPct(avgNetMargin), color: GOLD,     kanji: "率" },
+          { label: "Revenue",      value: fmt2(totalRevenue),   color: CREAM },
+          { label: "Food Cost",    value: fmt2(totalFoodCost),  color: RED },
+          { label: "Gross Profit", value: fmt2(totalGross),     color: GREEN },
+          { label: "Avg Net Margin", value: fmtPct(avgNetMargin), color: GOLD },
         ].map((s) => (
-          <div key={s.label} style={{ background: PAPER, border: `1px solid rgba(26,18,8,0.08)`, borderTop: `3px solid ${s.color}`, padding: "20px 22px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-              <div style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase" }}>{s.label}</div>
-              <div style={{ fontFamily: FD, fontSize: 20, color: s.color, opacity: 0.3 }}>{s.kanji}</div>
-            </div>
-            <div style={{ fontFamily: FD, fontSize: 28, fontWeight: 600, color: s.color, lineHeight: 1 }}>{s.value}</div>
+          <div key={s.label} style={{ background: BG2, border: `1px solid ${BORDER}`, padding: "28px 28px 24px" }}>
+            <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.35em", textTransform: "uppercase", marginBottom: 12 }}>{s.label}</div>
+            <div style={{ fontFamily: F, fontSize: 32, color: s.color, lineHeight: 1 }}>{s.value}</div>
           </div>
         ))}
       </div>
 
-      {/* Net profit summary */}
-      <div style={{ background: PAPER, border: `1px solid rgba(26,18,8,0.08)`, borderLeft: `4px solid ${FOREST}`, padding: "16px 22px", marginBottom: 36, display: "flex", gap: 48 }}>
+      {/* Net profit bar */}
+      <div style={{ background: BG2, border: `1px solid ${BORDER}`, borderLeft: `2px solid ${GREEN}`, padding: "20px 28px", marginBottom: 40, display: "flex", gap: 60 }}>
         <div>
-          <div style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 4 }}>Total Net Profit (after labor)</div>
-          <div style={{ fontFamily: FD, fontSize: 22, color: FOREST, fontWeight: 600 }}>{fmt2(totalNet)}</div>
+          <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 6 }}>Total Net Profit</div>
+          <div style={{ fontFamily: F, fontSize: 24, color: GREEN }}>{fmt2(totalNet)}</div>
         </div>
         <div>
-          <div style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 4 }}>Events Analyzed</div>
-          <div style={{ fontFamily: FD, fontSize: 22, color: INK, fontWeight: 600 }}>{allCalc.length}</div>
+          <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 6 }}>Events Analyzed</div>
+          <div style={{ fontFamily: F, fontSize: 24, color: CREAM }}>{allCalc.length}</div>
         </div>
       </div>
 
       {/* Upcoming events */}
       {upcoming.length > 0 && (
-        <div style={{ marginBottom: 36 }}>
-          <div style={{ fontFamily: FD, fontSize: 16, color: INK, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ color: PERSIMMON }}>次</span> Upcoming Events
-          </div>
-          <div className="admin-upcoming-table" style={{ background: PAPER, border: `1px solid rgba(26,18,8,0.08)`, overflowX: "auto" }}>
-            <div className="admin-upcoming-row" style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr 120px", padding: "10px 18px", borderBottom: `1px solid rgba(26,18,8,0.06)` }}>
-              {["Date", "Client", "Guests", "Revenue", "Food Cost", "Net Profit", ""].map((h) => (
-                <div key={h} style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.15em", textTransform: "uppercase" }}>{h}</div>
-              ))}
-            </div>
+        <div style={{ marginBottom: 40 }}>
+          <SectionHead>Upcoming Events</SectionHead>
+          <div style={{ background: BG2, border: `1px solid ${BORDER}`, overflowX: "auto" }}>
+            <THead cols={["Date", "Client", "Guests", "Revenue", "Food Cost", "Net", ""]} />
             {upcoming.map(({ b, c }) => {
               const isDropoff = b.service_type === "dropoff";
               return (
-                <div key={b.id} onClick={() => onSelect(b)} className="admin-upcoming-row" style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr 120px", padding: "14px 18px", borderBottom: `1px solid rgba(26,18,8,0.04)`, cursor: "pointer", transition: "background 0.15s" }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "#fff"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                >
-                  <div style={{ fontFamily: FD, fontSize: 13, color: INK }}>{fmtDate(b.event_date)}</div>
-                  <div style={{ fontFamily: FB, fontSize: 13, color: INK_SOFT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.user_email}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: INK }}>{b.guest_count || "—"}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: INK }}>{fmt2(c.total)}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: isDropoff ? INK_FAINT : PERSIMMON }}>{isDropoff ? "—" : fmt2(c.totalFoodCost)}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: isDropoff ? INK_FAINT : (c.netProfit >= 0 ? FOREST : PERSIMMON) }}>{isDropoff ? "—" : fmt2(c.netProfit)}</div>
-                  <div>{isDropoff ? pill(INDIGO, "Drop-Off") : pill(GOLD, fmtPct(c.netMargin))}</div>
+                <div key={b.id} className="arow" onClick={() => onSelect(b)}
+                  style={{ display: "grid", gridTemplateColumns: "1.2fr 1.4fr 0.7fr 0.8fr 0.8fr 0.8fr 100px", padding: "16px 20px", borderTop: `1px solid ${BORDER}`, cursor: "pointer", transition: "background 0.15s" }}>
+                  <TCell>{fmtDate(b.event_date)}</TCell>
+                  <TCell muted>{b.user_email}</TCell>
+                  <TCell>{b.guest_count || "—"}</TCell>
+                  <TCell>{fmt2(c.total)}</TCell>
+                  <TCell color={isDropoff ? FAINT : RED}>{isDropoff ? "—" : fmt2(c.totalFoodCost)}</TCell>
+                  <TCell color={isDropoff ? FAINT : c.netProfit >= 0 ? GREEN : RED}>{isDropoff ? "—" : fmt2(c.netProfit)}</TCell>
+                  <TCell><Pill color={isDropoff ? GOLD2 : marginColor(c.netMargin)}>{isDropoff ? "drop-off" : fmtPct(c.netMargin)}</Pill></TCell>
                 </div>
               );
             })}
@@ -876,36 +690,28 @@ function LogisticsSummary({ bookings, onSelect }) {
         </div>
       )}
 
-      {/* All bookings list */}
+      {/* All bookings */}
       <div>
-        <div style={{ fontFamily: FD, fontSize: 16, color: INK, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ color: PERSIMMON }}>全</span> All Bookings
-        </div>
+        <SectionHead>All Bookings</SectionHead>
         {allCalc.length === 0 ? (
-          <div style={{ fontFamily: FB, fontSize: 15, color: INK_FAINT, fontStyle: "italic", padding: "40px 0" }}>No bookings with revenue data.</div>
+          <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "40px 0" }}>No bookings with revenue data.</div>
         ) : (
-          <div className="admin-all-bookings-table" style={{ background: PAPER, border: `1px solid rgba(26,18,8,0.08)`, overflowX: "auto" }}>
-            <div className="admin-all-bookings-row" style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 120px", padding: "10px 18px", borderBottom: `1px solid rgba(26,18,8,0.06)` }}>
-              {["Client", "Event Date", "Pkg", "Guests", "Revenue", "Food Cost", "Gross", "Net", ""].map((h) => (
-                <div key={h} style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.15em", textTransform: "uppercase" }}>{h}</div>
-              ))}
-            </div>
+          <div style={{ background: BG2, border: `1px solid ${BORDER}`, overflowX: "auto" }}>
+            <THead cols={["Client", "Date", "Pkg", "Guests", "Revenue", "Food", "Gross", "Net", ""]} />
             {allCalc.map(({ b, c }) => {
               const isDropoff = b.service_type === "dropoff";
               return (
-                <div key={b.id} onClick={() => onSelect(b)} className="admin-all-bookings-row" style={{ display: "grid", gridTemplateColumns: "1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 120px", padding: "13px 18px", borderBottom: `1px solid rgba(26,18,8,0.04)`, cursor: "pointer", transition: "background 0.15s" }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = "#fff"}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                >
-                  <div style={{ fontFamily: FB, fontSize: 13, color: INK_SOFT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.user_email}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: INK }}>{fmtDate(b.event_date)}</div>
-                  <div style={{ fontFamily: FB, fontSize: 12, color: isDropoff ? INDIGO : INK_FAINT }}>{isDropoff ? "Drop-Off" : ((b.package || "").charAt(8) || "—")}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: INK }}>{b.guest_count || "—"}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: INK }}>{fmt2(c.total)}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: isDropoff ? INK_FAINT : PERSIMMON }}>{isDropoff ? "—" : fmt2(c.totalFoodCost)}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: isDropoff ? INK_FAINT : FOREST }}>{isDropoff ? "—" : fmt2(c.grossProfit)}</div>
-                  <div style={{ fontFamily: FD, fontSize: 13, color: isDropoff ? INK_FAINT : (c.netProfit >= 0 ? FOREST : PERSIMMON) }}>{isDropoff ? "—" : fmt2(c.netProfit)}</div>
-                  <div>{isDropoff ? pill(INDIGO, "Drop-Off") : pill(c.netMargin >= 60 ? FOREST : c.netMargin >= 40 ? GOLD : PERSIMMON, fmtPct(c.netMargin))}</div>
+                <div key={b.id} className="arow" onClick={() => onSelect(b)}
+                  style={{ display: "grid", gridTemplateColumns: "1.4fr 1.2fr 0.5fr 0.7fr 0.8fr 0.8fr 0.8fr 0.8fr 100px", padding: "14px 20px", borderTop: `1px solid ${BORDER}`, cursor: "pointer", transition: "background 0.15s" }}>
+                  <TCell muted small>{b.user_email}</TCell>
+                  <TCell>{fmtDate(b.event_date)}</TCell>
+                  <TCell muted small>{isDropoff ? "Drop" : ((b.package || "").charAt(8) || "—")}</TCell>
+                  <TCell>{b.guest_count || "—"}</TCell>
+                  <TCell>{fmt2(c.total)}</TCell>
+                  <TCell color={isDropoff ? FAINT : RED}>{isDropoff ? "—" : fmt2(c.totalFoodCost)}</TCell>
+                  <TCell color={isDropoff ? FAINT : GREEN}>{isDropoff ? "—" : fmt2(c.grossProfit)}</TCell>
+                  <TCell color={isDropoff ? FAINT : c.netProfit >= 0 ? GREEN : RED}>{isDropoff ? "—" : fmt2(c.netProfit)}</TCell>
+                  <TCell><Pill color={isDropoff ? GOLD2 : marginColor(c.netMargin)}>{isDropoff ? "drop" : fmtPct(c.netMargin)}</Pill></TCell>
                 </div>
               );
             })}
@@ -916,243 +722,134 @@ function LogisticsSummary({ bookings, onSelect }) {
   );
 }
 
-// ---- Per-booking detail view ----
 function LogisticsDetail({ booking: b, onBack }) {
   const isDropoff = b.service_type === "dropoff";
   const c = calcLogistics(b);
   const fmtDate = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "—";
 
-  const LSection = ({ title, kanji, color = GOLD, children }) => (
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, paddingBottom: 8, borderBottom: `1.5px solid rgba(26,18,8,0.07)` }}>
-        <span style={{ fontFamily: FD, fontSize: 22, color: color || GOLD, opacity: 0.5 }}>{kanji}</span>
-        <span style={{ fontFamily: FD, fontSize: 14, color: INK, letterSpacing: "0.04em" }}>{title}</span>
-      </div>
+  const Sec = ({ title, children }) => (
+    <div style={{ marginBottom: 32 }}>
+      <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${BORDER}` }}>{title}</div>
       {children}
     </div>
   );
 
-  const DataRow = ({ label, value, valueColor, bold }) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "7px 0", borderBottom: `1px dotted rgba(26,18,8,0.07)` }}>
-      <span style={{ fontFamily: FB, fontSize: 13, color: INK_SOFT }}>{label}</span>
-      <span style={{ fontFamily: FD, fontSize: bold ? 16 : 14, color: valueColor || INK, fontWeight: bold ? 600 : 400 }}>{value}</span>
+  const Row = ({ label, value, color, bold }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: `1px solid ${BORDER}` }}>
+      <span style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{label}</span>
+      <span style={{ fontFamily: F, fontSize: bold ? 15 : 13, color: color || CREAM, fontWeight: bold ? 500 : 400 }}>{value}</span>
     </div>
   );
 
-  const marginColor = (m) => m >= 60 ? FOREST : m >= 40 ? GOLD : PERSIMMON;
-
-  const dropoffUpchargeTotal = isDropoff && Array.isArray(b.platters_ordered)
-    ? b.platters_ordered.reduce((sum, po) => {
-        if (!Array.isArray(po.substitutions)) return sum;
-        return sum + po.substitutions.reduce((s2, sub) =>
-          s2 + (sub.upcharge_per_roll || 0) * (sub.slot_qty || 0) * (po.quantity || 0), 0);
-      }, 0)
-    : 0;
+  const mc = (m) => m >= 60 ? GREEN : m >= 40 ? GOLD2 : RED;
 
   return (
     <div>
-      <button onClick={onBack} style={{ background: "transparent", border: `1px solid rgba(26,18,8,0.2)`, color: INK_SOFT, padding: "7px 16px", fontFamily: FB, fontSize: 13, cursor: "pointer", marginBottom: 24 }}>
-        ← Back to Logistics
+      <button onClick={onBack} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: FAINT, padding: "8px 18px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", marginBottom: 32 }}>
+        ← back
       </button>
 
-      {/* Booking header */}
-      <div style={{ background: INDIGO_DARK, color: CREAM, padding: "20px 26px", marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      {/* Header card */}
+      <div style={{ background: BG2, border: `1px solid ${BORDER}`, borderLeft: `2px solid ${GOLD2}`, padding: "24px 28px", marginBottom: 40, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <div style={{ fontFamily: FB, fontSize: 12, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 4 }}>
-            {isDropoff ? "Drop-Off Delivery" : (b.package || "—")}
+          <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 8 }}>
+            {isDropoff ? "drop-off delivery" : (b.package || "—")}
           </div>
-          <div style={{ fontFamily: FD, fontSize: 20, color: CREAM, fontWeight: 500 }}>{b.user_email}</div>
-          <div style={{ fontFamily: FB, fontSize: 14, color: "rgba(245,236,217,0.6)", fontStyle: "italic", marginTop: 4 }}>
-            {isDropoff
-              ? fmtDate(b.event_date)
-              : `${fmtDate(b.event_date)} · ${b.guest_count} guests`}
+          <div style={{ fontFamily: F, fontSize: 20, color: CREAM }}>{b.user_email}</div>
+          <div style={{ fontFamily: F, fontSize: 13, color: MUTED, marginTop: 6 }}>
+            {isDropoff ? fmtDate(b.event_date) : `${fmtDate(b.event_date)} · ${b.guest_count} guests`}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: FD, fontSize: 26, color: PERSIMMON, fontWeight: 600 }}>{fmt2(c.total)}</div>
-          <div style={{ fontFamily: FB, fontSize: 12, color: "rgba(245,236,217,0.5)", fontStyle: "italic" }}>
-            Conf: {b.confirmation_number || "—"}
-          </div>
+          <div style={{ fontFamily: F, fontSize: 28, color: GOLD }}>{fmt2(c.total)}</div>
+          <div style={{ fontFamily: F, fontSize: 11, color: FAINT, marginTop: 4 }}>conf: {b.confirmation_number || "—"}</div>
         </div>
       </div>
 
-      {isDropoff ? (
-        /* ── Drop-off layout ── */
-        <div className="admin-logistics-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28 }}>
-          <div>
-            <LSection title="Revenue" kanji="収" color={FOREST}>
-              <DataRow label="Total Revenue"     value={fmt2(c.total)}   valueColor={INK} bold />
-              <DataRow label="Deposit Collected" value={fmt2(c.deposit)} />
-              <DataRow label="Balance Due"       value={fmt2(c.balance)} valueColor={GOLD} />
-            </LSection>
+      <div className="admin-logistics-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40 }}>
+        <div>
+          <Sec title="Revenue">
+            <Row label="Total"   value={fmt2(c.total)}   bold />
+            <Row label="Deposit" value={fmt2(c.deposit)} />
+            <Row label="Balance" value={fmt2(c.balance)} color={GOLD} />
+          </Sec>
 
-            <LSection title="Platters Ordered" kanji="配" color={INDIGO}>
-              {Array.isArray(b.platters_ordered) && b.platters_ordered.length > 0 ? (
-                <>
-                  {b.platters_ordered.map((po, i) => (
-                    <div key={i} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: `1px dotted rgba(26,18,8,0.07)` }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-                        <span style={{ fontFamily: FD, fontSize: 14, color: INK, fontWeight: 500 }}>{po.quantity}× {po.platter_name}</span>
-                        <span style={{ fontFamily: FD, fontSize: 14, color: INK }}>{fmt2(po.base_price * po.quantity)}</span>
-                      </div>
-                      {Array.isArray(po.substitutions) && po.substitutions.length > 0 ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 3, marginLeft: 12, marginTop: 4 }}>
-                          {po.substitutions.map((s, j) => {
-                            const lineUpcharge = (s.upcharge_per_roll || 0) * (s.slot_qty || 0) * (po.quantity || 0);
-                            return (
-                              <div key={j} style={{ display: "flex", justifyContent: "space-between", fontFamily: FB, fontSize: 12, color: INK_SOFT, fontStyle: "italic" }}>
-                                <span>{s.original_roll} → {s.replacement_roll}</span>
-                                {lineUpcharge > 0
-                                  ? <span style={{ color: PERSIMMON }}>+{fmt2(lineUpcharge)}</span>
-                                  : <span style={{ color: FOREST }}>Free</span>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, fontStyle: "italic", marginLeft: 12, marginTop: 2 }}>No substitutions</div>
-                      )}
-                    </div>
-                  ))}
-                  {dropoffUpchargeTotal > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0 4px" }}>
-                      <span style={{ fontFamily: FB, fontSize: 13, color: INK, fontWeight: 600 }}>Upcharge total</span>
-                      <span style={{ fontFamily: FD, fontSize: 14, color: PERSIMMON, fontWeight: 600 }}>+{fmt2(dropoffUpchargeTotal)}</span>
-                    </div>
-                  )}
-                  {b.delivery_address && (
-                    <div style={{ marginTop: 16, paddingTop: 12, borderTop: `1px solid rgba(26,18,8,0.08)` }}>
-                      <div style={{ fontFamily: FB, fontSize: 10, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 4 }}>Delivery Address</div>
-                      <div style={{ fontFamily: FB, fontSize: 14, color: INK }}>{b.delivery_address}</div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div style={{ fontFamily: FB, fontSize: 13, color: INK_FAINT, fontStyle: "italic", padding: "8px 0" }}>No platter data saved.</div>
-              )}
-            </LSection>
-          </div>
-          <div />
+          {!isDropoff && (
+            <>
+              <Sec title="Food Cost">
+                {c.rollBreakdown.length > 0
+                  ? c.rollBreakdown.map((r) => <Row key={r.name} label={`${r.name} × ${r.qty}`} value={r.lineCost != null ? fmt2(r.lineCost) : "—"} />)
+                  : <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "8px 0" }}>No roll data.</div>
+                }
+                {c.totalRolls > 0 && <>
+                  <Row label={`Rice seasoning (${c.totalRolls} × $0.08)`} value={fmt2(c.riceSeasoningCost)} />
+                  <Row label={`Condiments (${b.guest_count} × $0.23)`}   value={fmt2(c.condimentCost)} />
+                </>}
+                <Row label="Total Food Cost" value={fmt2(c.totalFoodCost)} color={RED} bold />
+              </Sec>
+
+              <Sec title="Profitability">
+                <Row label="Gross Profit"   value={fmt2(c.grossProfit)}  color={c.grossProfit >= 0 ? GREEN : RED} />
+                <Row label="Gross Margin"   value={fmtPct(c.grossMargin)} color={mc(c.grossMargin)} />
+                <Row label={`Labor (${c.laborHours} hrs)`} value={fmt2(LABOR_COST)} />
+                <Row label="Net Profit"     value={fmt2(c.netProfit)}    color={c.netProfit >= 0 ? GREEN : RED} bold />
+                <div style={{ textAlign: "right", paddingTop: 12 }}>
+                  <span style={{ fontFamily: F, fontSize: 24, color: mc(c.netMargin) }}>{fmtPct(c.netMargin)}</span>
+                  <span style={{ fontFamily: F, fontSize: 11, color: FAINT, marginLeft: 8 }}>net margin</span>
+                </div>
+              </Sec>
+            </>
+          )}
         </div>
-      ) : (
-        /* ── Chef-attended layout ── */
-        <div className="admin-logistics-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28 }}>
-          {/* LEFT COLUMN */}
+
+        {!isDropoff && (
           <div>
-            <LSection title="Revenue" kanji="収" color={FOREST}>
-              <DataRow label="Total Revenue"   value={fmt2(c.total)}   valueColor={INK} bold />
-              <DataRow label="Deposit Collected" value={fmt2(c.deposit)} />
-              <DataRow label="Balance Due"     value={fmt2(c.balance)} valueColor={GOLD} />
-            </LSection>
+            <Sec title="Supplies">
+              <Row label="Plates"          value={`${c.plates}`} />
+              <Row label="Chopstick pairs" value={`${c.chopsticks}`} />
+              <Row label="Soy cups"        value={`${c.soySauceCups}`} />
+              <Row label="Napkins"         value={`${c.napkins}`} />
+              <Row label="Gloves (pairs)"  value={`${c.gloves}`} />
+              <Row label="Cutting boards"  value={`${c.cuttingBoards}`} />
+              <Row label="Dry rice"        value={`${c.riceCups} cups`} bold />
+            </Sec>
 
-            <LSection title="Food Cost Breakdown" kanji="材" color={PERSIMMON}>
-              {c.rollBreakdown.length > 0 ? (
-                c.rollBreakdown.map((r) => (
-                  <DataRow
-                    key={r.name}
-                    label={`${r.name} × ${r.qty}`}
-                    value={r.lineCost != null ? fmt2(r.lineCost) : "—"}
-                  />
-                ))
-              ) : (
-                <div style={{ fontFamily: FB, fontSize: 13, color: INK_FAINT, fontStyle: "italic", padding: "8px 0" }}>No roll data saved for this booking.</div>
-              )}
-              {c.totalRolls > 0 && (
-                <>
-                  <DataRow label={`Rice seasoning (${c.totalRolls} rolls × $0.08)`} value={fmt2(c.riceSeasoningCost)} />
-                  <DataRow label={`Condiments (${b.guest_count} guests × $0.23)`}   value={fmt2(c.condimentCost)} />
-                </>
-              )}
-              {c.totalRolls === 0 && b.guest_count > 0 && (
-                <DataRow label={`Condiments (${b.guest_count} guests × $0.23)`} value={fmt2(c.condimentCost)} />
-              )}
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 4px", borderTop: `1.5px solid rgba(26,18,8,0.1)`, marginTop: 4 }}>
-                <span style={{ fontFamily: FB, fontSize: 13, color: INK, fontWeight: 600 }}>Total Food Cost</span>
-                <span style={{ fontFamily: FD, fontSize: 16, color: PERSIMMON, fontWeight: 600 }}>{fmt2(c.totalFoodCost)}</span>
-              </div>
-            </LSection>
-
-            <LSection title="Profitability" kanji="利" color={FOREST}>
-              <DataRow label="Gross Profit (revenue − food cost)" value={fmt2(c.grossProfit)} valueColor={c.grossProfit >= 0 ? FOREST : PERSIMMON} />
-              <DataRow label="Gross Margin"                        value={fmtPct(c.grossMargin)} valueColor={marginColor(c.grossMargin)} />
-              <DataRow label={`Labor (${c.laborHours} hrs · helper only)`} value={fmt2(LABOR_COST)} />
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0 4px", borderTop: `1.5px solid rgba(26,18,8,0.1)`, marginTop: 4 }}>
-                <span style={{ fontFamily: FB, fontSize: 13, color: INK, fontWeight: 600 }}>Net Profit</span>
-                <span style={{ fontFamily: FD, fontSize: 16, color: c.netProfit >= 0 ? FOREST : PERSIMMON, fontWeight: 600 }}>{fmt2(c.netProfit)}</span>
-              </div>
-              <div style={{ textAlign: "right", marginTop: 4 }}>
-                <span style={{ fontFamily: FD, fontSize: 20, fontWeight: 600, color: marginColor(c.netMargin) }}>{fmtPct(c.netMargin)}</span>
-                <span style={{ fontFamily: FB, fontSize: 12, color: INK_FAINT, marginLeft: 6 }}>net margin</span>
-              </div>
-            </LSection>
-          </div>
-
-          {/* RIGHT COLUMN */}
-          <div>
-            <LSection title="Condiments" kanji="薬" color={GOLD}>
-              <DataRow label={`Wasabi (${b.guest_count} × $0.10)`}         value={fmt2((b.guest_count || 0) * 0.10)} />
-              <DataRow label={`Pickled ginger (${b.guest_count} × $0.08)`} value={fmt2((b.guest_count || 0) * 0.08)} />
-              <DataRow label={`Soy sauce (${b.guest_count} × $0.05)`}      value={fmt2((b.guest_count || 0) * 0.05)} />
-              <DataRow label="Total condiment cost" value={fmt2(c.condimentCost)} bold />
-            </LSection>
-
-            <LSection title="Supplies Needed" kanji="備" color={INDIGO}>
-              <DataRow label="Plates"            value={`${c.plates} plates`} />
-              <DataRow label="Chopstick pairs"   value={`${c.chopsticks} pairs`} />
-              <DataRow label="Soy sauce cups"    value={`${c.soySauceCups} cups`} />
-              <DataRow label="Napkins"           value={`${c.napkins} napkins`} />
-              <DataRow label="Nitrile gloves"    value={`${c.gloves} pairs`} />
-              <DataRow label="Cutting boards"    value={`${c.cuttingBoards}`} />
-              <DataRow label="Dry rice needed"   value={`${c.riceCups} cups (${c.totalRolls} rolls ÷ 3)`} bold />
-            </LSection>
-
-            <LSection title="Protein Order" kanji="魚" color={PLUM}>
+            <Sec title="Protein Order">
               {[
-                { key: "salmon",       label: "Salmon",        oz: c.fishOz.salmon },
-                { key: "tuna",         label: "Tuna",          oz: c.fishOz.tuna },
-                { key: "yellowtail",   label: "Yellowtail",    oz: c.fishOz.yellowtail },
-                { key: "shrimp",       label: "Shrimp",        oz: c.fishOz.shrimp },
-                { key: "smoked_salmon",label: "Smoked Salmon", oz: c.fishOz.smoked_salmon },
-              ].filter(({ oz }) => oz > 0).map(({ label, oz }) => (
-                <DataRow key={label} label={label} value={fmtOz(oz)} />
-              ))}
-              {Object.values(c.fishOz).every((v) => v === 0) && (
-                <div style={{ fontFamily: FB, fontSize: 13, color: INK_FAINT, fontStyle: "italic", padding: "8px 0" }}>No roll data — order unknown.</div>
+                { label: "Salmon",       oz: c.fishOz.salmon },
+                { label: "Tuna",         oz: c.fishOz.tuna },
+                { label: "Yellowtail",   oz: c.fishOz.yellowtail },
+                { label: "Shrimp",       oz: c.fishOz.shrimp },
+                { label: "Smoked Salmon", oz: c.fishOz.smoked_salmon },
+              ].filter(({ oz }) => oz > 0).map(({ label, oz }) =>
+                <Row key={label} label={label} value={fmtOz(oz)} />
               )}
-            </LSection>
+              {Object.values(c.fishOz).every((v) => v === 0) && (
+                <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "8px 0" }}>No roll data.</div>
+              )}
+            </Sec>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <EventChecklist bookingId={b.id} ingredients={calcIngredients(b, c)} isDropoff={isDropoff} />
     </div>
   );
 }
 
-// ============================================================
-// EVENT CHECKLIST
-// ============================================================
+// ── Event checklist ───────────────────────────────────────────────────────────
 function useChecklist(bookingId) {
-  const storageKey = `checklist_${bookingId}`;
+  const key = `checklist_${bookingId}`;
   const [checked, setChecked] = useState(() => {
     if (typeof window === "undefined") return {};
-    try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); }
-    catch { return {}; }
+    try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
   });
-
-  const toggle = (itemId) => {
-    setChecked((prev) => {
-      const next = { ...prev, [itemId]: !prev[itemId] };
-      try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
-      return next;
-    });
-  };
-
-  const reset = () => {
-    setChecked({});
-    try { localStorage.removeItem(storageKey); } catch {}
-  };
-
+  const toggle = (id) => setChecked((prev) => {
+    const next = { ...prev, [id]: !prev[id] };
+    try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
+    return next;
+  });
+  const reset = () => { setChecked({}); try { localStorage.removeItem(key); } catch {} };
   return [checked, toggle, reset];
 }
 
@@ -1160,124 +857,83 @@ function EventChecklist({ bookingId, ingredients, isDropoff }) {
   const [checked, toggle, reset] = useChecklist(bookingId);
   const [confirmReset, setConfirmReset] = useState(false);
 
-  const foodItems    = isDropoff ? [] : buildFoodOrderItems(ingredients);
-  const beforeItems  = PREP_DAY_BEFORE.map((text, i) => ({ id: `before_${i}`, text }));
-  const dayOfItems   = PREP_DAY_OF.map((text, i) => ({ id: `dayof_${i}`, text }));
-
-  const totalItems   = foodItems.length + beforeItems.length + dayOfItems.length;
+  const foodItems   = isDropoff ? [] : buildFoodOrderItems(ingredients);
+  const beforeItems = PREP_DAY_BEFORE.map((text, i) => ({ id: `before_${i}`, text }));
+  const dayOfItems  = PREP_DAY_OF.map((text, i) => ({ id: `dayof_${i}`, text }));
+  const totalItems  = foodItems.length + beforeItems.length + dayOfItems.length;
   const totalChecked = Object.values(checked).filter(Boolean).length;
 
   return (
-    <div style={{ marginTop: 36, borderTop: `2px solid rgba(26,18,8,0.08)`, paddingTop: 32 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontFamily: FD, fontSize: 24, color: PERSIMMON, opacity: 0.4 }}>準</span>
-          <span style={{ fontFamily: FD, fontSize: 18, color: INK }}>Event Preparation Checklist</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <span style={{ fontFamily: FB, fontSize: 13, color: totalChecked === totalItems ? FOREST : INK_FAINT, fontStyle: "italic" }}>
-            {totalChecked} of {totalItems} complete
+    <div style={{ marginTop: 48, borderTop: `1px solid ${BORDER}`, paddingTop: 40 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+        <div style={{ fontFamily: F, fontSize: 12, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase" }}>Prep Checklist</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <span style={{ fontFamily: F, fontSize: 12, color: totalChecked === totalItems ? GREEN : FAINT }}>
+            {totalChecked} / {totalItems}
           </span>
           {confirmReset ? (
-            <span style={{ fontFamily: FB, fontSize: 12, color: INK_SOFT }}>
-              Sure?{" "}
-              <button onClick={() => { reset(); setConfirmReset(false); }} style={S.linkAction(PERSIMMON)}>Yes, reset</button>
+            <span style={{ fontFamily: F, fontSize: 12, color: MUTED }}>
+              Reset?{" "}
+              <button onClick={() => { reset(); setConfirmReset(false); }} style={{ background: "none", border: "none", color: RED, fontFamily: F, fontSize: 12, cursor: "pointer", textDecoration: "underline", padding: 0 }}>yes</button>
               {" · "}
-              <button onClick={() => setConfirmReset(false)} style={S.linkAction(INK_FAINT)}>Cancel</button>
+              <button onClick={() => setConfirmReset(false)} style={{ background: "none", border: "none", color: FAINT, fontFamily: F, fontSize: 12, cursor: "pointer", padding: 0 }}>no</button>
             </span>
           ) : (
-            <button onClick={() => setConfirmReset(true)} style={S.linkAction(INK_FAINT)}>Reset all</button>
+            <button onClick={() => setConfirmReset(true)} style={{ background: "none", border: "none", color: FAINT, fontFamily: F, fontSize: 12, cursor: "pointer", textDecoration: "underline", padding: 0 }}>reset</button>
           )}
         </div>
       </div>
 
-      {/* Overall progress bar */}
-      <div style={{ height: 4, background: "rgba(26,18,8,0.08)", marginBottom: 32, borderRadius: 2 }}>
-        <div style={{ height: 4, background: totalChecked === totalItems ? FOREST : PERSIMMON, width: `${totalItems > 0 ? (totalChecked / totalItems) * 100 : 0}%`, borderRadius: 2, transition: "width 0.3s ease" }} />
+      {/* Progress */}
+      <div style={{ height: 1, background: BORDER2, marginBottom: 36 }}>
+        <div style={{ height: 1, background: totalChecked === totalItems ? GREEN : GOLD2, width: `${totalItems > 0 ? (totalChecked / totalItems) * 100 : 0}%`, transition: "width 0.3s" }} />
       </div>
 
-      <div className="admin-checklist-grid" style={{ display: "grid", gridTemplateColumns: isDropoff ? "1fr" : "1fr 1fr", gap: 32 }}>
+      <div className="admin-checklist-grid" style={{ display: "grid", gridTemplateColumns: isDropoff ? "1fr" : "1fr 1fr", gap: 40 }}>
         {!isDropoff && (
-          <div>
-            <ChecklistSection title="Food Ordering" kanji="材" items={foodItems} checked={checked} toggle={toggle} />
-          </div>
+          <ChecklistSection title="Food Ordering" items={foodItems} checked={checked} toggle={toggle} />
         )}
         <div>
-          <ChecklistSection title="Day Before" kanji="前" items={beforeItems} checked={checked} toggle={toggle} />
-          <ChecklistSection title="Day Of" kanji="日" items={dayOfItems} checked={checked} toggle={toggle} />
+          <ChecklistSection title="Day Before" items={beforeItems} checked={checked} toggle={toggle} />
+          <ChecklistSection title="Day Of"     items={dayOfItems}  checked={checked} toggle={toggle} />
         </div>
       </div>
     </div>
   );
 }
 
-function ChecklistSection({ title, kanji, items, checked, toggle }) {
-  const completedCount = items.filter((item) => checked[item.id]).length;
-  const allDone = completedCount === items.length && items.length > 0;
-
+function ChecklistSection({ title, items, checked, toggle }) {
+  const done = items.filter((i) => checked[i.id]).length;
   return (
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, paddingBottom: 8, borderBottom: `1.5px solid rgba(26,18,8,0.07)` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontFamily: FD, fontSize: 18, color: GOLD, opacity: 0.45 }}>{kanji}</span>
-          <span style={{ fontFamily: FD, fontSize: 13, color: INK, letterSpacing: "0.03em" }}>{title}</span>
-        </div>
-        <span style={{ fontFamily: FB, fontSize: 11, color: allDone ? FOREST : INK_FAINT, fontStyle: "italic" }}>
-          {completedCount} / {items.length}
-        </span>
+    <div style={{ marginBottom: 36 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${BORDER}` }}>
+        <span style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.25em", textTransform: "uppercase" }}>{title}</span>
+        <span style={{ fontFamily: F, fontSize: 11, color: done === items.length ? GREEN : FAINT }}>{done}/{items.length}</span>
       </div>
-
-      {/* Section progress bar */}
-      <div style={{ height: 2, background: "rgba(26,18,8,0.07)", marginBottom: 12, borderRadius: 1 }}>
-        <div style={{ height: 2, background: allDone ? FOREST : GOLD, width: `${items.length > 0 ? (completedCount / items.length) * 100 : 0}%`, borderRadius: 1, transition: "width 0.25s ease" }} />
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {items.map((item) => {
-          const done = !!checked[item.id];
+          const isDone = !!checked[item.id];
           return (
-            <button
-              key={item.id}
-              onClick={() => toggle(item.id)}
-              className="admin-checklist-item"
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 10,
-                padding: "10px 6px",
-                background: done ? "rgba(45,74,58,0.04)" : "transparent",
-                border: "none",
-                cursor: "pointer",
-                textAlign: "left",
-                width: "100%",
-                transition: "background 0.15s",
-                minHeight: 44,
-              }}
-            >
-              {/* Custom checkbox */}
-              <div className="admin-checklist-checkbox" style={{
-                width: 18, height: 18, flexShrink: 0, marginTop: 2,
-                border: `1.5px solid ${done ? FOREST : "rgba(26,18,8,0.25)"}`,
-                background: done ? FOREST : "transparent",
+            <button key={item.id} onClick={() => toggle(item.id)} style={{
+              display: "flex", alignItems: "flex-start", gap: 12,
+              padding: "10px 0", background: "transparent", border: "none",
+              cursor: "pointer", textAlign: "left", width: "100%", minHeight: 44,
+            }}>
+              <div style={{
+                width: 16, height: 16, flexShrink: 0, marginTop: 1,
+                border: `1px solid ${isDone ? GREEN : BORDER2}`,
+                background: isDone ? GREEN : "transparent",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.15s",
               }}>
-                {done && <span style={{ color: CREAM, fontSize: 10, lineHeight: 1, fontWeight: 700 }}>✓</span>}
+                {isDone && <span style={{ color: BG, fontSize: 9, fontWeight: 700 }}>✓</span>}
               </div>
               <div>
-                <span style={{
-                  fontFamily: FB,
-                  fontSize: 13,
-                  color: done ? INK_FAINT : INK,
-                  textDecoration: done ? "line-through" : "none",
-                  lineHeight: 1.4,
-                }}>
+                <span style={{ fontFamily: F, fontSize: 13, color: isDone ? FAINT : MUTED, textDecoration: isDone ? "line-through" : "none", lineHeight: 1.5 }}>
                   {item.text}
                 </span>
-                {item.detail && !done && (
-                  <span style={{ fontFamily: FB, fontSize: 11, color: GOLD, fontStyle: "italic", marginLeft: 8 }}>
-                    {item.detail}
-                  </span>
+                {item.detail && !isDone && (
+                  <span style={{ fontFamily: F, fontSize: 11, color: GOLD2, fontStyle: "italic", marginLeft: 8 }}>{item.detail}</span>
                 )}
               </div>
             </button>
@@ -1288,271 +944,136 @@ function ChecklistSection({ title, kanji, items, checked, toggle }) {
   );
 }
 
-// ============================================================
-// PROMO CODES TAB
-// ============================================================
+// ── Promo codes tab ───────────────────────────────────────────────────────────
 const EMPTY_FORM = { code: "", discount_type: "percent", discount_value: "", description: "", expires_at: "", max_uses: "" };
 
 function PromoCodesTab({ promoCodes, onRefresh }) {
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm]       = useState(false);
+  const [editingId, setEditingId]     = useState(null);
+  const [form, setForm]               = useState(EMPTY_FORM);
+  const [saving, setSaving]           = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [formError, setFormError] = useState("");
-
+  const [formError, setFormError]     = useState("");
   const today = new Date().toISOString().split("T")[0];
 
-  const openCreate = () => {
-    setForm(EMPTY_FORM);
-    setEditingId(null);
-    setFormError("");
-    setShowForm(true);
+  const openCreate = () => { setForm(EMPTY_FORM); setEditingId(null); setFormError(""); setShowForm(true); };
+  const openEdit   = (pc) => {
+    setForm({ code: pc.code, discount_type: pc.discount_type, discount_value: String(pc.discount_value), description: pc.description || "", expires_at: pc.expires_at || "", max_uses: pc.max_uses != null ? String(pc.max_uses) : "" });
+    setEditingId(pc.id); setFormError(""); setShowForm(true);
   };
-
-  const openEdit = (pc) => {
-    setForm({
-      code: pc.code,
-      discount_type: pc.discount_type,
-      discount_value: String(pc.discount_value),
-      description: pc.description || "",
-      expires_at: pc.expires_at || "",
-      max_uses: pc.max_uses != null ? String(pc.max_uses) : "",
-    });
-    setEditingId(pc.id);
-    setFormError("");
-    setShowForm(true);
-  };
-
   const cancelForm = () => { setShowForm(false); setEditingId(null); setFormError(""); };
 
   const saveForm = async () => {
     if (!form.code.trim()) { setFormError("Code is required"); return; }
-    if (!form.discount_value || isNaN(Number(form.discount_value)) || Number(form.discount_value) <= 0) {
-      setFormError("Discount value must be a positive number"); return;
-    }
-    setSaving(true);
-    setFormError("");
-    const payload = {
-      code: form.code.toUpperCase().trim(),
-      discount_type: form.discount_type,
-      discount_value: Number(form.discount_value),
-      description: form.description.trim() || null,
-      expires_at: form.expires_at || null,
-      max_uses: form.max_uses !== "" ? Number(form.max_uses) : null,
-    };
+    if (!form.discount_value || isNaN(Number(form.discount_value)) || Number(form.discount_value) <= 0) { setFormError("Discount value must be positive"); return; }
+    setSaving(true); setFormError("");
+    const payload = { code: form.code.toUpperCase().trim(), discount_type: form.discount_type, discount_value: Number(form.discount_value), description: form.description.trim() || null, expires_at: form.expires_at || null, max_uses: form.max_uses !== "" ? Number(form.max_uses) : null };
     const method = editingId ? "PATCH" : "POST";
-    const body = editingId ? { id: editingId, ...payload } : payload;
-    const res = await fetch("/api/admin/promo-codes", {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
+    const body   = editingId ? { id: editingId, ...payload } : payload;
+    const res    = await fetch("/api/admin/promo-codes", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const data   = await res.json();
     setSaving(false);
     if (data.error) { setFormError(data.error); return; }
-    cancelForm();
-    onRefresh();
+    cancelForm(); onRefresh();
   };
 
   const toggleActive = async (pc) => {
-    await fetch("/api/admin/promo-codes", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: pc.id, active: !pc.active }),
-    });
+    await fetch("/api/admin/promo-codes", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: pc.id, active: !pc.active }) });
     onRefresh();
   };
 
   const deleteCode = async (id) => {
-    await fetch("/api/admin/promo-codes", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    setDeleteConfirm(null);
-    onRefresh();
+    await fetch("/api/admin/promo-codes", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    setDeleteConfirm(null); onRefresh();
   };
 
   const fmtDate = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
 
-  const getRowColor = (pc) => {
-    if (!pc.active) return INK_FAINT;
-    if (pc.expires_at && pc.expires_at < today) return PERSIMMON;
-    return FOREST;
-  };
-
-  const inputStyle = {
-    width: "100%", boxSizing: "border-box", padding: "10px 12px",
-    border: `1.5px solid rgba(26,18,8,0.15)`, background: "#fff",
-    fontFamily: FB, fontSize: 14, color: INK, outline: "none",
-  };
+  const inp = { width: "100%", padding: "10px 14px", background: BG3, border: `1px solid ${BORDER}`, color: CREAM, fontFamily: F, fontSize: 13, outline: "none", boxSizing: "border-box" };
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <div style={{ fontFamily: FD, fontSize: 18, color: INK, display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ color: PERSIMMON }}>割</span> Promo Codes
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+        <SectionHead>Promo Codes</SectionHead>
         {!showForm && (
-          <button onClick={openCreate} style={{
-            background: INDIGO_DARK, color: CREAM, border: "none",
-            padding: "10px 20px", fontFamily: FD, fontSize: 13,
-            letterSpacing: "0.08em", cursor: "pointer",
-          }}>
-            + New Code
+          <button onClick={openCreate} style={{ background: GOLD, color: BG, border: "none", padding: "10px 22px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>
+            + new code
           </button>
         )}
       </div>
 
       {showForm && (
-        <div style={{ background: PAPER, border: `1px solid rgba(26,18,8,0.12)`, borderTop: `3px solid ${PERSIMMON}`, padding: "24px 28px", marginBottom: 28 }}>
-          <div style={{ fontFamily: FD, fontSize: 15, color: INK, marginBottom: 20 }}>
-            {editingId ? "Edit Promo Code" : "New Promo Code"}
+        <div style={{ background: BG2, border: `1px solid ${BORDER}`, borderTop: `2px solid ${GOLD2}`, padding: "28px 32px", marginBottom: 32 }}>
+          <div style={{ fontFamily: F, fontSize: 13, color: MUTED, marginBottom: 20, letterSpacing: "0.1em" }}>
+            {editingId ? "edit code" : "new code"}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-            <div>
-              <label style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, letterSpacing: "0.15em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Code *</label>
-              <input
-                value={form.code}
-                onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
-                placeholder="SUMMER20"
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, letterSpacing: "0.15em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Discount Type *</label>
-              <select
-                value={form.discount_type}
-                onChange={(e) => setForm((f) => ({ ...f, discount_type: e.target.value }))}
-                style={{ ...inputStyle }}
-              >
-                <option value="percent">Percent Off (%)</option>
-                <option value="flat">Flat Amount Off ($)</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, letterSpacing: "0.15em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>
-                {form.discount_type === "percent" ? "Percent Off *" : "Amount Off ($) *"}
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={form.discount_value}
-                onChange={(e) => setForm((f) => ({ ...f, discount_value: e.target.value }))}
-                placeholder={form.discount_type === "percent" ? "20" : "25"}
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, letterSpacing: "0.15em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Max Uses (blank = unlimited)</label>
-              <input
-                type="number"
-                min="1"
-                value={form.max_uses}
-                onChange={(e) => setForm((f) => ({ ...f, max_uses: e.target.value }))}
-                placeholder="Unlimited"
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, letterSpacing: "0.15em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Expires On (optional)</label>
-              <input
-                type="date"
-                value={form.expires_at}
-                onChange={(e) => setForm((f) => ({ ...f, expires_at: e.target.value }))}
-                style={{ ...inputStyle, colorScheme: "light" }}
-              />
-            </div>
-            <div>
-              <label style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, letterSpacing: "0.15em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Description (admin note)</label>
-              <input
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Internal note..."
-                style={inputStyle}
-              />
-            </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+            {[
+              { label: "Code *",                field: "code",           type: "text",   ph: "SUMMER20",   transform: (v) => v.toUpperCase() },
+              { label: "Discount Type *",        field: "discount_type",  type: "select"  },
+              { label: form.discount_type === "percent" ? "Percent Off *" : "Amount Off ($) *", field: "discount_value", type: "number", ph: "20" },
+              { label: "Max Uses (blank = ∞)",   field: "max_uses",       type: "number", ph: "Unlimited" },
+              { label: "Expires On",             field: "expires_at",     type: "date"    },
+              { label: "Admin Note",             field: "description",    type: "text",   ph: "Internal note…" },
+            ].map(({ label, field, type, ph, transform }) => (
+              <div key={field}>
+                <label style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>{label}</label>
+                {type === "select" ? (
+                  <select value={form[field]} onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))} style={{ ...inp, colorScheme: "dark" }}>
+                    <option value="percent">Percent Off (%)</option>
+                    <option value="flat">Flat Amount ($)</option>
+                  </select>
+                ) : (
+                  <input type={type} value={form[field]} placeholder={ph} min={type === "number" ? "0" : undefined}
+                    onChange={(e) => setForm((f) => ({ ...f, [field]: transform ? transform(e.target.value) : e.target.value }))}
+                    style={{ ...inp, colorScheme: type === "date" ? "dark" : undefined }}
+                  />
+                )}
+              </div>
+            ))}
           </div>
-          {formError && (
-            <div style={{ fontFamily: FB, fontSize: 13, color: PERSIMMON, marginBottom: 14 }}>{formError}</div>
-          )}
+          {formError && <div style={{ fontFamily: F, fontSize: 12, color: RED, marginBottom: 14 }}>{formError}</div>}
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={saveForm} disabled={saving} style={{
-              background: PERSIMMON, color: CREAM, border: "none",
-              padding: "10px 22px", fontFamily: FD, fontSize: 13,
-              letterSpacing: "0.08em", cursor: saving ? "not-allowed" : "pointer",
-              opacity: saving ? 0.6 : 1,
-            }}>
-              {saving ? "Saving…" : "Save"}
+            <button onClick={saveForm} disabled={saving} style={{ background: GOLD, color: BG, border: "none", padding: "10px 24px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}>
+              {saving ? "saving…" : "save"}
             </button>
-            <button onClick={cancelForm} style={{
-              background: "transparent", border: `1px solid rgba(26,18,8,0.2)`,
-              color: INK_SOFT, padding: "10px 18px", fontFamily: FB,
-              fontSize: 13, cursor: "pointer",
-            }}>
-              Cancel
-            </button>
+            <button onClick={cancelForm} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: FAINT, padding: "10px 18px", fontFamily: F, fontSize: 11, cursor: "pointer" }}>cancel</button>
           </div>
         </div>
       )}
 
       {promoCodes.length === 0 && !showForm ? (
-        <div style={{ fontFamily: FB, fontSize: 15, color: INK_FAINT, fontStyle: "italic", padding: "40px 0", textAlign: "center" }}>
-          No promo codes yet. Create one to get started.
-        </div>
+        <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "60px 0", textAlign: "center" }}>No promo codes yet.</div>
       ) : (
-        <div style={{ background: PAPER, border: `1px solid rgba(26,18,8,0.08)`, overflowX: "auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr 0.8fr 0.7fr 0.7fr 0.9fr 0.7fr 1fr", padding: "10px 18px", borderBottom: `1px solid rgba(26,18,8,0.08)`, minWidth: 700 }}>
-            {["Code", "Type", "Value", "Uses", "Max Uses", "Expires", "Active", "Actions"].map((h) => (
-              <div key={h} style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.15em", textTransform: "uppercase" }}>{h}</div>
-            ))}
-          </div>
+        <div style={{ background: BG2, border: `1px solid ${BORDER}`, overflowX: "auto" }}>
+          <THead cols={["Code", "Type", "Value", "Uses", "Max", "Expires", "Status", "Actions"]} />
           {promoCodes.map((pc) => {
             const isExpired = pc.expires_at && pc.expires_at < today;
-            const rowColor = getRowColor(pc);
+            const statusColor = !pc.active ? FAINT : isExpired ? RED : GREEN;
             return (
-              <div key={pc.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr 0.8fr 0.7fr 0.7fr 0.9fr 0.7fr 1fr", padding: "13px 18px", borderBottom: `1px solid rgba(26,18,8,0.04)`, alignItems: "center", minWidth: 700 }}>
-                <div style={{ fontFamily: FD, fontSize: 14, color: rowColor, fontWeight: 500, letterSpacing: "0.05em" }}>{pc.code}</div>
-                <div style={{ fontFamily: FB, fontSize: 13, color: INK_SOFT }}>
-                  {pc.discount_type === "percent" ? "Percent" : "Flat"}
-                </div>
-                <div style={{ fontFamily: FD, fontSize: 14, color: INK }}>
-                  {pc.discount_type === "percent" ? `${pc.discount_value}%` : `$${Number(pc.discount_value).toFixed(2)}`}
-                </div>
-                <div style={{ fontFamily: FB, fontSize: 13, color: INK }}>{pc.uses_count || 0}</div>
-                <div style={{ fontFamily: FB, fontSize: 13, color: INK_SOFT }}>{pc.max_uses ?? "∞"}</div>
-                <div style={{ fontFamily: FB, fontSize: 13, color: isExpired ? PERSIMMON : INK_SOFT }}>{fmtDate(pc.expires_at)}</div>
+              <div key={pc.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr 0.7fr 0.5fr 0.5fr 0.9fr 0.7fr 1fr", padding: "14px 20px", borderTop: `1px solid ${BORDER}`, alignItems: "center", minWidth: 700 }}>
+                <div style={{ fontFamily: F, fontSize: 13, color: statusColor, letterSpacing: "0.06em" }}>{pc.code}</div>
+                <TCell muted small>{pc.discount_type === "percent" ? "percent" : "flat"}</TCell>
+                <TCell>{pc.discount_type === "percent" ? `${pc.discount_value}%` : `$${Number(pc.discount_value).toFixed(0)}`}</TCell>
+                <TCell muted>{pc.uses_count || 0}</TCell>
+                <TCell muted>{pc.max_uses ?? "∞"}</TCell>
+                <TCell color={isExpired ? RED : MUTED} small>{fmtDate(pc.expires_at)}</TCell>
                 <div>
-                  <button onClick={() => toggleActive(pc)} style={{
-                    background: pc.active ? "rgba(45,74,58,0.12)" : "rgba(26,18,8,0.06)",
-                    border: `1px solid ${pc.active ? FOREST : "rgba(26,18,8,0.15)"}`,
-                    color: pc.active ? FOREST : INK_FAINT,
-                    padding: "4px 10px", fontFamily: FB, fontSize: 12,
-                    cursor: "pointer", letterSpacing: "0.04em",
-                  }}>
-                    {pc.active ? "Active" : "Off"}
+                  <button onClick={() => toggleActive(pc)} style={{ background: "transparent", border: `1px solid ${statusColor}`, color: statusColor, padding: "4px 12px", fontFamily: F, fontSize: 11, cursor: "pointer", letterSpacing: "0.1em" }}>
+                    {pc.active ? "active" : "off"}
                   </button>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => openEdit(pc)} style={{
-                    background: "transparent", border: `1px solid rgba(26,18,8,0.2)`,
-                    color: INK_SOFT, padding: "4px 12px", fontFamily: FB,
-                    fontSize: 12, cursor: "pointer",
-                  }}>Edit</button>
+                  <button onClick={() => openEdit(pc)} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: FAINT, padding: "4px 12px", fontFamily: F, fontSize: 11, cursor: "pointer" }}>edit</button>
                   {deleteConfirm === pc.id ? (
-                    <span style={{ fontFamily: FB, fontSize: 12, color: INK_SOFT }}>
-                      Sure?{" "}
-                      <button onClick={() => deleteCode(pc.id)} style={{ background: "none", border: "none", color: PERSIMMON, fontFamily: FB, fontSize: 12, cursor: "pointer", padding: 0, textDecoration: "underline" }}>Yes</button>
+                    <span style={{ fontFamily: F, fontSize: 12, color: MUTED }}>
+                      sure?{" "}
+                      <button onClick={() => deleteCode(pc.id)} style={{ background: "none", border: "none", color: RED, fontFamily: F, fontSize: 12, cursor: "pointer", padding: 0, textDecoration: "underline" }}>yes</button>
                       {" / "}
-                      <button onClick={() => setDeleteConfirm(null)} style={{ background: "none", border: "none", color: INK_FAINT, fontFamily: FB, fontSize: 12, cursor: "pointer", padding: 0 }}>No</button>
+                      <button onClick={() => setDeleteConfirm(null)} style={{ background: "none", border: "none", color: FAINT, fontFamily: F, fontSize: 12, cursor: "pointer", padding: 0 }}>no</button>
                     </span>
                   ) : (
-                    <button onClick={() => setDeleteConfirm(pc.id)} style={{
-                      background: "transparent", border: `1px solid rgba(197,85,45,0.3)`,
-                      color: PERSIMMON, padding: "4px 12px", fontFamily: FB,
-                      fontSize: 12, cursor: "pointer",
-                    }}>Delete</button>
+                    <button onClick={() => setDeleteConfirm(pc.id)} style={{ background: "transparent", border: `1px solid rgba(197,85,45,0.3)`, color: RED, padding: "4px 12px", fontFamily: F, fontSize: 11, cursor: "pointer" }}>delete</button>
                   )}
                 </div>
               </div>
@@ -1564,23 +1085,18 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
   );
 }
 
-// ============================================================
-// BANNER TAB
-// ============================================================
+// ── Banner tab ────────────────────────────────────────────────────────────────
 function BannerTab({ promoCodes }) {
-  const [enabled, setEnabled]           = useState(false);
-  const [text, setText]                 = useState("");
+  const [enabled, setEnabled]     = useState(false);
+  const [text, setText]           = useState("");
   const [selectedPromo, setSelectedPromo] = useState("");
-  const [saving, setSaving]             = useState(false);
-  const [saved, setSaved]               = useState(false);
-  const [saveError, setSaveError]       = useState("");
-  const [loaded, setLoaded]             = useState(false);
+  const [saving, setSaving]       = useState(false);
+  const [saved, setSaved]         = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [loaded, setLoaded]       = useState(false);
 
   useEffect(() => {
-    fetch("/api/banner")
-      .then((r) => r.json())
-      .then((data) => { setEnabled(data.enabled); setText(data.text); setLoaded(true); })
-      .catch(() => setLoaded(true));
+    fetch("/api/banner").then((r) => r.json()).then((d) => { setEnabled(d.enabled); setText(d.text); setLoaded(true); }).catch(() => setLoaded(true));
   }, []);
 
   const insertPromo = (code) => {
@@ -1591,198 +1107,105 @@ function BannerTab({ promoCodes }) {
   };
 
   const save = async () => {
-    setSaving(true);
-    setSaved(false);
-    setSaveError("");
+    setSaving(true); setSaved(false); setSaveError("");
     try {
-      const res  = await fetch("/api/admin/save-banner", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled, text }),
-      });
+      const res  = await fetch("/api/admin/save-banner", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled, text }) });
       const data = await res.json();
-      if (data.success) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
-      } else {
-        setSaveError(data.error || "Save failed. The site_settings table may not exist in Supabase — run the SQL from the banner API route file.");
-      }
-    } catch (err) {
-      setSaveError("Network error — could not save.");
-    }
+      if (data.success) { setSaved(true); setTimeout(() => setSaved(false), 3000); }
+      else setSaveError(data.error || "Save failed.");
+    } catch { setSaveError("Network error."); }
     setSaving(false);
   };
 
-  const previewText = text || "Founding guest pricing ends July 31 · Use code FOUNDING for 20% off · Book now at sonakase.com";
+  const previewText = text || "Founding guest pricing ends July 31 · Use code FOUNDING for 20% off";
   const activeCodes = promoCodes.filter((p) => p.active);
 
-  if (!loaded) return (
-    <div style={{ padding: "60px 0", textAlign: "center", fontFamily: FB, fontSize: 14, color: INK_FAINT, fontStyle: "italic" }}>
-      Loading…
-    </div>
-  );
+  if (!loaded) return <div style={{ padding: "60px 0", textAlign: "center", fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic" }}>Loading…</div>;
 
   return (
     <div>
       <style>{`
-        @keyframes banner-admin-ticker {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-        .banner-admin-track {
-          display: inline-flex;
-          align-items: center;
-          white-space: nowrap;
-          height: 38px;
-          animation: banner-admin-ticker 40s linear infinite;
-        }
-        .banner-admin-seg {
-          font-family: 'Shippori Mincho', Georgia, serif;
-          font-size: 12px;
-          color: #E8C97E;
-          letter-spacing: 0.15em;
-          padding: 0 40px;
-        }
+        @keyframes banner-ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+        .btk { display:inline-flex; align-items:center; white-space:nowrap; height:38px; animation:banner-ticker 40s linear infinite; }
+        .bseg { font-family:'Shippori Mincho',Georgia,serif; font-size:12px; color:${GOLD}; letter-spacing:.15em; padding:0 40px; }
       `}</style>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
-        <span style={{ fontFamily: FD, fontSize: 22, color: PERSIMMON, opacity: 0.4 }}>帯</span>
-        <span style={{ fontFamily: FD, fontSize: 18, color: INK }}>Announcement Banner</span>
-      </div>
+      <SectionHead>Announcement Banner</SectionHead>
 
       {/* Toggle */}
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28, padding: "18px 24px", background: PAPER, border: `1px solid rgba(26,18,8,0.08)` }}>
-        <div
-          onClick={() => setEnabled((v) => !v)}
-          style={{
-            width: 48, height: 26, borderRadius: 13, flexShrink: 0,
-            background: enabled ? GOLD : "rgba(26,18,8,0.12)",
-            border: `1.5px solid ${enabled ? GOLD : "rgba(26,18,8,0.2)"}`,
-            cursor: "pointer", position: "relative",
-            transition: "background 0.2s, border-color 0.2s",
-          }}
-        >
-          <div style={{
-            width: 18, height: 18, borderRadius: "50%", background: "#fff",
-            position: "absolute", top: 3, left: enabled ? 26 : 3,
-            transition: "left 0.2s",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
-          }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28, padding: "20px 24px", background: BG2, border: `1px solid ${BORDER}` }}>
+        <div onClick={() => setEnabled((v) => !v)} style={{ width: 44, height: 24, borderRadius: 12, flexShrink: 0, background: enabled ? GOLD2 : BG3, border: `1px solid ${enabled ? GOLD2 : BORDER2}`, cursor: "pointer", position: "relative", transition: "all 0.2s" }}>
+          <div style={{ width: 16, height: 16, borderRadius: "50%", background: enabled ? CREAM : FAINT, position: "absolute", top: 3, left: enabled ? 24 : 3, transition: "left 0.2s" }} />
         </div>
-        <span style={{ fontFamily: FD, fontSize: 15, color: enabled ? GOLD : INK_FAINT, transition: "color 0.2s" }}>
-          {enabled ? "Banner Active" : "Banner Off"}
-        </span>
+        <span style={{ fontFamily: F, fontSize: 13, color: enabled ? GOLD : FAINT }}>{enabled ? "banner active" : "banner off"}</span>
       </div>
 
       {/* Text input */}
       <div style={{ marginBottom: 20 }}>
-        <label style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>
-          Banner Message
-        </label>
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Founding guest pricing ends July 31 · Use code FOUNDING for 20% off · Book now at sonakase.com"
-          style={{
-            width: "100%", boxSizing: "border-box", padding: "12px 14px",
-            border: `1.5px solid rgba(26,18,8,0.15)`, background: "#fff",
-            fontFamily: FB, fontSize: 14, color: INK, outline: "none",
-          }}
+        <label style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.25em", textTransform: "uppercase", display: "block", marginBottom: 10 }}>Message</label>
+        <input type="text" value={text} onChange={(e) => setText(e.target.value)}
+          placeholder="Founding guest pricing ends July 31 · Use code FOUNDING for 20% off"
+          style={{ width: "100%", padding: "12px 16px", background: BG2, border: `1px solid ${BORDER}`, color: CREAM, fontFamily: F, fontSize: 13, outline: "none", boxSizing: "border-box" }}
         />
       </div>
 
-      {/* Promo code picker */}
       {activeCodes.length > 0 && (
-        <div style={{ marginBottom: 28, display: "flex", alignItems: "center", gap: 10 }}>
-          <label style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase", flexShrink: 0 }}>
-            Insert Code
-          </label>
-          <select
-            value={selectedPromo}
-            onChange={(e) => { setSelectedPromo(e.target.value); if (e.target.value) insertPromo(e.target.value); }}
-            style={{ padding: "8px 12px", border: `1.5px solid rgba(26,18,8,0.15)`, background: "#fff", fontFamily: FB, fontSize: 13, color: INK, cursor: "pointer", outline: "none" }}
-          >
+        <div style={{ marginBottom: 28, display: "flex", alignItems: "center", gap: 12 }}>
+          <label style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", flexShrink: 0 }}>Insert Code</label>
+          <select value={selectedPromo} onChange={(e) => { setSelectedPromo(e.target.value); if (e.target.value) insertPromo(e.target.value); }}
+            style={{ padding: "8px 14px", background: BG2, border: `1px solid ${BORDER}`, color: CREAM, fontFamily: F, fontSize: 13, cursor: "pointer", outline: "none", colorScheme: "dark" }}>
             <option value="">— select active code —</option>
-            {activeCodes.map((pc) => (
-              <option key={pc.id} value={pc.code}>
-                {pc.code} ({pc.discount_type === "percent" ? `${pc.discount_value}% off` : `$${Number(pc.discount_value).toFixed(0)} off`})
-              </option>
-            ))}
+            {activeCodes.map((pc) => <option key={pc.id} value={pc.code}>{pc.code} ({pc.discount_type === "percent" ? `${pc.discount_value}% off` : `$${Number(pc.discount_value).toFixed(0)} off`})</option>)}
           </select>
-          <span style={{ fontFamily: FB, fontSize: 12, color: INK_FAINT, fontStyle: "italic" }}>
-            Appends to message
-          </span>
         </div>
       )}
 
-      {/* Live preview */}
-      <div style={{ marginBottom: 28 }}>
-        <label style={{ fontFamily: FB, fontSize: 10, color: INK_FAINT, letterSpacing: "0.2em", textTransform: "uppercase", display: "block", marginBottom: 10 }}>
-          Live Preview
-        </label>
-        <div style={{
-          height: 38,
-          background: "#1A1A1A",
-          border: "1px solid rgba(232,201,126,0.2)",
-          overflow: "hidden",
-          position: "relative",
-        }}>
+      {/* Preview */}
+      <div style={{ marginBottom: 32 }}>
+        <label style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.25em", textTransform: "uppercase", display: "block", marginBottom: 12 }}>Preview</label>
+        <div style={{ height: 38, background: "#1a1a1a", border: `1px solid ${BORDER}`, overflow: "hidden" }}>
           {enabled ? (
             <div style={{ overflow: "hidden", height: "100%" }}>
-              <div className="banner-admin-track">
-                <span className="banner-admin-seg">{previewText}</span>
-                <span className="banner-admin-seg">{previewText}</span>
-                <span className="banner-admin-seg">{previewText}</span>
-                <span className="banner-admin-seg">{previewText}</span>
+              <div className="btk">
+                {[...Array(4)].map((_, i) => <span key={i} className="bseg">{previewText}</span>)}
               </div>
             </div>
           ) : (
             <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontFamily: FB, fontSize: 11, color: "rgba(232,201,126,0.3)", fontStyle: "italic", letterSpacing: "0.15em" }}>
-                banner is off — toggle to enable
-              </span>
+              <span style={{ fontFamily: F, fontSize: 11, color: FAINT, fontStyle: "italic", letterSpacing: "0.15em" }}>banner is off</span>
             </div>
           )}
         </div>
-        <div style={{ fontFamily: FB, fontSize: 11, color: INK_FAINT, fontStyle: "italic", marginTop: 6 }}>
-          Preview updates as you type. Scrolling speed matches the live site.
-        </div>
       </div>
 
-      {/* Save */}
-      <button
-        onClick={save}
-        disabled={saving}
-        style={{
-          width: "100%", height: 52, background: PERSIMMON, color: CREAM, border: "none",
-          fontFamily: FD, fontSize: 13, letterSpacing: "0.12em",
-          cursor: saving ? "not-allowed" : "pointer",
-          opacity: saving ? 0.7 : 1,
-          transition: "opacity 0.2s",
-        }}
-      >
-        {saving ? "Saving…" : "Save Banner"}
+      <button onClick={save} disabled={saving} style={{ width: "100%", height: 52, background: GOLD, color: BG, border: "none", fontFamily: F, fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
+        {saving ? "saving…" : "save banner"}
       </button>
-
-      {saved && (
-        <div style={{ fontFamily: FB, fontSize: 14, color: FOREST, marginTop: 14, fontStyle: "italic" }}>
-          Banner saved.
-        </div>
-      )}
-      {saveError && (
-        <div style={{ fontFamily: FB, fontSize: 13, color: PERSIMMON, marginTop: 14, lineHeight: 1.6 }}>
-          {saveError}
-        </div>
-      )}
+      {saved      && <div style={{ fontFamily: F, fontSize: 13, color: GREEN, marginTop: 14, fontStyle: "italic" }}>Saved.</div>}
+      {saveError  && <div style={{ fontFamily: F, fontSize: 13, color: RED,   marginTop: 14 }}>{saveError}</div>}
     </div>
   );
 }
 
-// Minimal style helper for inline link-style buttons
-const S = {
-  linkAction: (color) => ({
-    background: "transparent", border: "none", color, fontFamily: FB,
-    fontSize: 12, cursor: "pointer", padding: 0, textDecoration: "underline",
-  }),
-};
+// ── Table helpers ─────────────────────────────────────────────────────────────
+function SectionHead({ children }) {
+  return <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 20 }}>{children}</div>;
+}
+
+function THead({ cols }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols.length}, 1fr)`, padding: "10px 20px", borderBottom: `1px solid ${BORDER}` }}>
+      {cols.map((h) => <div key={h} style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase" }}>{h}</div>)}
+    </div>
+  );
+}
+
+function TCell({ children, muted, small, color }) {
+  return <div style={{ fontFamily: F, fontSize: small ? 11 : 13, color: color || (muted ? MUTED : CREAM), overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{children}</div>;
+}
+
+function Pill({ children, color }) {
+  return <span style={{ fontFamily: F, fontSize: 11, color, background: color + "18", border: `1px solid ${color}44`, padding: "2px 10px", letterSpacing: "0.06em" }}>{children}</span>;
+}
+
+function marginColor(m) { return m >= 60 ? GREEN : m >= 40 ? GOLD2 : RED; }
