@@ -11,10 +11,10 @@ const BG3   = "#1c1c1c";
 const GOLD  = "#E8C97E";
 const GOLD2 = "#b8892a";
 const CREAM = "#F5F0E8";
-const MUTED = "rgba(245,240,232,0.55)";
-const FAINT = "rgba(245,240,232,0.28)";
-const BORDER  = "rgba(232,201,126,0.14)";
-const BORDER2 = "rgba(232,201,126,0.30)";
+const MUTED = "rgba(245,240,232,0.82)";
+const FAINT = "rgba(245,240,232,0.52)";
+const BORDER  = "rgba(232,201,126,0.18)";
+const BORDER2 = "rgba(232,201,126,0.38)";
 const GREEN = "#4a9a6a";
 const RED   = "#c5552d";
 const F = `'Shippori Mincho', Georgia, serif`;
@@ -722,10 +722,61 @@ function LogisticsSummary({ bookings, onSelect }) {
   );
 }
 
+// ── Actuals stored in localStorage per booking ────────────────────────────────
+function useActuals(bookingId) {
+  const key = `actuals_${bookingId}`;
+  const [actuals, setActuals] = useState(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
+  });
+  const save = (next) => {
+    setActuals(next);
+    try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
+  };
+  return [actuals, save];
+}
+
 function LogisticsDetail({ booking: b, onBack }) {
   const isDropoff = b.service_type === "dropoff";
   const c = calcLogistics(b);
   const fmtDate = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "—";
+
+  // Manual number entry — all fields the user can fill in
+  const [actuals, saveActuals] = useActuals(b.id);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState({});
+
+  const startEdit = () => {
+    setDraft({
+      revenue:    actuals.revenue    ?? String(c.total    || ""),
+      deposit:    actuals.deposit    ?? String(c.deposit  || ""),
+      food_cost:  actuals.food_cost  ?? "",
+      labor:      actuals.labor      ?? String(LABOR_COST),
+      other_cost: actuals.other_cost ?? "",
+      notes:      actuals.notes      ?? "",
+    });
+    setEditing(true);
+  };
+
+  const commitEdit = () => {
+    saveActuals(draft);
+    setEditing(false);
+  };
+
+  // Resolved numbers — use actuals if entered, else fall back to booking/calc
+  const rev      = parseFloat(actuals.revenue)    || c.total;
+  const dep      = parseFloat(actuals.deposit)    || c.deposit;
+  const food     = parseFloat(actuals.food_cost)  ?? c.totalFoodCost;
+  const labor    = parseFloat(actuals.labor)      ?? LABOR_COST;
+  const other    = parseFloat(actuals.other_cost) || 0;
+  const bal      = rev - dep;
+  const gross    = rev - food - other;
+  const grossMgn = rev > 0 ? (gross / rev) * 100 : 0;
+  const net      = gross - labor;
+  const netMgn   = rev > 0 ? (net / rev) * 100 : 0;
+  const mc = (m) => m >= 60 ? GREEN : m >= 40 ? GOLD2 : RED;
+
+  const hasActuals = Object.keys(actuals).some((k) => actuals[k] !== "" && actuals[k] != null);
 
   const Sec = ({ title, children }) => (
     <div style={{ marginBottom: 32 }}>
@@ -735,67 +786,139 @@ function LogisticsDetail({ booking: b, onBack }) {
   );
 
   const Row = ({ label, value, color, bold }) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: `1px solid ${BORDER}` }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "9px 0", borderBottom: `1px solid ${BORDER}` }}>
       <span style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{label}</span>
-      <span style={{ fontFamily: F, fontSize: bold ? 15 : 13, color: color || CREAM, fontWeight: bold ? 500 : 400 }}>{value}</span>
+      <span style={{ fontFamily: F, fontSize: bold ? 16 : 14, color: color || CREAM, fontWeight: bold ? 500 : 400 }}>{value}</span>
     </div>
   );
 
-  const mc = (m) => m >= 60 ? GREEN : m >= 40 ? GOLD2 : RED;
+  const numInp = (field, label, placeholder) => (
+    <div>
+      <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
+      <div style={{ position: "relative" }}>
+        <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontFamily: F, fontSize: 14, color: FAINT }}>$</span>
+        <input
+          type="number" min="0" step="0.01"
+          value={draft[field]}
+          placeholder={placeholder}
+          onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
+          style={{ width: "100%", background: BG3, border: `1px solid ${BORDER2}`, color: CREAM, fontFamily: F, fontSize: 14, padding: "10px 12px 10px 26px", outline: "none", boxSizing: "border-box" }}
+        />
+      </div>
+    </div>
+  );
 
   return (
     <div>
-      <button onClick={onBack} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: FAINT, padding: "8px 18px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", marginBottom: 32 }}>
+      <button onClick={onBack} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: MUTED, padding: "8px 18px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", marginBottom: 32 }}>
         ← back
       </button>
 
-      {/* Header card */}
+      {/* Header */}
       <div style={{ background: BG2, border: `1px solid ${BORDER}`, borderLeft: `2px solid ${GOLD2}`, padding: "24px 28px", marginBottom: 40, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 8 }}>
             {isDropoff ? "drop-off delivery" : (b.package || "—")}
           </div>
           <div style={{ fontFamily: F, fontSize: 20, color: CREAM }}>{b.user_email}</div>
-          <div style={{ fontFamily: F, fontSize: 13, color: MUTED, marginTop: 6 }}>
+          <div style={{ fontFamily: F, fontSize: 14, color: MUTED, marginTop: 6 }}>
             {isDropoff ? fmtDate(b.event_date) : `${fmtDate(b.event_date)} · ${b.guest_count} guests`}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: F, fontSize: 28, color: GOLD }}>{fmt2(c.total)}</div>
+          <div style={{ fontFamily: F, fontSize: 30, color: GOLD }}>{fmt2(rev)}</div>
           <div style={{ fontFamily: F, fontSize: 11, color: FAINT, marginTop: 4 }}>conf: {b.confirmation_number || "—"}</div>
         </div>
+      </div>
+
+      {/* ── Manual number entry panel ── */}
+      <div style={{ background: BG2, border: `1px solid ${BORDER2}`, padding: "24px 28px", marginBottom: 40 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: editing ? 24 : 0 }}>
+          <div style={{ fontFamily: F, fontSize: 10, color: GOLD, letterSpacing: "0.3em", textTransform: "uppercase" }}>
+            {hasActuals ? "actual numbers  ·  logged" : "log actual numbers"}
+          </div>
+          {!editing && (
+            <button onClick={startEdit} style={{ background: "transparent", border: `1px solid ${BORDER2}`, color: GOLD, padding: "7px 18px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>
+              {hasActuals ? "edit" : "enter numbers"}
+            </button>
+          )}
+        </div>
+
+        {editing ? (
+          <div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
+              {numInp("revenue",    "Revenue collected",  "0.00")}
+              {numInp("deposit",    "Deposit collected",  "0.00")}
+              {numInp("food_cost",  "Actual food cost",   "0.00")}
+              {numInp("labor",      "Labor cost",         String(LABOR_COST))}
+              {numInp("other_cost", "Other costs",        "0.00")}
+              <div>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>Notes</div>
+                <textarea
+                  value={draft.notes} rows={2}
+                  onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
+                  placeholder="anything worth noting…"
+                  style={{ width: "100%", background: BG3, border: `1px solid ${BORDER2}`, color: CREAM, fontFamily: F, fontSize: 13, padding: "10px 12px", outline: "none", resize: "vertical", boxSizing: "border-box" }}
+                />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={commitEdit} style={{ background: GOLD, color: BG, border: "none", padding: "10px 24px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>save</button>
+              <button onClick={() => setEditing(false)} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: FAINT, padding: "10px 18px", fontFamily: F, fontSize: 11, cursor: "pointer" }}>cancel</button>
+            </div>
+          </div>
+        ) : hasActuals ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 24, marginTop: 20 }}>
+            {[
+              { label: "Revenue",    val: actuals.revenue    },
+              { label: "Deposit",    val: actuals.deposit    },
+              { label: "Food Cost",  val: actuals.food_cost  },
+              { label: "Labor",      val: actuals.labor      },
+              { label: "Other",      val: actuals.other_cost },
+            ].map(({ label, val }) => val ? (
+              <div key={label}>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
+                <div style={{ fontFamily: F, fontSize: 16, color: CREAM }}>${parseFloat(val).toFixed(2)}</div>
+              </div>
+            ) : null)}
+            {actuals.notes && (
+              <div style={{ gridColumn: "1 / -1" }}>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 4 }}>Notes</div>
+                <div style={{ fontFamily: F, fontSize: 13, color: MUTED, fontStyle: "italic" }}>{actuals.notes}</div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", marginTop: 12 }}>
+            No numbers logged yet — click "enter numbers" to record what you actually spent and earned.
+          </div>
+        )}
       </div>
 
       <div className="admin-logistics-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40 }}>
         <div>
           <Sec title="Revenue">
-            <Row label="Total"   value={fmt2(c.total)}   bold />
-            <Row label="Deposit" value={fmt2(c.deposit)} />
-            <Row label="Balance" value={fmt2(c.balance)} color={GOLD} />
+            <Row label="Total collected"  value={fmt2(rev)} bold />
+            <Row label="Deposit"          value={fmt2(dep)} />
+            <Row label="Balance"          value={fmt2(bal)} color={GOLD} />
           </Sec>
 
           {!isDropoff && (
             <>
-              <Sec title="Food Cost">
-                {c.rollBreakdown.length > 0
-                  ? c.rollBreakdown.map((r) => <Row key={r.name} label={`${r.name} × ${r.qty}`} value={r.lineCost != null ? fmt2(r.lineCost) : "—"} />)
-                  : <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "8px 0" }}>No roll data.</div>
-                }
-                {c.totalRolls > 0 && <>
-                  <Row label={`Rice seasoning (${c.totalRolls} × $0.08)`} value={fmt2(c.riceSeasoningCost)} />
-                  <Row label={`Condiments (${b.guest_count} × $0.23)`}   value={fmt2(c.condimentCost)} />
-                </>}
-                <Row label="Total Food Cost" value={fmt2(c.totalFoodCost)} color={RED} bold />
+              <Sec title="Costs">
+                <Row label="Food cost"    value={fmt2(food)}  color={RED} />
+                <Row label="Labor"        value={fmt2(labor)} />
+                {other > 0 && <Row label="Other" value={fmt2(other)} />}
+                <Row label="Total costs"  value={fmt2(food + labor + other)} color={RED} bold />
               </Sec>
 
               <Sec title="Profitability">
-                <Row label="Gross Profit"   value={fmt2(c.grossProfit)}  color={c.grossProfit >= 0 ? GREEN : RED} />
-                <Row label="Gross Margin"   value={fmtPct(c.grossMargin)} color={mc(c.grossMargin)} />
-                <Row label={`Labor (${c.laborHours} hrs)`} value={fmt2(LABOR_COST)} />
-                <Row label="Net Profit"     value={fmt2(c.netProfit)}    color={c.netProfit >= 0 ? GREEN : RED} bold />
-                <div style={{ textAlign: "right", paddingTop: 12 }}>
-                  <span style={{ fontFamily: F, fontSize: 24, color: mc(c.netMargin) }}>{fmtPct(c.netMargin)}</span>
-                  <span style={{ fontFamily: F, fontSize: 11, color: FAINT, marginLeft: 8 }}>net margin</span>
+                <Row label="Gross profit"  value={fmt2(gross)}   color={gross  >= 0 ? GREEN : RED} />
+                <Row label="Gross margin"  value={fmtPct(grossMgn)} color={mc(grossMgn)} />
+                <Row label="Net profit"    value={fmt2(net)}     color={net    >= 0 ? GREEN : RED} bold />
+                <div style={{ textAlign: "right", paddingTop: 14 }}>
+                  <span style={{ fontFamily: F, fontSize: 28, color: mc(netMgn) }}>{fmtPct(netMgn)}</span>
+                  <span style={{ fontFamily: F, fontSize: 12, color: FAINT, marginLeft: 10 }}>net margin</span>
                 </div>
               </Sec>
             </>
@@ -816,16 +939,16 @@ function LogisticsDetail({ booking: b, onBack }) {
 
             <Sec title="Protein Order">
               {[
-                { label: "Salmon",       oz: c.fishOz.salmon },
-                { label: "Tuna",         oz: c.fishOz.tuna },
-                { label: "Yellowtail",   oz: c.fishOz.yellowtail },
-                { label: "Shrimp",       oz: c.fishOz.shrimp },
+                { label: "Salmon",        oz: c.fishOz.salmon },
+                { label: "Tuna",          oz: c.fishOz.tuna },
+                { label: "Yellowtail",    oz: c.fishOz.yellowtail },
+                { label: "Shrimp",        oz: c.fishOz.shrimp },
                 { label: "Smoked Salmon", oz: c.fishOz.smoked_salmon },
               ].filter(({ oz }) => oz > 0).map(({ label, oz }) =>
                 <Row key={label} label={label} value={fmtOz(oz)} />
               )}
               {Object.values(c.fishOz).every((v) => v === 0) && (
-                <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "8px 0" }}>No roll data.</div>
+                <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "8px 0" }}>No roll data — supplies auto-calculated from rolls when available.</div>
               )}
             </Sec>
           </div>
