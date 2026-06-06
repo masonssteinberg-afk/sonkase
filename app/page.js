@@ -99,10 +99,14 @@ export default function Home() {
       window.location.href = "/profile" + window.location.hash;
       return;
     }
-    // Definition section lives above the hero — snap there on load so it's only revealed by scrolling up
     if (!window.location.hash) {
+      // Disable browser scroll restoration so reload always lands on the hero,
+      // keeping the definition above as a scroll-up easter egg.
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
       const hero = document.getElementById("top");
-      if (hero) window.scrollTo({ top: hero.offsetTop, behavior: "instant" });
+      if (hero) requestAnimationFrame(() =>
+        window.scrollTo({ top: hero.offsetTop, behavior: "instant" })
+      );
     }
   }, []);
 
