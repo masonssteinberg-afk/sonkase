@@ -83,6 +83,69 @@ const RICE_SEASONING_PER_ROLL = 0.08;
 const CONDIMENT_PER_GUEST     = 0.23;
 const LABOR_COST              = 70;
 
+// ── Roll assembly notes ───────────────────────────────────────────────────────
+const ROLL_ASSEMBLY = {
+  "Cucumber":      "julienne cucumber lengthwise · rice outside",
+  "Avocado":       "thin-slice avocado on top · rice outside",
+  "Sweet Potato":  "tempura sweet potato · rice outside",
+  "California":    "inside-out · krab + avocado + cucumber · coat with masago",
+  "Salmon Avocado":"salmon + avocado · rice outside",
+  "Tuna Avocado":  "tuna + avocado · rice outside",
+  "Spicy Krab":    "krab + spicy mayo · rice outside",
+  "Philadelphia":  "salmon + cream cheese + cucumber · rice outside",
+  "Garden":        "avocado + cucumber · rice outside",
+  "Spicy Veggie":  "avocado + cucumber + spicy mayo · inside-out",
+  "Florida":       "salmon + tuna + avocado · inside-out · masago coating",
+  "So Down":       "salmon + tuna + avocado + spicy mayo · inside-out",
+  "Spicy Roll":    "spicy tuna · inside-out",
+  "Bagel":         "smoked salmon + cream cheese + cucumber · rice outside",
+  "Isaac's":       "tuna + yellowtail + spicy mayo · inside-out",
+  "Stacey's Way":  "salmon + tuna + cream cheese + avocado · inside-out",
+  "Groove":        "avocado + cream cheese · eel sauce drizzle on top",
+  "Swamp":         "avocado + mango · rice outside",
+  "Go Gator":      "salmon + shrimp + avocado · tobiko coating",
+  "Jibboo":        "shrimp + krab + avocado + cucumber · inside-out",
+  "Reba's":        "yellowtail + krab + mango · inside-out",
+  "Haushinka's":   "salmon + cream cheese + avocado · tobiko coating + eel sauce drizzle",
+  "Archer Road":   "tuna + shrimp + spicy mayo · inside-out",
+  "Orlando":       "shrimp + krab + cream cheese · masago coating",
+  "Gabi's":        "double salmon layer · eel sauce drizzle",
+  "Steinberg":     "salmon + tuna + yellowtail + avocado + cucumber · inside-out",
+  "Foam":          "tuna + yellowtail + avocado + spicy mayo · inside-out",
+  "Black Pearl":   "double tuna · tobiko coating + cucumber",
+  "Trust Me":      "salmon + yellowtail + avocado · tobiko coating",
+  "Sunset":        "salmon + avocado + mango · rice outside",
+  "Hamachi Crudo": "double yellowtail + avocado + cucumber · inside-out",
+  "Smoke Show":    "smoked salmon + tuna + cream cheese + cucumber + avocado",
+  "Tropic":        "avocado + cucumber + mango + cream cheese · inside-out",
+  "West Palm":     "double yellowtail + avocado + mango · eel sauce",
+};
+
+// ── Protein purchasing data ───────────────────────────────────────────────────
+const PROTEIN_PURCHASE = {
+  salmon:        { label: "Salmon (sushi-grade)",        pricePerLb: 13.50, note: "wild/sockeye preferred" },
+  tuna:          { label: "Tuna (sushi-grade ahi)",      pricePerLb: 18.00, note: "yellowfin or bigeye" },
+  yellowtail:    { label: "Yellowtail / Hamachi",        pricePerLb: 20.00, note: "must be sushi-grade" },
+  shrimp:        { label: "Shrimp (cooked, 16/20ct)",   pricePerLb: 10.00, note: "tail-off, thawed" },
+  smoked_salmon: { label: "Smoked Salmon",               pricePerLb: 11.00, note: "wild, pre-sliced ok" },
+};
+
+// ── Grocery purchase units ────────────────────────────────────────────────────
+const GROCERY_ITEMS = {
+  krab:         { label: "Imitation krab",     unit: (oz) => `${Math.ceil(oz / 14)} pkg (${Math.ceil(oz / 14) * 14} oz)`, note: "Restaurant Depot · 14 oz pkgs" },
+  avocado:      { label: "Avocados",           unit: (n)  => `${Math.ceil(n)} avocados`,                                   note: "buy 1 extra in case of bruising" },
+  cream_cheese: { label: "Cream cheese",       unit: (oz) => `${Math.ceil(oz / 8)} blocks (${Math.ceil(oz / 8) * 8} oz)`, note: "8 oz blocks · full fat" },
+  masago:       { label: "Masago",             unit: (g)  => `${g > 100 ? "2 tubs" : "1 tub"} (~${Math.ceil(g / 100) * 100} g)`, note: "check existing stock first" },
+  tobiko:       { label: "Tobiko / blue tobiko", unit: (g) => `${g > 100 ? "2 jars" : "1 jar"} (~${Math.ceil(g / 100) * 100} g)`, note: "check existing stock first" },
+  cucumber:     { label: "Cucumber",           unit: (n)  => `${Math.ceil(n)} cucumbers`,                                  note: "English / seedless" },
+  mango:        { label: "Mango",              unit: (n)  => `${Math.ceil(n)} mangoes`,                                    note: "ripe but firm" },
+  nori:         { label: "Nori sheets",        unit: (n)  => `${n} sheets (check stock)`,                                  note: "Restaurant Depot · 50-sheet pkgs" },
+  rice:         { label: "Sushi rice (dry)",   unit: (c)  => `${c} cups dry → ~${(c * 0.5).toFixed(1)} lb`,               note: "cook day before, make extra cup" },
+};
+
+// ── Tiers for ordering rolls ──────────────────────────────────────────────────
+const TIER_ORDER = ["classics", "signatures", "specialty", "premium"];
+
 function calcLogistics(booking) {
   const rolls  = Array.isArray(booking.rolls_selected) ? booking.rolls_selected : [];
   const guests = Number(booking.guest_count) || 0;
@@ -729,65 +792,174 @@ function useActuals(bookingId) {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
   });
-  const save = (next) => {
-    setActuals(next);
-    try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
-  };
+  const save = (next) => { setActuals(next); try { localStorage.setItem(key, JSON.stringify(next)); } catch {} };
   return [actuals, save];
 }
 
+// ── Full logistics event sheet ────────────────────────────────────────────────
 function LogisticsDetail({ booking: b, onBack }) {
   const isDropoff = b.service_type === "dropoff";
-  const c = calcLogistics(b);
-  const fmtDate = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "—";
+  const c   = calcLogistics(b);
+  const ing = calcIngredients(b, c);
+  const rolls = Array.isArray(b.rolls_selected) ? b.rolls_selected : [];
 
-  // Manual number entry — all fields the user can fill in
+  const fmtLong  = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "—";
+  const fmtShort = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "—";
+  const fmtTime  = (t) => { if (!t) return "—"; const [h,m] = t.split(":").map(Number); const h12 = h > 12 ? h-12 : (h===0?12:h); return `${h12}:${String(m).padStart(2,"0")} ${h>=12?"PM":"AM"}`; };
+
+  // Actuals
   const [actuals, saveActuals] = useActuals(b.id);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState({});
+  const [draft, setDraft]     = useState({});
+  const hasActuals = Object.values(actuals).some((v) => v !== "" && v != null);
 
   const startEdit = () => {
-    setDraft({
-      revenue:    actuals.revenue    ?? String(c.total    || ""),
-      deposit:    actuals.deposit    ?? String(c.deposit  || ""),
-      food_cost:  actuals.food_cost  ?? "",
-      labor:      actuals.labor      ?? String(LABOR_COST),
-      other_cost: actuals.other_cost ?? "",
-      notes:      actuals.notes      ?? "",
-    });
+    setDraft({ revenue: actuals.revenue ?? String(c.total || ""), deposit: actuals.deposit ?? String(c.deposit || ""), food_cost: actuals.food_cost ?? "", labor: actuals.labor ?? String(LABOR_COST), other_cost: actuals.other_cost ?? "", notes: actuals.notes ?? "" });
     setEditing(true);
   };
 
-  const commitEdit = () => {
-    saveActuals(draft);
-    setEditing(false);
-  };
+  const rev   = parseFloat(actuals.revenue)    || c.total;
+  const dep   = parseFloat(actuals.deposit)    || c.deposit;
+  const food  = parseFloat(actuals.food_cost)  || (isNaN(parseFloat(actuals.food_cost)) ? c.totalFoodCost : 0);
+  const labor = parseFloat(actuals.labor)      || LABOR_COST;
+  const other = parseFloat(actuals.other_cost) || 0;
+  const bal   = rev - dep;
+  const gross = rev - food - other;
+  const gMgn  = rev > 0 ? (gross / rev) * 100 : 0;
+  const net   = gross - labor;
+  const nMgn  = rev > 0 ? (net / rev) * 100 : 0;
+  const mc    = (m) => m >= 60 ? GREEN : m >= 40 ? GOLD2 : RED;
 
-  // Resolved numbers — use actuals if entered, else fall back to booking/calc
-  const rev      = parseFloat(actuals.revenue)    || c.total;
-  const dep      = parseFloat(actuals.deposit)    || c.deposit;
-  const food     = parseFloat(actuals.food_cost)  ?? c.totalFoodCost;
-  const labor    = parseFloat(actuals.labor)      ?? LABOR_COST;
-  const other    = parseFloat(actuals.other_cost) || 0;
-  const bal      = rev - dep;
-  const gross    = rev - food - other;
-  const grossMgn = rev > 0 ? (gross / rev) * 100 : 0;
-  const net      = gross - labor;
-  const netMgn   = rev > 0 ? (net / rev) * 100 : 0;
-  const mc = (m) => m >= 60 ? GREEN : m >= 40 ? GOLD2 : RED;
+  // Per-guest economics
+  const guests = Number(b.guest_count) || 1;
+  const revPerGuest  = rev / guests;
+  const costPerGuest = (food + labor + other) / guests;
+  const netPerGuest  = net / guests;
 
-  const hasActuals = Object.keys(actuals).some((k) => actuals[k] !== "" && actuals[k] != null);
+  // Shopping list — proteins
+  const proteinList = Object.entries(c.fishOz)
+    .filter(([, oz]) => oz > 0)
+    .map(([key, oz]) => {
+      const info  = PROTEIN_PURCHASE[key] || {};
+      const lbRaw = oz / 16;
+      const lbBuy = Math.ceil(lbRaw * 4) / 4; // round up to nearest quarter lb
+      const estCost = lbBuy * (info.pricePerLb || 0);
+      return { key, oz, lbRaw, lbBuy, estCost, ...info };
+    });
 
-  const Sec = ({ title, children }) => (
-    <div style={{ marginBottom: 32 }}>
-      <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${BORDER}` }}>{title}</div>
+  // Shopping list — grocery
+  const groceryList = [];
+  if (ing.krab > 0)         groceryList.push({ label: GROCERY_ITEMS.krab.label,         qty: GROCERY_ITEMS.krab.unit(ing.krab),         note: GROCERY_ITEMS.krab.note });
+  if (ing.avocado > 0)      groceryList.push({ label: GROCERY_ITEMS.avocado.label,      qty: GROCERY_ITEMS.avocado.unit(ing.avocado),    note: GROCERY_ITEMS.avocado.note });
+  if (ing.cream_cheese > 0) groceryList.push({ label: GROCERY_ITEMS.cream_cheese.label, qty: GROCERY_ITEMS.cream_cheese.unit(ing.cream_cheese), note: GROCERY_ITEMS.cream_cheese.note });
+  if (ing.masago > 0)       groceryList.push({ label: GROCERY_ITEMS.masago.label,       qty: GROCERY_ITEMS.masago.unit(ing.masago),      note: GROCERY_ITEMS.masago.note });
+  if (ing.tobiko > 0)       groceryList.push({ label: GROCERY_ITEMS.tobiko.label,       qty: GROCERY_ITEMS.tobiko.unit(ing.tobiko),      note: GROCERY_ITEMS.tobiko.note });
+  if (ing.cucumber > 0)     groceryList.push({ label: GROCERY_ITEMS.cucumber.label,     qty: GROCERY_ITEMS.cucumber.unit(ing.cucumber),  note: GROCERY_ITEMS.cucumber.note });
+  if (ing.mango > 0)        groceryList.push({ label: GROCERY_ITEMS.mango.label,        qty: GROCERY_ITEMS.mango.unit(ing.mango),        note: GROCERY_ITEMS.mango.note });
+  if (ing.nori > 0)         groceryList.push({ label: GROCERY_ITEMS.nori.label,         qty: GROCERY_ITEMS.nori.unit(ing.nori),          note: GROCERY_ITEMS.nori.note });
+  if (ing.rice > 0)         groceryList.push({ label: GROCERY_ITEMS.rice.label,         qty: GROCERY_ITEMS.rice.unit(ing.rice),          note: GROCERY_ITEMS.rice.note });
+
+  // Condiments / pantry always needed
+  const pantryList = [
+    { label: "Soy sauce",         qty: `${guests} cups worth`,          note: "individual cups at table" },
+    { label: "Wasabi",            qty: `${guests} portions (~0.5 tsp each)`, note: "check stock" },
+    { label: "Pickled ginger",    qty: `${guests} portions`,            note: "check stock" },
+    { label: "Rice vinegar",      qty: `${c.totalRolls} tsp (rice)`,    note: "for seasoning" },
+    { label: "Kombu",             qty: "1 strip per batch",             note: "for rice" },
+    ...(ing.spicy_mayo ? [{ label: "Spicy mayo ingredients", qty: "mayo + sriracha + sesame oil", note: "make day before" }] : []),
+    ...(ing.eel_sauce  ? [{ label: "Eel sauce",               qty: "check stock",                 note: "drizzle bottles" }] : []),
+  ];
+
+  // Roll plan sorted by tier
+  const rollsByTier = TIER_ORDER.map((tier) => ({
+    tier,
+    rolls: rolls.filter((r) => r.tier === tier),
+  })).filter(({ rolls: rs }) => rs.length > 0);
+
+  // Rice details
+  const riceCups     = c.riceCups;
+  const riceWaterCup = riceCups * 1.1; // 1:1.1 ratio
+  const riceVinegar  = (riceCups * 240 * 0.12).toFixed(0); // ml
+  const riceSugar    = (riceCups * 240 * 0.05).toFixed(0);
+  const riceSalt     = (riceCups * 240 * 0.02).toFixed(0);
+
+  // Equipment manifest
+  const COOLER = [
+    ...proteinList.map((p) => `${p.label} — ${p.lbBuy} lb`),
+    "Ice packs (2–3)",
+    "Extra ice bag",
+  ];
+  const TOOL_BAG = [
+    "Yanagiba sashimi knife", "Chef's knife", "Paring knife",
+    "Knife roll / sheath", "Bamboo rolling mats (2)", "Plastic wrap",
+    "Cutting boards (2)", "Rice cooker + cord", "Rice paddle",
+    "Small bowl (for water / hand-dipping)", "Squeeze bottles (sauces)",
+    "Gloves (4 pairs nitrile)", "Tweezers / plating tongs",
+    "Serving plates / boards", "Kitchen towels (3)",
+  ];
+  const DISPOSABLES = [
+    `Plates — ${c.plates} (${guests} guests × 3)`,
+    `Chopstick pairs — ${c.chopsticks}`,
+    `Soy sauce cups — ${c.soySauceCups}`,
+    `Napkins — ${c.napkins} (${guests} guests × 3)`,
+    "Bamboo skewers (plating garnish)",
+    "Saran wrap roll",
+    "Trash bags (2)",
+    "Paper towels",
+  ];
+
+  // Prep steps with time estimates
+  const DAY_BEFORE = [
+    { time: "8 AM",   step: "Place fish order / confirm pickup with Northwest Seafood" },
+    { time: "9 AM",   step: "Pickup fish from Northwest Seafood — check weight and quality on site" },
+    { time: "10 AM",  step: "Restaurant Depot / grocery run — dry goods, produce, condiments" },
+    { time: "11 AM",  step: "Rinse and portion all proteins — label and refrigerate" },
+    { time: "12 PM",  step: `Cook sushi rice — ${riceCups} cups dry (make 1 extra cup buffer)` },
+    { time: "12:30",  step: `Season rice: ${riceVinegar} mL vinegar · ${riceSugar} mL sugar · ${riceSalt} mL salt · 1 kombu strip — fan while folding` },
+    { time: "1 PM",   step: "Make spicy mayo — whisk mayo + sriracha + sesame oil, adjust heat, bottle" },
+    { time: "1:30",   step: "Slice avocados — store in lemon water, airtight container" },
+    { time: "2 PM",   step: "Prep cucumber (julienne), mango (dice/slice), any other produce" },
+    { time: "3 PM",   step: "Label all proteins and sauces — check fridge organization" },
+    { time: "4 PM",   step: "Pack equipment bag: knives (sheathed), mats, rice cooker, cutting boards, gloves, towels" },
+    { time: "4:30",   step: "Pack disposables box: plates, chopsticks, napkins, soy cups, trash bags" },
+    { time: "5 PM",   step: "Pack protein cooler: all fish + ice packs, confirm lid seals" },
+    { time: "5:30",   step: "Final walkthrough checklist — nothing forgotten" },
+    { time: "Evening",step: "Confirm tomorrow's arrival time with client" },
+  ];
+
+  const DAY_OF = [
+    { time: "−90 min", step: "Load car — cooler first, then equipment bag, then disposables box" },
+    { time: "−60 min", step: "Depart — buffer for traffic, parking, building access" },
+    { time: "−30 min", step: "Arrive at client location — greet client, assess kitchen layout" },
+    { time: "−25 min", step: "Set up rolling station — cutting board, mat, water bowl, knives, sauces" },
+    { time: "−15 min", step: "Stage proteins at station — in order of use" },
+    { time: "−10 min", step: "Final roll count review vs the order — confirm nothing is missing" },
+    { time: "−5 min",  step: "Collect balance payment ($" + fmt2(bal).replace("$","") + " due) before service begins" },
+    { time: "Service", step: "Roll course by course — narrate each roll for the guests" },
+    { time: "Wrap",    step: "Breakdown station — leave kitchen cleaner than you found it" },
+    { time: "After",   step: "Log actual food cost and notes in admin dashboard" },
+  ];
+
+  // UI helpers
+  const Card = ({ children, accent }) => (
+    <div style={{ background: BG2, border: `1px solid ${BORDER}`, borderLeft: `2px solid ${accent || BORDER2}`, marginBottom: 28, overflow: "hidden" }}>
       {children}
     </div>
   );
 
-  const Row = ({ label, value, color, bold }) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "9px 0", borderBottom: `1px solid ${BORDER}` }}>
-      <span style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{label}</span>
+  const CardHead = ({ label, sub }) => (
+    <div style={{ padding: "14px 22px", borderBottom: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase" }}>{label}</div>
+      {sub && <div style={{ fontFamily: F, fontSize: 11, color: FAINT }}>{sub}</div>}
+    </div>
+  );
+
+  const Row = ({ label, value, color, bold, sub }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "9px 22px", borderBottom: `1px solid ${BORDER}` }}>
+      <div>
+        <span style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{label}</span>
+        {sub && <span style={{ fontFamily: F, fontSize: 11, color: FAINT, marginLeft: 10, fontStyle: "italic" }}>{sub}</span>}
+      </div>
       <span style={{ fontFamily: F, fontSize: bold ? 16 : 14, color: color || CREAM, fontWeight: bold ? 500 : 400 }}>{value}</span>
     </div>
   );
@@ -797,165 +969,362 @@ function LogisticsDetail({ booking: b, onBack }) {
       <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
       <div style={{ position: "relative" }}>
         <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontFamily: F, fontSize: 14, color: FAINT }}>$</span>
-        <input
-          type="number" min="0" step="0.01"
-          value={draft[field]}
-          placeholder={placeholder}
+        <input type="number" min="0" step="0.01" value={draft[field]} placeholder={placeholder}
           onChange={(e) => setDraft((d) => ({ ...d, [field]: e.target.value }))}
-          style={{ width: "100%", background: BG3, border: `1px solid ${BORDER2}`, color: CREAM, fontFamily: F, fontSize: 14, padding: "10px 12px 10px 26px", outline: "none", boxSizing: "border-box" }}
-        />
+          style={{ width: "100%", background: BG3, border: `1px solid ${BORDER2}`, color: CREAM, fontFamily: F, fontSize: 14, padding: "10px 12px 10px 26px", outline: "none", boxSizing: "border-box" }} />
       </div>
     </div>
   );
 
   return (
-    <div>
-      <button onClick={onBack} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: MUTED, padding: "8px 18px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", marginBottom: 32 }}>
-        ← back
-      </button>
-
-      {/* Header */}
-      <div style={{ background: BG2, border: `1px solid ${BORDER}`, borderLeft: `2px solid ${GOLD2}`, padding: "24px 28px", marginBottom: 40, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 8 }}>
-            {isDropoff ? "drop-off delivery" : (b.package || "—")}
-          </div>
-          <div style={{ fontFamily: F, fontSize: 20, color: CREAM }}>{b.user_email}</div>
-          <div style={{ fontFamily: F, fontSize: 14, color: MUTED, marginTop: 6 }}>
-            {isDropoff ? fmtDate(b.event_date) : `${fmtDate(b.event_date)} · ${b.guest_count} guests`}
-          </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: F, fontSize: 30, color: GOLD }}>{fmt2(rev)}</div>
-          <div style={{ fontFamily: F, fontSize: 11, color: FAINT, marginTop: 4 }}>conf: {b.confirmation_number || "—"}</div>
-        </div>
+    <div style={{ maxWidth: 1100 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 36 }}>
+        <button onClick={onBack} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: MUTED, padding: "8px 18px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>
+          ← back
+        </button>
+        <button onClick={() => window.print()} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: FAINT, padding: "8px 18px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>
+          print ↗
+        </button>
       </div>
 
-      {/* ── Manual number entry panel ── */}
-      <div style={{ background: BG2, border: `1px solid ${BORDER2}`, padding: "24px 28px", marginBottom: 40 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: editing ? 24 : 0 }}>
-          <div style={{ fontFamily: F, fontSize: 10, color: GOLD, letterSpacing: "0.3em", textTransform: "uppercase" }}>
-            {hasActuals ? "actual numbers  ·  logged" : "log actual numbers"}
-          </div>
-          {!editing && (
-            <button onClick={startEdit} style={{ background: "transparent", border: `1px solid ${BORDER2}`, color: GOLD, padding: "7px 18px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>
-              {hasActuals ? "edit" : "enter numbers"}
-            </button>
-          )}
-        </div>
-
-        {editing ? (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
-              {numInp("revenue",    "Revenue collected",  "0.00")}
-              {numInp("deposit",    "Deposit collected",  "0.00")}
-              {numInp("food_cost",  "Actual food cost",   "0.00")}
-              {numInp("labor",      "Labor cost",         String(LABOR_COST))}
-              {numInp("other_cost", "Other costs",        "0.00")}
-              <div>
-                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>Notes</div>
-                <textarea
-                  value={draft.notes} rows={2}
-                  onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
-                  placeholder="anything worth noting…"
-                  style={{ width: "100%", background: BG3, border: `1px solid ${BORDER2}`, color: CREAM, fontFamily: F, fontSize: 13, padding: "10px 12px", outline: "none", resize: "vertical", boxSizing: "border-box" }}
-                />
-              </div>
+      {/* ── 1. Event Brief ── */}
+      <Card accent={GOLD2}>
+        <div style={{ padding: "22px 24px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 10 }}>
+              {isDropoff ? "drop-off delivery" : (b.package || "experience")}
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={commitEdit} style={{ background: GOLD, color: BG, border: "none", padding: "10px 24px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>save</button>
-              <button onClick={() => setEditing(false)} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: FAINT, padding: "10px 18px", fontFamily: F, fontSize: 11, cursor: "pointer" }}>cancel</button>
-            </div>
-          </div>
-        ) : hasActuals ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 24, marginTop: 20 }}>
-            {[
-              { label: "Revenue",    val: actuals.revenue    },
-              { label: "Deposit",    val: actuals.deposit    },
-              { label: "Food Cost",  val: actuals.food_cost  },
-              { label: "Labor",      val: actuals.labor      },
-              { label: "Other",      val: actuals.other_cost },
-            ].map(({ label, val }) => val ? (
-              <div key={label}>
-                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
-                <div style={{ fontFamily: F, fontSize: 16, color: CREAM }}>${parseFloat(val).toFixed(2)}</div>
-              </div>
-            ) : null)}
-            {actuals.notes && (
-              <div style={{ gridColumn: "1 / -1" }}>
-                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 4 }}>Notes</div>
-                <div style={{ fontFamily: F, fontSize: 13, color: MUTED, fontStyle: "italic" }}>{actuals.notes}</div>
-              </div>
+            <div style={{ fontFamily: F, fontSize: 22, color: CREAM, marginBottom: 4 }}>{b.user_email}</div>
+            <div style={{ fontFamily: F, fontSize: 15, color: MUTED }}>{fmtLong(b.event_date)}{b.event_time ? ` · ${fmtTime(b.event_time)}` : ""}</div>
+            {!isDropoff && b.guest_count && (
+              <div style={{ fontFamily: F, fontSize: 14, color: MUTED, marginTop: 4 }}>{b.guest_count} guests · {c.totalRolls} rolls · {c.riceCups} cups rice</div>
             )}
           </div>
-        ) : (
-          <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", marginTop: 12 }}>
-            No numbers logged yet — click "enter numbers" to record what you actually spent and earned.
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, flexShrink: 0 }}>
+            {[
+              { label: "Total",   val: fmt2(c.total),   color: GOLD },
+              { label: "Deposit", val: fmt2(c.deposit), color: CREAM },
+              { label: "Balance", val: fmt2(c.balance), color: c.balance > 0 ? GREEN : FAINT },
+              { label: "Conf #",  val: b.confirmation_number || "—", color: FAINT },
+            ].map(({ label, val, color }) => (
+              <div key={label}>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 3 }}>{label}</div>
+                <div style={{ fontFamily: F, fontSize: 16, color }}>{val}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {(b.special_requests || b.dietary_restrictions) && (
+          <div style={{ padding: "14px 24px", background: "rgba(232,201,126,0.05)", borderTop: `1px solid ${BORDER}` }}>
+            <div style={{ fontFamily: F, fontSize: 10, color: GOLD, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 6 }}>⚠ chef notes / restrictions</div>
+            <div style={{ fontFamily: F, fontSize: 13, color: CREAM }}>{b.special_requests || b.dietary_restrictions}</div>
           </div>
         )}
-      </div>
+      </Card>
 
-      <div className="admin-logistics-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40 }}>
-        <div>
-          <Sec title="Revenue">
-            <Row label="Total collected"  value={fmt2(rev)} bold />
-            <Row label="Deposit"          value={fmt2(dep)} />
-            <Row label="Balance"          value={fmt2(bal)} color={GOLD} />
-          </Sec>
-
-          {!isDropoff && (
-            <>
-              <Sec title="Costs">
-                <Row label="Food cost"    value={fmt2(food)}  color={RED} />
-                <Row label="Labor"        value={fmt2(labor)} />
-                {other > 0 && <Row label="Other" value={fmt2(other)} />}
-                <Row label="Total costs"  value={fmt2(food + labor + other)} color={RED} bold />
-              </Sec>
-
-              <Sec title="Profitability">
-                <Row label="Gross profit"  value={fmt2(gross)}   color={gross  >= 0 ? GREEN : RED} />
-                <Row label="Gross margin"  value={fmtPct(grossMgn)} color={mc(grossMgn)} />
-                <Row label="Net profit"    value={fmt2(net)}     color={net    >= 0 ? GREEN : RED} bold />
-                <div style={{ textAlign: "right", paddingTop: 14 }}>
-                  <span style={{ fontFamily: F, fontSize: 28, color: mc(netMgn) }}>{fmtPct(netMgn)}</span>
-                  <span style={{ fontFamily: F, fontSize: 12, color: FAINT, marginLeft: 10 }}>net margin</span>
+      {/* ── 2. Log Actual Numbers ── */}
+      <Card accent={hasActuals ? GREEN : GOLD}>
+        <CardHead label={hasActuals ? "actual numbers  ·  logged" : "log actual numbers"} sub={
+          !editing ? (
+            <button onClick={startEdit} style={{ background: "transparent", border: `1px solid ${BORDER2}`, color: GOLD, padding: "5px 14px", fontFamily: F, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", cursor: "pointer" }}>
+              {hasActuals ? "edit" : "enter numbers"}
+            </button>
+          ) : null
+        } />
+        <div style={{ padding: "20px 24px" }}>
+          {editing ? (
+            <div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 14 }}>
+                {numInp("revenue",    "Revenue collected",  "0.00")}
+                {numInp("deposit",    "Deposit collected",  "0.00")}
+                {numInp("food_cost",  "Actual food cost",   "0.00")}
+                {numInp("labor",      "Labor cost",         String(LABOR_COST))}
+                {numInp("other_cost", "Other costs",        "0.00")}
+                <div>
+                  <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>Notes</div>
+                  <textarea rows={2} value={draft.notes} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} placeholder="anything worth noting…"
+                    style={{ width: "100%", background: BG3, border: `1px solid ${BORDER2}`, color: CREAM, fontFamily: F, fontSize: 13, padding: "10px 12px", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
                 </div>
-              </Sec>
-            </>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => { saveActuals(draft); setEditing(false); }} style={{ background: GOLD, color: BG, border: "none", padding: "10px 24px", fontFamily: F, fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer" }}>save</button>
+                <button onClick={() => setEditing(false)} style={{ background: "transparent", border: `1px solid ${BORDER}`, color: FAINT, padding: "10px 18px", fontFamily: F, fontSize: 11, cursor: "pointer" }}>cancel</button>
+              </div>
+            </div>
+          ) : hasActuals ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 24 }}>
+              {[["Revenue", actuals.revenue], ["Deposit", actuals.deposit], ["Food Cost", actuals.food_cost], ["Labor", actuals.labor], ["Other", actuals.other_cost]].map(([label, val]) => val ? (
+                <div key={label}>
+                  <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontFamily: F, fontSize: 18, color: CREAM }}>${parseFloat(val).toFixed(2)}</div>
+                </div>
+              ) : null)}
+              {actuals.notes && <div style={{ gridColumn: "1/-1", fontFamily: F, fontSize: 13, color: MUTED, fontStyle: "italic" }}>{actuals.notes}</div>}
+            </div>
+          ) : (
+            <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic" }}>No numbers logged yet.</div>
           )}
         </div>
+      </Card>
 
-        {!isDropoff && (
-          <div>
-            <Sec title="Supplies">
-              <Row label="Plates"          value={`${c.plates}`} />
-              <Row label="Chopstick pairs" value={`${c.chopsticks}`} />
-              <Row label="Soy cups"        value={`${c.soySauceCups}`} />
-              <Row label="Napkins"         value={`${c.napkins}`} />
-              <Row label="Gloves (pairs)"  value={`${c.gloves}`} />
-              <Row label="Cutting boards"  value={`${c.cuttingBoards}`} />
-              <Row label="Dry rice"        value={`${c.riceCups} cups`} bold />
-            </Sec>
-
-            <Sec title="Protein Order">
-              {[
-                { label: "Salmon",        oz: c.fishOz.salmon },
-                { label: "Tuna",          oz: c.fishOz.tuna },
-                { label: "Yellowtail",    oz: c.fishOz.yellowtail },
-                { label: "Shrimp",        oz: c.fishOz.shrimp },
-                { label: "Smoked Salmon", oz: c.fishOz.smoked_salmon },
-              ].filter(({ oz }) => oz > 0).map(({ label, oz }) =>
-                <Row key={label} label={label} value={fmtOz(oz)} />
-              )}
-              {Object.values(c.fishOz).every((v) => v === 0) && (
-                <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "8px 0" }}>No roll data — supplies auto-calculated from rolls when available.</div>
-              )}
-            </Sec>
+      {/* ── 3. Financial Dashboard ── */}
+      {!isDropoff && (
+        <Card accent={net >= 0 ? GREEN : RED}>
+          <CardHead label="financials" />
+          {/* Margin bar */}
+          <div style={{ padding: "20px 24px 0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+              <span style={{ fontFamily: F, fontSize: 11, color: FAINT }}>net margin</span>
+              <span style={{ fontFamily: F, fontSize: 18, color: mc(nMgn), fontWeight: 500 }}>{fmtPct(nMgn)}</span>
+            </div>
+            <div style={{ height: 6, background: BG3, borderRadius: 3, marginBottom: 20, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${Math.max(0, Math.min(100, nMgn))}%`, background: mc(nMgn), borderRadius: 3, transition: "width 0.6s ease" }} />
+            </div>
           </div>
-        )}
-      </div>
 
-      <EventChecklist bookingId={b.id} ingredients={calcIngredients(b, c)} isDropoff={isDropoff} />
+          {/* Revenue / Costs / Profit columns */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderTop: `1px solid ${BORDER}` }}>
+            {/* Revenue col */}
+            <div style={{ borderRight: `1px solid ${BORDER}` }}>
+              <div style={{ padding: "10px 22px", background: BG3, borderBottom: `1px solid ${BORDER}` }}>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase" }}>Revenue</div>
+              </div>
+              <Row label="Total collected" value={fmt2(rev)} color={CREAM} bold />
+              <Row label="Deposit paid"    value={fmt2(dep)} />
+              <Row label="Balance due"     value={fmt2(bal)} color={bal > 0 ? GOLD : FAINT} />
+              <Row label="Per guest"       value={fmt2(revPerGuest)} color={MUTED} />
+            </div>
+
+            {/* Costs col */}
+            <div style={{ borderRight: `1px solid ${BORDER}` }}>
+              <div style={{ padding: "10px 22px", background: BG3, borderBottom: `1px solid ${BORDER}` }}>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase" }}>Costs</div>
+              </div>
+              <Row label="Food cost"    value={fmt2(food)}  color={RED} />
+              <Row label="Labor"        value={fmt2(labor)} />
+              {other > 0 && <Row label="Other" value={fmt2(other)} />}
+              <Row label="Total costs"  value={fmt2(food + labor + other)} color={RED} bold />
+              <Row label="Per guest"    value={fmt2(costPerGuest)} color={MUTED} />
+            </div>
+
+            {/* Profit col */}
+            <div>
+              <div style={{ padding: "10px 22px", background: BG3, borderBottom: `1px solid ${BORDER}` }}>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase" }}>Profit</div>
+              </div>
+              <Row label="Gross profit"  value={fmt2(gross)}     color={gross >= 0 ? GREEN : RED} />
+              <Row label="Gross margin"  value={fmtPct(gMgn)}    color={mc(gMgn)} />
+              <Row label="Net profit"    value={fmt2(net)}        color={net >= 0 ? GREEN : RED} bold />
+              <Row label="Net margin"    value={fmtPct(nMgn)}    color={mc(nMgn)} />
+              <Row label="Per guest"     value={fmt2(netPerGuest)} color={net >= 0 ? GREEN : RED} />
+            </div>
+          </div>
+
+          {/* Per-roll profitability table */}
+          {c.rollBreakdown.length > 0 && (
+            <div style={{ borderTop: `1px solid ${BORDER}` }}>
+              <div style={{ padding: "10px 22px", background: BG3, borderBottom: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between" }}>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase" }}>Roll Cost Breakdown</div>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT }}>Total rolls: {c.totalRolls}</div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", padding: "8px 22px", borderBottom: `1px solid ${BORDER}` }}>
+                {["Roll", "Qty", "Cost/Roll", "Line Total", "% of Food Cost"].map((h) => (
+                  <div key={h} style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</div>
+                ))}
+              </div>
+              {c.rollBreakdown.map((r) => (
+                <div key={r.name} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", padding: "9px 22px", borderBottom: `1px solid ${BORDER}` }}>
+                  <div style={{ fontFamily: F, fontSize: 13, color: CREAM }}>{r.name}</div>
+                  <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{r.qty}</div>
+                  <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{r.costPerRoll != null ? fmt2(r.costPerRoll) : "—"}</div>
+                  <div style={{ fontFamily: F, fontSize: 13, color: CREAM }}>{r.lineCost != null ? fmt2(r.lineCost) : "—"}</div>
+                  <div style={{ fontFamily: F, fontSize: 12, color: FAINT }}>{r.lineCost != null && c.rollFoodCost > 0 ? `${((r.lineCost / c.rollFoodCost) * 100).toFixed(0)}%` : "—"}</div>
+                </div>
+              ))}
+              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", padding: "10px 22px", background: BG3 }}>
+                <div style={{ fontFamily: F, fontSize: 12, color: FAINT, gridColumn: "1/4" }}>+ rice seasoning ({c.totalRolls} × $0.08) · condiments ({guests} × $0.23)</div>
+                <div style={{ fontFamily: F, fontSize: 14, color: RED, fontWeight: 500 }}>{fmt2(c.totalFoodCost)}</div>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* ── 4. Shopping List ── */}
+      {!isDropoff && (proteinList.length > 0 || groceryList.length > 0) && (
+        <Card accent={GOLD2}>
+          <CardHead label="shopping list" sub={`${fmtShort(b.event_date)} — pick up day before`} />
+
+          {proteinList.length > 0 && (
+            <>
+              <div style={{ padding: "10px 22px", background: "rgba(74,154,106,0.08)", borderBottom: `1px solid ${BORDER}` }}>
+                <div style={{ fontFamily: F, fontSize: 10, color: GREEN, letterSpacing: "0.2em", textTransform: "uppercase" }}>Northwest Seafood · Proteins</div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1.5fr", padding: "8px 22px", borderBottom: `1px solid ${BORDER}` }}>
+                {["Item", "Oz Needed", "Buy (lb)", "Est. Cost", "Note"].map((h) => (
+                  <div key={h} style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</div>
+                ))}
+              </div>
+              {proteinList.map((p) => (
+                <div key={p.key} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1.5fr", padding: "10px 22px", borderBottom: `1px solid ${BORDER}`, alignItems: "center" }}>
+                  <div style={{ fontFamily: F, fontSize: 14, color: CREAM }}>{p.label}</div>
+                  <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{p.oz.toFixed(1)} oz</div>
+                  <div style={{ fontFamily: F, fontSize: 14, color: GOLD, fontWeight: 500 }}>{p.lbBuy} lb</div>
+                  <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>~{fmt2(p.estCost)}</div>
+                  <div style={{ fontFamily: F, fontSize: 11, color: FAINT, fontStyle: "italic" }}>{p.note}</div>
+                </div>
+              ))}
+              <div style={{ padding: "10px 22px", background: BG3, borderBottom: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between" }}>
+                <div style={{ fontFamily: F, fontSize: 11, color: FAINT }}>estimated seafood total</div>
+                <div style={{ fontFamily: F, fontSize: 14, color: CREAM }}>~{fmt2(proteinList.reduce((s, p) => s + p.estCost, 0))}</div>
+              </div>
+            </>
+          )}
+
+          {groceryList.length > 0 && (
+            <>
+              <div style={{ padding: "10px 22px", background: "rgba(184,137,42,0.08)", borderBottom: `1px solid ${BORDER}` }}>
+                <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.2em", textTransform: "uppercase" }}>Restaurant Depot / Grocery · Dry Goods & Produce</div>
+              </div>
+              {groceryList.map(({ label, qty, note }) => (
+                <div key={label} style={{ display: "grid", gridTemplateColumns: "1.5fr 1.5fr 2fr", padding: "10px 22px", borderBottom: `1px solid ${BORDER}`, alignItems: "center" }}>
+                  <div style={{ fontFamily: F, fontSize: 14, color: CREAM }}>{label}</div>
+                  <div style={{ fontFamily: F, fontSize: 14, color: GOLD }}>{qty}</div>
+                  <div style={{ fontFamily: F, fontSize: 11, color: FAINT, fontStyle: "italic" }}>{note}</div>
+                </div>
+              ))}
+            </>
+          )}
+
+          <div style={{ padding: "10px 22px", background: "rgba(197,85,45,0.06)", borderBottom: `1px solid ${BORDER}` }}>
+            <div style={{ fontFamily: F, fontSize: 10, color: RED, letterSpacing: "0.2em", textTransform: "uppercase" }}>Pantry / Condiments (check stock first)</div>
+          </div>
+          {pantryList.map(({ label, qty, note }) => (
+            <div key={label} style={{ display: "grid", gridTemplateColumns: "1.5fr 1.5fr 2fr", padding: "9px 22px", borderBottom: `1px solid ${BORDER}`, alignItems: "center" }}>
+              <div style={{ fontFamily: F, fontSize: 13, color: CREAM }}>{label}</div>
+              <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{qty}</div>
+              <div style={{ fontFamily: F, fontSize: 11, color: FAINT, fontStyle: "italic" }}>{note}</div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {/* ── 5. Rice Production ── */}
+      {!isDropoff && c.totalRolls > 0 && (
+        <Card accent={GOLD2}>
+          <CardHead label="rice production" sub={`${riceCups} cups dry → ~${(riceCups * 2.2).toFixed(0)} cups cooked`} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", borderTop: `1px solid ${BORDER}` }}>
+            {[
+              { label: "Dry rice", val: `${riceCups} cups`, sub: "make 1 extra cup" },
+              { label: "Water",    val: `${riceWaterCup.toFixed(1)} cups`, sub: "1:1.1 ratio" },
+              { label: "Rice vinegar", val: `${riceVinegar} mL`, sub: "season while hot" },
+              { label: "Sugar / Salt", val: `${riceSugar} mL / ${riceSalt} mL`, sub: "fold gently" },
+            ].map(({ label, val, sub }) => (
+              <div key={label} style={{ padding: "18px 22px", borderRight: `1px solid ${BORDER}` }}>
+                <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
+                <div style={{ fontFamily: F, fontSize: 18, color: CREAM }}>{val}</div>
+                <div style={{ fontFamily: F, fontSize: 11, color: FAINT, fontStyle: "italic", marginTop: 4 }}>{sub}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: "12px 22px", borderTop: `1px solid ${BORDER}`, background: BG3 }}>
+            <div style={{ fontFamily: F, fontSize: 12, color: FAINT }}>Rinse rice 3–4× until water runs clear · Soak 30 min · Cook then rest 10 min covered · Fan while folding seasoning · Use within 4 hours</div>
+          </div>
+        </Card>
+      )}
+
+      {/* ── 6. Roll Production Plan ── */}
+      {!isDropoff && rollsByTier.length > 0 && (
+        <Card accent={GOLD2}>
+          <CardHead label="roll production plan" sub={`${c.totalRolls} total rolls`} />
+          {rollsByTier.map(({ tier, rolls: tr }) => (
+            <div key={tier}>
+              <div style={{ padding: "8px 22px", background: `${TIER_COLORS[tier]}14`, borderBottom: `1px solid ${BORDER}`, borderTop: `1px solid ${BORDER}` }}>
+                <div style={{ fontFamily: F, fontSize: 10, color: TIER_COLORS[tier], letterSpacing: "0.2em", textTransform: "uppercase" }}>{TIER_LABELS[tier]}</div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1.5fr 0.5fr 2fr 1fr", padding: "8px 22px", borderBottom: `1px solid ${BORDER}` }}>
+                {["Roll", "Qty", "Assembly", "Cost"].map((h) => (
+                  <div key={h} style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</div>
+                ))}
+              </div>
+              {tr.map((r) => {
+                // Build ingredient list string
+                const prot = ROLL_PROTEINS[r.name] || {};
+                const iq   = ROLL_INGREDIENT_QTY[r.name] || {};
+                const protStr = Object.entries(prot).map(([k,v]) => v > 1 ? `${k}(×${v})` : k).join(", ");
+                const iqStr   = Object.entries(iq).filter(([k]) => k !== "spicy_mayo" && k !== "eel_sauce").map(([k, v]) => `${k}${v > 0.5 ? `(${v})` : ""}`).join(", ");
+                const sauceStr = [iq.spicy_mayo ? "spicy mayo" : "", iq.eel_sauce ? "eel sauce" : ""].filter(Boolean).join(", ");
+                const allIng = [protStr, iqStr, sauceStr].filter(Boolean).join(" · ");
+                return (
+                  <div key={r.name} style={{ display: "grid", gridTemplateColumns: "1.5fr 0.5fr 2fr 1fr", padding: "11px 22px", borderBottom: `1px solid ${BORDER}`, alignItems: "start" }}>
+                    <div style={{ fontFamily: F, fontSize: 14, color: CREAM }}>{r.name}</div>
+                    <div style={{ fontFamily: F, fontSize: 14, color: GOLD }}>{r.qty}</div>
+                    <div>
+                      {ROLL_ASSEMBLY[r.name] && (
+                        <div style={{ fontFamily: F, fontSize: 12, color: MUTED, marginBottom: 3 }}>{ROLL_ASSEMBLY[r.name]}</div>
+                      )}
+                      {allIng && <div style={{ fontFamily: F, fontSize: 11, color: FAINT, fontStyle: "italic" }}>{allIng}</div>}
+                    </div>
+                    <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>
+                      {ROLL_COSTS[r.name] != null ? `${fmt2(ROLL_COSTS[r.name])}/roll · ${fmt2(ROLL_COSTS[r.name] * r.qty)}` : "—"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {/* ── 7. Equipment Manifest ── */}
+      {!isDropoff && (
+        <Card accent={GOLD2}>
+          <CardHead label="equipment manifest" sub="pack night before" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderTop: `1px solid ${BORDER}` }}>
+            {[
+              { label: "🧊 Cooler", color: "#6baed6", items: COOLER },
+              { label: "🔪 Tool Bag", color: GOLD2, items: TOOL_BAG },
+              { label: "📦 Disposables Box", color: GREEN, items: DISPOSABLES },
+            ].map(({ label, color, items }) => (
+              <div key={label} style={{ borderRight: `1px solid ${BORDER}` }}>
+                <div style={{ padding: "10px 18px", borderBottom: `1px solid ${BORDER}`, background: BG3 }}>
+                  <div style={{ fontFamily: F, fontSize: 11, color, letterSpacing: "0.12em", textTransform: "uppercase" }}>{label}</div>
+                </div>
+                {items.map((item, i) => (
+                  <div key={i} style={{ padding: "8px 18px", borderBottom: `1px solid ${BORDER}`, fontFamily: F, fontSize: 12, color: MUTED }}>{item}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* ── 8. Day-Before Timeline ── */}
+      {!isDropoff && (
+        <Card accent={GOLD2}>
+          <CardHead label="day before · prep schedule" />
+          {DAY_BEFORE.map(({ time, step }, i) => (
+            <div key={i} style={{ display: "grid", gridTemplateColumns: "80px 1fr", padding: "10px 22px", borderBottom: `1px solid ${BORDER}`, alignItems: "start" }}>
+              <div style={{ fontFamily: F, fontSize: 11, color: GOLD2, paddingTop: 1 }}>{time}</div>
+              <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{step}</div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {/* ── 9. Day-Of Timeline ── */}
+      <Card accent={GREEN}>
+        <CardHead label="day of · event timeline" sub={b.event_time ? `service at ${fmtTime(b.event_time)}` : ""} />
+        {DAY_OF.map(({ time, step }, i) => (
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "80px 1fr", padding: "10px 22px", borderBottom: `1px solid ${BORDER}`, alignItems: "start" }}>
+            <div style={{ fontFamily: F, fontSize: 11, color: GREEN, paddingTop: 1 }}>{time}</div>
+            <div style={{ fontFamily: F, fontSize: 13, color: MUTED }}>{step}</div>
+          </div>
+        ))}
+      </Card>
+
+      {/* ── 10. Prep Checklist ── */}
+      <EventChecklist bookingId={b.id} ingredients={ing} isDropoff={isDropoff} />
     </div>
   );
 }
