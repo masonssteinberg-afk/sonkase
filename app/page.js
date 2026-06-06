@@ -770,18 +770,11 @@ function AboutChefSection() {
 
             {/* Left — Chef portrait */}
             <div>
-              <div style={{ position: "relative", paddingTop: "133.33%", overflow: "hidden" }}>
-                <img
-                  src="/chef-portrait.jpg"
-                  alt="Mason Steinberg, Founder & Executive Chef"
-                  style={{
-                    position: "absolute", inset: 0,
-                    width: "100%", height: "100%",
-                    objectFit: "cover", objectPosition: "center top",
-                    display: "block",
-                  }}
-                />
-              </div>
+              <img
+                src="/chef-portrait.jpg"
+                alt="Mason Steinberg, Founder & Executive Chef"
+                style={{ width: "100%", display: "block" }}
+              />
             </div>
 
             {/* Right — Text content */}
