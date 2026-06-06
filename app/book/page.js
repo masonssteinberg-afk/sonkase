@@ -1315,7 +1315,7 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
           <CardElement
             options={{
               style: {
-                base: { fontFamily: \`'Shippori Mincho', Georgia, serif\`, fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
+                base: { fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
                 invalid: { color: "#E8C97E" },
               },
               hidePostalCode: true,
@@ -1630,7 +1630,7 @@ function PartyPaymentForm({ clientSecret, partyPkg, guestCount, user, eventDate,
           <CardElement
             options={{
               style: {
-                base: { fontFamily: \`'Shippori Mincho', Georgia, serif\`, fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
+                base: { fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
                 invalid: { color: "#E8C97E" },
               },
               hidePostalCode: true,
