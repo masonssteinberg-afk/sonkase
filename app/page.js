@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+const SushiAnimation = dynamic(() => import("./components/SushiAnimation"), { ssr: false });
 
 // ── Design Tokens ──────────────────────────────────────────────
 const BG    = "#0d0d0d";
@@ -93,6 +95,8 @@ const HOW_STEPS = [
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function Home() {
+  const [showAnim, setShowAnim] = useState(false);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.location.hash.includes("access_token")) {
@@ -112,6 +116,7 @@ export default function Home() {
 
   return (
     <div style={{ background: BG, color: CREAM, fontFamily: "'Shippori Mincho', Georgia, serif", overflowX: "hidden" }}>
+      {showAnim && <SushiAnimation onDone={() => setShowAnim(false)} />}
       <PageStyles />
       <Nav />
       <AboutSection />
@@ -569,9 +574,13 @@ function Hero() {
 
         {/* CTAs */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%", maxWidth: 340 }}>
-          <a href="/book" className="sk-btn-fill" style={{ width: "100%" }}>
+          <button
+            onClick={() => setShowAnim(true)}
+            className="sk-btn-fill"
+            style={{ width: "100%", border: "none", cursor: "pointer" }}
+          >
             Let's Roll →
-          </a>
+          </button>
         </div>
       </div>
     </section>
