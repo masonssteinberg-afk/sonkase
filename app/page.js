@@ -60,10 +60,10 @@ function calcDiscountedPrice(price, promo) {
 }
 
 const HOW_STEPS = [
-  { num: "一", title: "reserve",     desc: "book online, select your experience, pay a 25% deposit to lock your date." },
-  { num: "二", title: "we prepare",  desc: "your chef sources fresh fish and preps everything the day before." },
-  { num: "三", title: "we arrive",   desc: "chef arrives 30 minutes early and sets up in your kitchen." },
-  { num: "四", title: "you enjoy",   desc: "sit back while your chef rolls course by course." },
+  { num: "一", title: "book your night",  desc: "pick your crew size, lock a date, and put down a deposit. that's it." },
+  { num: "二", title: "we handle it",     desc: "mason sources fresh fish and preps everything the day before your event." },
+  { num: "三", title: "we show up",       desc: "chef arrives early, sets up in your kitchen, and gets rolling." },
+  { num: "四", title: "you eat well",     desc: "course by course, right in front of you. no restaurant required." },
 ];
 
 /* ======================================================================
@@ -564,16 +564,13 @@ function Hero() {
           color: GOLD, letterSpacing: "0.15em", fontStyle: "italic",
           marginBottom: 56,
         }}>
-          Omakase Where You Are
+          American Omakase, Where You Are
         </div>
 
         {/* CTAs */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%", maxWidth: 340 }}>
           <a href="/book" className="sk-btn-fill" style={{ width: "100%" }}>
-            Reserve Your Experience →
-          </a>
-          <a href="#experiences" className="sk-btn-ghost" style={{ width: "100%" }}>
-            Learn More
+            Let's Roll →
           </a>
         </div>
       </div>
@@ -616,19 +613,14 @@ function ExperiencesSection() {
       <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
-          {/* Eyebrow */}
-          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
-            the experience
-          </div>
-
           {/* Headline */}
           <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(32px, 5vw, 68px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 24, lineHeight: 1.1 }}>
-            true omakase. your home.
+            authentic american omakase.
           </h2>
 
           {/* Body */}
           <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, textAlign: "center", maxWidth: 560, margin: "0 auto 80px", lineHeight: 1.8 }}>
-            A private chef arrives at your home, rolls course by course while you watch. For sushi lovers of all kinds.
+            A private chef in your home, rolling course by course while you watch. The atmosphere, the craft, the whole experience — just not at a restaurant.
           </p>
         </Reveal>
 
