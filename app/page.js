@@ -620,7 +620,7 @@ function ExperiencesSection() {
 
           {/* Body */}
           <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, textAlign: "center", maxWidth: 560, margin: "0 auto 80px", lineHeight: 1.8 }}>
-            A private chef in your home, rolling course by course while you watch. The atmosphere, the craft, the whole experience — just not at a restaurant.
+            A private chef in your home, rolling course by course while you watch. For sushi lovers of all kinds.
           </p>
         </Reveal>
 
