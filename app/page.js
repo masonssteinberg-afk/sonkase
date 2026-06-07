@@ -120,7 +120,7 @@ export default function Home() {
       <PageStyles />
       <Nav />
       <AboutSection />
-      <Hero />
+      <Hero onLetsRoll={() => setShowAnim(true)} />
       <ExperiencesSection />
       <HowItWorksSection />
       <AboutChefSection />
@@ -488,7 +488,7 @@ function ChiyogamiPattern({ id, opacity = 0.04 }) {
 }
 
 // ── Hero ──────────────────────────────────────────────────────
-function Hero() {
+function Hero({ onLetsRoll }) {
   return (
     <section style={{
       background: BG, backgroundImage: N(0.65, 0.022), minHeight: "100vh",
@@ -575,7 +575,7 @@ function Hero() {
         {/* CTAs */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%", maxWidth: 340 }}>
           <button
-            onClick={() => setShowAnim(true)}
+            onClick={onLetsRoll}
             className="sk-btn-fill"
             style={{ width: "100%", border: "none", cursor: "pointer" }}
           >
