@@ -1200,7 +1200,27 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
   const [saving, setSaving]           = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [formError, setFormError]     = useState("");
+  const [markdownCode, setMarkdownCode] = useState("");
   const today = new Date().toISOString().split("T")[0];
+
+  useEffect(() => {
+    fetch("/api/admin/markdown-promo")
+      .then((r) => r.json())
+      .then((d) => setMarkdownCode(d.code || ""))
+      .catch(() => {});
+  }, []);
+
+  // Designate which promo is shown with marked-down prices on the site (click again to clear)
+  const setMarkdown = async (pc) => {
+    const next = markdownCode === pc.code ? "" : pc.code;
+    const res = await fetch("/api/admin/markdown-promo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: next }),
+    });
+    const data = await res.json();
+    if (data.success) setMarkdownCode(next);
+  };
 
   const openCreate = () => { setForm(EMPTY_FORM); setEditingId(null); setFormError(""); setShowForm(true); };
   const openEdit   = (pc) => {
@@ -1292,12 +1312,13 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
         <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "60px 0", textAlign: "center" }}>No promo codes yet.</div>
       ) : (
         <div style={{ background: BG2, border: `1px solid ${BORDER}`, overflowX: "auto" }}>
-          <THead cols={["Code", "Type", "Value", "Uses", "Max", "Expires", "Status", "Actions"]} />
+          <THead cols={["Code", "Type", "Value", "Uses", "Max", "Expires", "Status", "Markdown", "Actions"]} />
           {promoCodes.map((pc) => {
             const isExpired = pc.expires_at && pc.expires_at < today;
             const statusColor = !pc.active ? FAINT : isExpired ? RED : GREEN;
+            const isMarkdown = markdownCode === pc.code;
             return (
-              <div key={pc.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr 0.7fr 0.5fr 0.5fr 0.9fr 0.7fr 1fr", padding: "14px 20px", borderTop: `1px solid ${BORDER}`, alignItems: "center", minWidth: 700 }}>
+              <div key={pc.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr 0.7fr 0.5fr 0.5fr 0.9fr 0.7fr 0.9fr 1fr", padding: "14px 20px", borderTop: `1px solid ${BORDER}`, alignItems: "center", minWidth: 780 }}>
                 <div style={{ fontFamily: F, fontSize: 13, color: statusColor, letterSpacing: "0.06em" }}>{pc.code}</div>
                 <TCell muted small>{pc.discount_type === "percent" ? "percent" : "flat"}</TCell>
                 <TCell>{pc.discount_type === "percent" ? `${pc.discount_value}%` : `$${Number(pc.discount_value).toFixed(0)}`}</TCell>
@@ -1307,6 +1328,24 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
                 <div>
                   <button onClick={() => toggleActive(pc)} style={{ background: "transparent", border: `1px solid ${statusColor}`, color: statusColor, padding: "4px 12px", fontFamily: F, fontSize: 11, cursor: "pointer", letterSpacing: "0.1em" }}>
                     {pc.active ? "active" : "off"}
+                  </button>
+                </div>
+                <div>
+                  <button
+                    onClick={() => setMarkdown(pc)}
+                    disabled={!pc.active || isExpired}
+                    title={isMarkdown ? "Shown with marked-down prices on the site — click to clear" : "Show this code with marked-down prices on the site"}
+                    style={{
+                      background: isMarkdown ? "rgba(232,201,126,0.12)" : "transparent",
+                      border: `1px solid ${isMarkdown ? GOLD : BORDER}`,
+                      color: isMarkdown ? GOLD : FAINT,
+                      padding: "4px 12px", fontFamily: F, fontSize: 11,
+                      cursor: !pc.active || isExpired ? "not-allowed" : "pointer",
+                      letterSpacing: "0.1em",
+                      opacity: !pc.active || isExpired ? 0.4 : 1,
+                    }}
+                  >
+                    {isMarkdown ? "★ on site" : "set"}
                   </button>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
