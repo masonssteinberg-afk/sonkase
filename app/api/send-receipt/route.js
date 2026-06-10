@@ -7,6 +7,7 @@ export async function POST(req) {
       email, confirmationId, packageName, eventDate, guestCount,
       total, deposit, appetizers, promoCode, discountAmount,
       serviceType, appetizerChoice, chefNotes, eventTime, appetizersSelected,
+      pricePerGuest,
     } = await req.json();
 
     if (!email || !email.includes("@")) {
@@ -83,6 +84,55 @@ export async function POST(req) {
         from: "Sonakase <bookings@sonakase.com>",
         to: email,
         subject: `Your Sonakase Experience — ${packageName} on ${fmtDate(eventDate)}`,
+        html,
+      });
+      return Response.json({ success: true });
+    }
+
+    // ── Party receipt ─────────────────────────────────────────────
+    if (serviceType === "party") {
+      const balance      = (Number(total) - Number(deposit)).toFixed(2);
+      const appetizersStr = Array.isArray(appetizersSelected) && appetizersSelected.length > 0
+        ? appetizersSelected.join(", ") : null;
+      const html =
+        `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#F5F0E8;">` +
+        LOGO +
+        `<div style="background:#E8C97E;padding:13px;text-align:center;">` +
+        `<div style="font-size:11px;color:#0c0c0c;letter-spacing:0.4em;text-transform:uppercase;font-weight:bold;">Event Confirmed</div>` +
+        `</div>` +
+        `<div style="padding:36px 32px;">` +
+        `<p style="font-size:16px;color:#1a1208;font-style:italic;margin:0 0 28px;line-height:1.65;">Your Sonakase event is confirmed. Here are your details.</p>` +
+        `<div style="background:#fff;border:1px solid rgba(184,137,42,0.25);padding:20px 24px;margin-bottom:24px;">` +
+        row("Confirmation",    confirmationId) +
+        row("Experience",      packageName) +
+        row("Date",            fmtDate(eventDate)) +
+        row("Time",            fmtTime(eventTime)) +
+        row("Guests",          guestCount ? `${guestCount} guests` : "—") +
+        (pricePerGuest ? row("Price / Guest", `$${pricePerGuest}`) : "") +
+        (appetizersStr ? row("Appetizer", appetizersStr) : "") +
+        row("Total",           fmt2(total)) +
+        row("Deposit Charged", fmt2(deposit)) +
+        row("Balance Due",     `$${balance} — due at the event`) +
+        row("Gratuity",        "Included") +
+        `</div>` +
+        (chefNotes
+          ? `<div style="background:#fff;border:1px solid rgba(184,137,42,0.25);padding:16px 24px;margin-bottom:24px;">` +
+            `<div style="font-size:10px;color:#b8892a;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:8px;">Your Notes to the Chef</div>` +
+            `<div style="font-size:14px;color:#5a4f3c;font-style:italic;">${chefNotes}</div>` +
+            `</div>` : "") +
+        `<div style="padding:18px 22px;background:rgba(184,137,42,0.07);border-left:2px solid #E8C97E;">` +
+        `<div style="font-size:10px;color:#b8892a;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:10px;">What Happens Next</div>` +
+        `<ul style="font-size:14px;color:#5a4f3c;line-height:1.9;margin:0;padding-left:18px;font-style:italic;">` +
+        `<li>Your chef will review your notes and plan the menu</li>` +
+        `<li>Chef arrives 30 minutes before your selected time to set up</li>` +
+        `<li>Balance is due at the event — cash or card accepted</li>` +
+        `</ul></div></div>` +
+        FOOTER + `</div>`;
+
+      await resend.emails.send({
+        from: "Sonakase <bookings@sonakase.com>",
+        to: email,
+        subject: `Your Sonakase Event — ${packageName} on ${fmtDate(eventDate)}`,
         html,
       });
       return Response.json({ success: true });

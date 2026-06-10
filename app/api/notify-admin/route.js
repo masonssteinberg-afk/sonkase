@@ -9,6 +9,7 @@ export async function POST(req) {
       guestCount, total, deposit, rolls, appetizers, specialRequests,
       plattersOrdered, deliveryAddress, upchargeTotal,
       bookingId, appetizerChoice, chefNotes, eventTime, appetizersSelected,
+      pricePerGuest,
     } = body;
 
     // ── Cancellation request ─────────────────────────────────────
@@ -117,6 +118,53 @@ export async function POST(req) {
         (upchargeTotal > 0 ? `<div style="font-size:13px;color:#c5552d;margin-top:6px;"><strong>Upcharge total:</strong> $${Number(upchargeTotal).toFixed(2)}</div>` : "") +
         `</div>`
       : "";
+
+    // ── Party admin notification ──────────────────────────────────
+    if (type === "party") {
+      const partyAppetizersStr = Array.isArray(appetizersSelected) && appetizersSelected.length > 0
+        ? appetizersSelected.join(", ") : null;
+      const fmtTime2 = (v) => {
+        if (!v) return "—";
+        const [h, m] = v.split(":").map(Number);
+        const hour12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+        return `${hour12}:${String(m).padStart(2,"0")} ${h >= 12 ? "PM" : "AM"}`;
+      };
+      const balance = total && deposit ? Number(total) - Number(deposit) : null;
+      const partyHtml =
+        `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#F5F0E8;">` +
+        `<div style="background:#0c0c0c;padding:20px 32px;text-align:center;"><img src="https://chefsspecialsushi.com/sonakase-logo.svg" alt="Sonakase" width="200" height="58" style="display:block;margin:0 auto;max-width:100%;border:0;" /></div>` +
+        `<div style="background:#E8C97E;padding:10px;text-align:center;"><div style="font-size:10px;color:#0c0c0c;letter-spacing:0.35em;text-transform:uppercase;font-weight:bold;">New Party Booking</div></div>` +
+        `<div style="padding:32px 36px;">` +
+        `<div style="background:#fff;border:1px solid rgba(26,18,8,0.1);padding:20px 24px;margin-bottom:20px;">` +
+        `<table style="width:100%;border-collapse:collapse;">` +
+        row("Confirmation", confirmationId) +
+        row("Client",       clientEmail) +
+        row("Experience",   packageName) +
+        row("Date",         fmtDate(eventDate)) +
+        row("Time",         fmtTime2(eventTime)) +
+        row("Guests",       guestCount ? `${guestCount} guests` : "—") +
+        (pricePerGuest ? row("Price / Guest", `$${pricePerGuest}`) : "") +
+        (partyAppetizersStr ? row("Appetizer", partyAppetizersStr) : "") +
+        row("Total",        fmt2(total)) +
+        row("Deposit",      fmt2(deposit)) +
+        row("Balance Due",  fmt2(balance)) +
+        row("Gratuity",     "Included") +
+        `</table></div>` +
+        (chefNotes ? `<div style="margin-bottom:20px;padding:14px 16px;background:rgba(197,85,45,0.06);border-left:3px solid #c5552d;">` +
+          `<div style="font-size:10px;color:#a07736;letter-spacing:0.2em;text-transform:uppercase;font-weight:bold;margin-bottom:6px;">Guest Restrictions / Chef's Notes</div>` +
+          `<div style="font-size:14px;color:#5a4f3c;font-style:italic;">${chefNotes}</div></div>` : "") +
+        `<div style="text-align:center;"><a href="https://chefsspecialsushi.com/admin" style="display:inline-block;background:#c5552d;color:#f5ecd9;padding:14px 28px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">View in Admin →</a></div>` +
+        `</div>` +
+        `<div style="background:#0c0c0c;padding:16px;text-align:center;"><p style="font-size:10px;color:rgba(245,240,232,0.25);letter-spacing:0.15em;margin:0;">sonakase · chefsspecialsushi.com</p></div>` +
+        `</div>`;
+      await resend.emails.send({
+        from: "Sonakase <bookings@sonakase.com>",
+        to: "masonssteinberg@gmail.com",
+        subject: `Party Booking — ${packageName} · ${guestCount} guests · ${fmtDate(eventDate)}`,
+        html: partyHtml,
+      });
+      return Response.json({ success: true });
+    }
 
     const isOmakase  = type === "omakase";
     const isDateNight = type === "datenight";

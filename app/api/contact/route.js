@@ -3,16 +3,18 @@ export async function POST(req) {
     const { Resend } = await import("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const { name, email, message } = await req.json();
+    const { name, email, subject, message } = await req.json();
 
     if (!name || !email || !message) {
       return Response.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const subjectLine = subject ? subject.trim() : null;
+
     await resend.emails.send({
       from: "Sonakase <bookings@sonakase.com>",
       to: "masonssteinberg@gmail.com",
-      subject: `Sonakase™ Inquiry — ${name}`,
+      subject: subjectLine ? `Sonakase™ — ${subjectLine}` : `Sonakase™ Inquiry — ${name}`,
       html: `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#f5f0e8;padding:0;">` +
         `<div style="background:#0d0d0d;padding:28px 32px;">` +
         `<div style="font-size:11px;color:#E8C97E;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:4px;">Sonakase™ · Inquiry</div>` +
@@ -24,6 +26,8 @@ export async function POST(req) {
         `<td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:15px;color:#0d0d0d;">${name}</td></tr>` +
         `<tr><td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:10px;color:#E8C97E;letter-spacing:0.2em;text-transform:uppercase;padding-right:20px;white-space:nowrap;">Email</td>` +
         `<td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:15px;color:#0d0d0d;">${email}</td></tr>` +
+        (subjectLine ? `<tr><td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:10px;color:#E8C97E;letter-spacing:0.2em;text-transform:uppercase;padding-right:20px;white-space:nowrap;">Subject</td>` +
+        `<td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:15px;color:#0d0d0d;">${subjectLine}</td></tr>` : "") +
         `</table>` +
         `<div style="font-size:10px;color:#E8C97E;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:10px;">Message</div>` +
         `<div style="font-size:15px;color:#0d0d0d;line-height:1.7;white-space:pre-wrap;">${message}</div>` +

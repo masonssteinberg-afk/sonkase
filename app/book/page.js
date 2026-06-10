@@ -63,7 +63,7 @@ const OMAKASE_PACKAGES = [
     id: "datenight",
     name: "date night",
     kanji: "宴",
-    guests: 2, price: 275, deposit: 68.75, rolls: 5, nigiri: 9, appetizerCount: 1,
+    guests: 2, price: 315, deposit: 78.75, rolls: 5, nigiri: 9, appetizerCount: 1,
     includes: [
       "9 piece nigiri course",
       "1 appetizer of your choice",
@@ -74,7 +74,7 @@ const OMAKASE_PACKAGES = [
     id: "doubledatenight",
     name: "double date",
     kanji: "双",
-    guests: 4, price: 420, deposit: 105, rolls: 10, nigiri: 18, appetizerCount: 2,
+    guests: 4, price: 485, deposit: 121.25, rolls: 10, nigiri: 18, appetizerCount: 2,
     includes: [
       "18 piece nigiri course",
       "2 appetizers of your choice",
@@ -85,7 +85,7 @@ const OMAKASE_PACKAGES = [
     id: "smallgathering",
     name: "small gathering",
     kanji: "集",
-    guests: 6, price: 580, deposit: 145, rolls: 14, nigiri: 27, appetizerCount: 3,
+    guests: 6, price: 665, deposit: 166.25, rolls: 14, nigiri: 27, appetizerCount: 3,
     includes: [
       "27 piece nigiri course",
       "3 appetizers of your choice",
@@ -96,7 +96,7 @@ const OMAKASE_PACKAGES = [
     id: "gettogether",
     name: "get together",
     kanji: "会",
-    guests: 8, price: 720, deposit: 180, rolls: 18, nigiri: 36, appetizerCount: 4,
+    guests: 8, price: 830, deposit: 207.50, rolls: 18, nigiri: 36, appetizerCount: 4,
     includes: [
       "36 piece nigiri course",
       "4 appetizers of your choice",

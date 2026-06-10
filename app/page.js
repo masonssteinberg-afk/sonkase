@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-const SushiAnimation = dynamic(() => import("./components/SushiAnimation"), { ssr: false });
+import { useRouter } from "next/navigation";
+const SushiSlice  = dynamic(() => import("./components/SushiSlice"),  { ssr: false });
+const ScrollRoll  = dynamic(() => import("./components/ScrollRoll"),  { ssr: false });
 
 // ── Design Tokens ──────────────────────────────────────────────
 const BG    = "#0d0d0d";
@@ -12,19 +14,19 @@ const CREAM = "#F5F0E8";
 // ── Packages (no ™ on individual names per brand guidelines) ──
 const PACKAGES = [
   {
-    id: "datenight", name: "date night", guests: 2, price: 275,
+    id: "datenight", name: "date night", guests: 2, price: 315,
     includes: ["9 piece nigiri course", "1 appetizer of your choice", "5 rolls, chef's selection"],
   },
   {
-    id: "doubledatenight", name: "double date", guests: 4, price: 420,
+    id: "doubledatenight", name: "double date", guests: 4, price: 485,
     includes: ["18 piece nigiri course", "2 appetizers of your choice", "10 rolls, chef's selection"],
   },
   {
-    id: "smallgathering", name: "small gathering", guests: 6, price: 580,
+    id: "smallgathering", name: "small gathering", guests: 6, price: 665,
     includes: ["27 piece nigiri course", "3 appetizers of your choice", "14 rolls, chef's selection"],
   },
   {
-    id: "gettogether", name: "get together", guests: 8, price: 720,
+    id: "gettogether", name: "get together", guests: 8, price: 830,
     includes: ["36 piece nigiri course", "4 appetizers of your choice", "18 rolls, chef's selection"],
   },
 ];
@@ -61,11 +63,23 @@ function calcDiscountedPrice(price, promo) {
   return Math.round(raw / 5) * 5;
 }
 
-const HOW_STEPS = [
-  { num: "一", title: "book your night",  desc: "pick your crew size, lock a date, and put down a deposit. that's it." },
-  { num: "二", title: "we handle it",     desc: "mason sources fresh fish and preps everything the day before your event." },
-  { num: "三", title: "we show up",       desc: "chef arrives early, sets up in your kitchen, and gets rolling." },
-  { num: "四", title: "you eat well",     desc: "course by course, right in front of you. no restaurant required." },
+const SONAKASE_INFO = [
+  {
+    eyebrow: "what is sonakase",
+    body: "A private dinner for special occasions where the spotlight shines equally on the food and your comfort. A premium multi-course omakase experience, enjoyed surrounded by friends and family in your own home — Sonakase is Chef Steinberg's ideal sushi experience.",
+  },
+  {
+    eyebrow: "how it works",
+    body: "Our chefs use fresh seasonal ingredients from local sources. They bring their expertise into your home and prepare your meal right before you. Every nigiri piece will be made by hand while you watch as we recreate the experience of a sushi bar in the comfort of your own home.",
+  },
+  {
+    eyebrow: "why sonakase",
+    body: "Birthdays, anniversaries, housewarmings, celebrations — Sonakase transforms your space into a private gastronomic experience. The intimacy of home with the quality of the best seat in the house.",
+  },
+  {
+    eyebrow: "reservations",
+    body: "Choose your package above, pick your date, and secure it with a deposit. Rather talk it through first? Use the contact form below and we'll help you find the right fit for your evening.",
+  },
 ];
 
 /* ======================================================================
@@ -95,6 +109,7 @@ const HOW_STEPS = [
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function Home() {
+  const router = useRouter();
   const [showAnim, setShowAnim] = useState(false);
 
   useEffect(() => {
@@ -116,13 +131,18 @@ export default function Home() {
 
   return (
     <div style={{ background: BG, color: CREAM, fontFamily: "'Shippori Mincho', Georgia, serif", overflowX: "hidden" }}>
-      {showAnim && <SushiAnimation onDone={() => setShowAnim(false)} />}
+      {showAnim && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+          <SushiSlice onEnter={() => { setShowAnim(false); router.push("/book"); }} />
+        </div>
+      )}
       <PageStyles />
+      <ScrollRoll />
       <Nav />
       <AboutSection />
-      <Hero onLetsRoll={() => setShowAnim(true)} />
+      <Hero onLetsRoll={() => router.push("/book")} onLogoClick={() => setShowAnim(true)} />
       <ExperiencesSection />
-      <HowItWorksSection />
+      <SonakaseInfoSection />
       <AboutChefSection />
       <ContactSection />
       <PhotoSection />
@@ -137,7 +157,8 @@ function PageStyles() {
   return (
     <style>{`
       :root { --header-h: 100px; }
-      @media (max-width: 768px) { :root { --header-h: 72px; } }
+      @media (max-width: 768px)  { :root { --header-h: 72px; } .sk-scroll-roll { display: none !important; } .sk-info-row { grid-template-columns: 1fr !important; gap: 16px !important; } }
+      @media (max-width: 1100px) { .sk-scroll-roll { transform: translateY(-50%) scale(0.65) !important; left: 2px !important; transform-origin: left center; } }
 
       .sk-hero { padding: calc(140px + var(--banner-h, 0px)) 40px 100px; }
 
@@ -174,8 +195,25 @@ function PageStyles() {
         min-height: 44px;
         display: inline-flex;
         align-items: center;
+        position: relative;
+      }
+      .sk-nav-link::after {
+        content: "";
+        position: absolute;
+        left: 20px; right: 20px; bottom: 10px;
+        height: 1px;
+        background: ${GOLD};
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
       }
       .sk-nav-link:hover { color: #fff; }
+      .sk-nav-link:hover::after { transform: scaleX(1); }
+
+      .sk-arrow {
+        display: inline-block;
+        transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+      }
 
       .sk-btn-fill {
         background: ${GOLD};
@@ -190,11 +228,32 @@ function PageStyles() {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 10px;
         min-height: 52px;
         padding: 0 32px;
-        transition: opacity 0.2s;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1);
       }
-      .sk-btn-fill:hover { opacity: 0.88; }
+      .sk-btn-fill::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+        transform: translateX(-120%);
+        transition: transform 0.6s ease;
+        pointer-events: none;
+      }
+      .sk-btn-fill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(232,201,126,0.25);
+      }
+      .sk-btn-fill:hover::after { transform: translateX(120%); }
+      .sk-btn-fill:hover .sk-arrow { transform: translateX(4px); }
+      .sk-btn-fill:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 12px rgba(232,201,126,0.15);
+      }
 
       .sk-btn-ghost {
         background: transparent;
@@ -209,11 +268,41 @@ function PageStyles() {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 10px;
         min-height: 52px;
         padding: 0 32px;
-        transition: background 0.2s;
+        position: relative;
+        overflow: hidden;
+        z-index: 0;
+        transition: color 0.3s, transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1);
       }
-      .sk-btn-ghost:hover { background: rgba(232,201,126,0.08); }
+      .sk-btn-ghost::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: ${GOLD};
+        transform: scaleY(0);
+        transform-origin: bottom center;
+        transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+        z-index: -1;
+      }
+      .sk-btn-ghost:hover {
+        color: ${BG};
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(232,201,126,0.18);
+      }
+      .sk-btn-ghost:hover::before { transform: scaleY(1); }
+      .sk-btn-ghost:hover .sk-arrow { transform: translateX(4px); }
+      .sk-btn-ghost:active { transform: translateY(0); }
+
+      .sk-btn-fill:focus-visible,
+      .sk-btn-ghost:focus-visible,
+      .sk-party-btn:focus-visible,
+      .sk-reserve-link:focus-visible,
+      .sk-nav-link:focus-visible {
+        outline: 2px solid ${GOLD};
+        outline-offset: 3px;
+      }
 
       .sk-contact-field {
         background: transparent;
@@ -236,14 +325,34 @@ function PageStyles() {
         padding: 40px 36px 36px;
         display: flex;
         flex-direction: column;
-        transition: border-color 0.2s;
+        transition: border-color 0.3s, transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s cubic-bezier(0.16,1,0.3,1);
       }
-      .sk-pkg-card:hover { border-color: rgba(232,201,126,0.45); }
+      .sk-pkg-card:hover {
+        border-color: rgba(232,201,126,0.45);
+        transform: translateY(-4px);
+        box-shadow: 0 14px 44px rgba(0,0,0,0.5);
+      }
+
+      .sk-reserve-link {
+        font-family: 'Shippori Mincho', Georgia, serif;
+        font-size: 12px;
+        color: ${GOLD};
+        letter-spacing: 0.2em;
+        text-decoration: none;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: color 0.2s;
+      }
+      .sk-reserve-link:hover { color: #fff8ec; }
+      .sk-reserve-link:hover .sk-arrow { transform: translateX(5px); }
 
       .sk-party-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 10px;
         height: 52px;
         padding: 0 40px;
         border: 1px solid rgba(232,201,126,0.4);
@@ -253,9 +362,27 @@ function PageStyles() {
         color: ${GOLD};
         letter-spacing: 0.2em;
         text-decoration: none;
-        transition: border-color 0.2s, color 0.2s;
+        transition: border-color 0.3s, color 0.3s, background 0.3s, transform 0.25s cubic-bezier(0.16,1,0.3,1);
       }
-      .sk-party-btn:hover { border-color: ${GOLD}; color: #fff8ec; }
+      .sk-party-btn:hover {
+        border-color: ${GOLD};
+        color: #fff8ec;
+        background: rgba(232,201,126,0.06);
+        transform: translateY(-2px);
+      }
+      .sk-party-btn:hover .sk-arrow { transform: translateX(4px); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .sk-btn-fill, .sk-btn-ghost, .sk-party-btn, .sk-pkg-card,
+        .sk-arrow, .sk-nav-link::after, .sk-btn-ghost::before, .sk-btn-fill::after {
+          transition: none !important;
+        }
+        .sk-btn-fill::after { display: none; }
+        .hero-icon, .sk-promo-hint { animation: none !important; }
+        .sk-btn-fill:hover, .sk-btn-ghost:hover, .sk-party-btn:hover, .sk-pkg-card:hover {
+          transform: none;
+        }
+      }
 
       .sk-about-grid {
         display: grid;
@@ -488,7 +615,7 @@ function ChiyogamiPattern({ id, opacity = 0.04 }) {
 }
 
 // ── Hero ──────────────────────────────────────────────────────
-function Hero({ onLetsRoll }) {
+function Hero({ onLetsRoll, onLogoClick }) {
   return (
     <section style={{
       background: BG, backgroundImage: N(0.65, 0.022), minHeight: "100vh",
@@ -529,7 +656,7 @@ function Hero({ onLetsRoll }) {
             background: "radial-gradient(circle, rgba(232,201,126,0.06) 0%, transparent 70%)",
             pointerEvents: "none", zIndex: 0,
           }} />
-          <a href="/" style={{ textDecoration: "none", display: "block", position: "relative", zIndex: 1 }} className="hero-icon">
+          <a href="/" onClick={(e) => { e.preventDefault(); onLogoClick?.(); }} style={{ textDecoration: "none", display: "block", position: "relative", zIndex: 1, cursor: "pointer" }} className="hero-icon">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="18 14 78 100"
@@ -569,7 +696,7 @@ function Hero({ onLetsRoll }) {
           color: GOLD, letterSpacing: "0.15em", fontStyle: "italic",
           marginBottom: 56,
         }}>
-          American Omakase, Where You Are
+          American Omakase Where You Are
         </div>
 
         {/* CTAs */}
@@ -579,7 +706,7 @@ function Hero({ onLetsRoll }) {
             className="sk-btn-fill"
             style={{ width: "100%", border: "none", cursor: "pointer" }}
           >
-            Let's Roll →
+            Let's Roll <span className="sk-arrow">→</span>
           </button>
         </div>
       </div>
@@ -651,7 +778,7 @@ function ExperiencesSection() {
 
                 {/* Guest count */}
                 <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: "#b8892a", letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 24 }}>
-                  {p.guests} guests
+                  homakase · {p.guests} guests
                 </div>
 
                 {/* Price */}
@@ -684,14 +811,8 @@ function ExperiencesSection() {
                 </div>
 
                 {/* CTA */}
-                <a
-                  href="/book"
-                  onClick={storePromo}
-                  style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12, color: GOLD, letterSpacing: "0.2em", textDecoration: "none", textTransform: "uppercase", transition: "opacity 0.2s" }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = "0.6"}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-                >
-                  Reserve →
+                <a href="/book" onClick={storePromo} className="sk-reserve-link">
+                  Reserve <span className="sk-arrow">→</span>
                 </a>
                 </div>
               </Reveal>
@@ -703,7 +824,7 @@ function ExperiencesSection() {
         <Reveal delay={0.1}>
           <div style={{ textAlign: "center", marginTop: 40 }}>
             <a href="/parties" className="sk-party-btn">
-              Hosting more people? →
+              Hosting more people? <span className="sk-arrow">→</span>
             </a>
           </div>
         </Reveal>
@@ -714,51 +835,37 @@ function ExperiencesSection() {
 }
 
 // ── How It Works ──────────────────────────────────────────────
-function HowItWorksSection() {
+function SonakaseInfoSection() {
   return (
     <section style={{ background: BG, backgroundImage: N(0.80, 0.035), position: "relative", overflow: "hidden" }}>
-      <ChiyogamiPattern id="sk-shippo-how" opacity={0.04} />
+      <ChiyogamiPattern id="sk-shippo-info" opacity={0.04} />
       <div style={{ position: "relative", zIndex: 1 }}>
-      <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
-        <Reveal>
-          {/* Eyebrow */}
-          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
-            the process
-          </div>
-
-          {/* Headline */}
-          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(28px, 4vw, 60px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 80, lineHeight: 1.15 }}>
-            simple from start to finish.
-          </h2>
-        </Reveal>
-
-        {/* Steps */}
-        <div className="sk-how-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 0 }}>
-          {HOW_STEPS.map((s, i) => (
-            <Reveal key={s.num} delay={i * 0.1}>
-            <div style={{
-              padding: "0 32px 0 0",
-              borderRight: i < HOW_STEPS.length - 1 ? `1px solid rgba(232,201,126,0.15)` : "none",
-              marginRight: i < HOW_STEPS.length - 1 ? 0 : 0,
-              paddingLeft: i > 0 ? 32 : 0,
-            }}>
-              {/* Numeral */}
-              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 52, color: GOLD, opacity: 0.3, lineHeight: 1, marginBottom: 20, fontWeight: 400 }}>
-                {s.num}
-              </div>
-              {/* Title */}
-              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: CREAM, letterSpacing: "0.08em", marginBottom: 14, fontWeight: 400 }}>
-                {s.title}
-              </div>
-              {/* Description */}
-              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.55)`, lineHeight: 1.75 }}>
-                {s.desc}
-              </p>
+        <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1000, margin: "0 auto", boxSizing: "border-box" }}>
+          <Reveal>
+            <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
+              sonakase
             </div>
-            </Reveal>
-          ))}
+            <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(28px, 4vw, 56px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 80, lineHeight: 1.15 }}>
+              the experience explained.
+            </h2>
+          </Reveal>
+
+          <div>
+            {SONAKASE_INFO.map((item, i) => (
+              <Reveal key={item.eyebrow} delay={i * 0.08}>
+                <div className="sk-info-row" style={{ display: "grid", gridTemplateColumns: "210px 1fr", gap: "0 64px", padding: "52px 0", borderTop: "1px solid rgba(232,201,126,0.12)" }}>
+                  <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.4em", textTransform: "uppercase", paddingTop: 4 }}>
+                    {item.eyebrow}
+                  </div>
+                  <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 15, color: "rgba(245,240,232,0.65)", lineHeight: 1.9, margin: 0, paddingTop: 4 }}>
+                    {item.body}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+            <div style={{ height: 1, background: "rgba(232,201,126,0.12)" }} />
+          </div>
         </div>
-      </div>
       </div>
     </section>
   );
@@ -808,7 +915,7 @@ function AboutChefSection() {
                   Mason grew up sitting at the sushi bar as a kid, watching the chef work. He started practicing at home, rolling on his own with grocery store fish and YouTube. By 15 he had his first kitchen job as a dishwasher.
                 </p>
                 <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
-                  The week he turned 16 and got his license, he drove back to that same restaurant and asked for a job. They gave him one. Over the next few years he worked his way through some of Gainesville&rsquo;s most notable sushi spots, including Ichiban, Chopstix, and Arashi Yama, moving from prep to rolling, learning the craft the right way across multiple kitchens.
+                  The week he turned 16 and got his license, he drove back to the place he grew up sitting in front of the bar — now working behind it. Over the next few years he worked his way through some of Gainesville&rsquo;s most notable sushi spots, moving from prep to rolling, learning the craft the right way across multiple kitchens.
                 </p>
                 <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
                   Along the way he started doing sushi nights for his family. Rolling for the people he grew up with, at home, around the table. It was always his favorite part. At 20 he decided other people deserved that too. That is Sonakase&trade;.
@@ -1071,7 +1178,7 @@ function SiteFooter() {
               </svg>
             </a>
             <a href="/book" className="sk-btn-fill" style={{ fontSize: 11 }}>
-              Reserve Your Experience →
+              Reserve Your Experience <span className="sk-arrow">→</span>
             </a>
           </div>
           <div style={{ borderTop: `1px solid rgba(232,201,126,0.12)`, paddingTop: 24 }}>
