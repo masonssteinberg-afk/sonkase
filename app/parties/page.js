@@ -95,10 +95,8 @@ export default function PartiesPage() {
 
       {/* Back link */}
       <div style={{ padding: "28px 40px" }}>
-        <a href="/" style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12, color: GOLD, letterSpacing: "0.15em", textDecoration: "none", transition: "opacity 0.2s" }}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = "0.6"}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>
-          ← Sonkase™
+        <a href="/" className="sk-back-link">
+          <span className="sk-arrow">←</span> Sonkase™
         </a>
       </div>
 
@@ -193,14 +191,8 @@ function PackageCard({ name, pricePerGuest, includes, href, discounted, hintPart
         ))}
       </div>
 
-      <a
-        href={href}
-        onClick={onReserve}
-        style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12, color: GOLD, letterSpacing: "0.2em", textDecoration: "none", textTransform: "uppercase", transition: "opacity 0.2s" }}
-        onMouseEnter={(e) => e.currentTarget.style.opacity = "0.6"}
-        onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-      >
-        Reserve →
+      <a href={href} onClick={onReserve} className="sk-reserve-link">
+        Reserve <span className="sk-arrow">→</span>
       </a>
     </div>
   );
@@ -223,7 +215,50 @@ function PartiesStyles() {
         transform-origin: left center;
         animation: hint-pulse 2.4s ease-in-out infinite;
       }
-      .party-card:hover { border-color: rgba(232,201,126,0.45) !important; }
+      .party-card {
+        transition: border-color 0.3s, transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s cubic-bezier(0.16,1,0.3,1) !important;
+      }
+      .party-card:hover {
+        border-color: rgba(232,201,126,0.45) !important;
+        transform: translateY(-4px);
+        box-shadow: 0 14px 44px rgba(0,0,0,0.5);
+      }
+      .sk-arrow {
+        display: inline-block;
+        transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+      }
+      .sk-reserve-link {
+        font-family: 'Shippori Mincho', Georgia, serif;
+        font-size: 12px;
+        color: #E8C97E;
+        letter-spacing: 0.2em;
+        text-decoration: none;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: color 0.2s;
+      }
+      .sk-reserve-link:hover { color: #fff8ec; }
+      .sk-reserve-link:hover .sk-arrow { transform: translateX(5px); }
+      .sk-back-link {
+        font-family: 'Shippori Mincho', Georgia, serif;
+        font-size: 12px;
+        color: #E8C97E;
+        letter-spacing: 0.15em;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: color 0.2s;
+      }
+      .sk-back-link:hover { color: #fff8ec; }
+      .sk-back-link:hover .sk-arrow { transform: translateX(-5px); }
+      @media (prefers-reduced-motion: reduce) {
+        .party-card, .sk-arrow { transition: none !important; }
+        .party-card:hover { transform: none; }
+        .sk-promo-hint { animation: none !important; }
+      }
       @media (max-width: 768px) {
         .parties-grid { grid-template-columns: 1fr !important; }
         .party-card   { padding: 28px 20px 24px !important; }

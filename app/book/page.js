@@ -449,6 +449,55 @@ function BookStyles() {
 
       .book-page-wrapper { padding-top: calc(100px + var(--banner-h, 0px)); }
 
+      .book-cta {
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1);
+      }
+      .book-cta::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+        transform: translateX(-120%);
+        transition: transform 0.6s ease;
+        pointer-events: none;
+      }
+      .book-cta:disabled::after { display: none; }
+      .book-cta:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(232,201,126,0.25);
+      }
+      .book-cta:not(:disabled):hover::after { transform: translateX(120%); }
+      .book-cta:not(:disabled):active {
+        transform: translateY(0);
+        box-shadow: 0 3px 12px rgba(232,201,126,0.15);
+      }
+
+      .book-back { transition: color 0.2s; }
+      .book-back:hover { color: rgba(245,240,232,0.75) !important; }
+
+      .book-signout { transition: border-color 0.2s, color 0.2s; }
+      .book-signout:hover { border-color: #E8C97E !important; color: #fff8ec !important; }
+
+      .book-pkg-grid > button,
+      .book-app-grid > button {
+        transition: border-color 0.15s ease, transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1) !important;
+      }
+      .book-pkg-grid > button:hover,
+      .book-app-grid > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .book-cta, .book-back, .book-signout,
+        .book-pkg-grid > button, .book-app-grid > button { transition: none !important; }
+        .book-cta::after { display: none; }
+        .book-cta:not(:disabled):hover,
+        .book-pkg-grid > button:hover, .book-app-grid > button:hover { transform: none; }
+      }
+
       @media (max-width: 768px) {
         .book-header-inner { padding: 7px 16px !important; }
         .book-header-logo  { width: 200px !important; height: 58px !important; }
@@ -475,7 +524,7 @@ function BookHeader({ user, onSignOut }) {
         {user && (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontFamily: FONT_BODY, fontSize: 12, color: "rgba(245,240,232,0.45)", fontStyle: "italic" }}>{user.email}</span>
-            <button onClick={onSignOut} style={{ background: "none", border: `1px solid rgba(232,201,126,0.4)`, color: GOLD, padding: "6px 14px", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", fontFamily: FONT_BODY }}>
+            <button onClick={onSignOut} className="book-signout" style={{ background: "none", border: `1px solid rgba(232,201,126,0.4)`, color: GOLD, padding: "6px 14px", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", fontFamily: FONT_BODY }}>
               Sign out
             </button>
           </div>
@@ -599,7 +648,7 @@ function LoginScreen({ onLogin }) {
             />
             {error && <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: PERSIMMON, marginTop: 6 }}>{error}</div>}
           </div>
-          <button onClick={submit} disabled={loading} style={{ ...CS.cta, width: "100%" }}>
+          <button onClick={submit} disabled={loading} className="book-cta" style={{ ...CS.cta, width: "100%" }}>
             {loading ? "Sending…" : "Send Sign-In Link →"}
           </button>
         </>
@@ -658,7 +707,7 @@ function PackageStep({ selected, onSelect, onNext }) {
         })}
       </div>
 
-      <button onClick={onNext} disabled={!selected} style={{ ...CS.cta, ...(!selected ? CS.ctaDisabled : {}) }}>
+      <button onClick={onNext} disabled={!selected} className="book-cta" style={{ ...CS.cta, ...(!selected ? CS.ctaDisabled : {}) }}>
         Continue →
       </button>
     </div>
@@ -676,7 +725,7 @@ function DateTimeStep({ eventDate, setEventDate, eventTime, setEventTime, onBack
 
   return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Back to packages</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← Back to packages</button>
       <StepHeader kanji="弐" eyebrow="step 2 of 6" title="choose your evening" />
 
       <div style={{ marginBottom: 28 }}>
@@ -741,7 +790,7 @@ function DateTimeStep({ eventDate, setEventDate, eventTime, setEventTime, onBack
         )}
       </div>
 
-      <button onClick={onNext} disabled={!canProceed} style={{ ...CS.cta, ...(!canProceed ? CS.ctaDisabled : {}) }}>
+      <button onClick={onNext} disabled={!canProceed} className="book-cta" style={{ ...CS.cta, ...(!canProceed ? CS.ctaDisabled : {}) }}>
         Continue to Appetizers →
       </button>
     </div>
@@ -755,7 +804,7 @@ function AppetizerStep({ pkg, selected, onToggle, onBack, onNext }) {
 
   return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Back</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← Back</button>
       <StepHeader kanji="参" eyebrow="step 3 of 6" title="choose your appetizer" subtitle={`select ${needed} appetizer${needed > 1 ? "s" : ""} — included in your package.`} />
 
       <div className="book-app-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 28 }}>
@@ -788,7 +837,7 @@ function AppetizerStep({ pkg, selected, onToggle, onBack, onNext }) {
         {selected.length} of {needed} selected
       </div>
 
-      <button onClick={onNext} disabled={!canProceed} style={{ ...CS.cta, ...(!canProceed ? CS.ctaDisabled : {}) }}>
+      <button onClick={onNext} disabled={!canProceed} className="book-cta" style={{ ...CS.cta, ...(!canProceed ? CS.ctaDisabled : {}) }}>
         CONTINUE TO PREFERENCES →
       </button>
     </div>
@@ -865,7 +914,7 @@ function NotesStep({ value, onChange, isParty, onBack, onNext }) {
 
   return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← back</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← back</button>
       <StepHeader kanji="四" eyebrow="step 4 of 6" title="sushi preferences" subtitle="select all that apply, and add any other notes below. your chef reads this before every event." />
 
       {/* True Omakase — omakase packages only */}
@@ -958,7 +1007,7 @@ function NotesStep({ value, onChange, isParty, onBack, onNext }) {
         }
       </div>
 
-      <button onClick={onNext} disabled={!canProceed} style={{ ...CS.cta, ...(!canProceed ? CS.ctaDisabled : {}) }}>
+      <button onClick={onNext} disabled={!canProceed} className="book-cta" style={{ ...CS.cta, ...(!canProceed ? CS.ctaDisabled : {}) }}>
         REVIEW YOUR BOOKING →
       </button>
     </div>
@@ -971,7 +1020,7 @@ function SummaryStep({ pkg, eventDate, eventTime, appetizers, chefNotes, onBack,
 
   return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Edit notes</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← Edit notes</button>
       <StepHeader kanji="五" eyebrow="step 5 of 6" title="review your booking" />
 
       {/* Order recap */}
@@ -1097,7 +1146,7 @@ function OmakasePaymentScreen({ pkg, user, eventDate, eventTime, appetizers, che
 
   if (intentError) return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Back to review</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← Back to review</button>
       <div style={{ padding: "40px 0", fontFamily: FONT_BODY, fontSize: 15, color: PERSIMMON, fontStyle: "italic" }}>
         {intentError} — please try again or contact us directly.
       </div>
@@ -1228,7 +1277,7 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
 
   return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Back to review</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← Back to review</button>
       <StepHeader kanji="払" eyebrow="step 6 of 6" title="secure payment" subtitle="pay your 25% deposit to confirm the booking." />
 
       {/* Deposit panel */}
@@ -1338,7 +1387,7 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
       <button
         onClick={submit}
         disabled={processing || !stripe || !cardComplete}
-        style={{ ...CS.cta, ...(processing || !stripe || !cardComplete ? CS.ctaDisabled : {}), width: "100%" }}
+        className="book-cta" style={{ ...CS.cta, ...(processing || !stripe || !cardComplete ? CS.ctaDisabled : {}), width: "100%" }}
       >
         {processing ? "Processing…" : `Pay ${fmt2(effectiveDeposit)} & Confirm Booking`}
       </button>
@@ -1353,7 +1402,7 @@ function PartyGuestStep({ partyPkg, guestCount, setGuestCount, onNext }) {
 
   return (
     <div style={CS.card}>
-      <a href="/parties" style={CS.back}>← Back to packages</a>
+      <a href="/parties" className="book-back" style={CS.back}>← Back to packages</a>
       <StepHeader kanji="壱" eyebrow="step 1" title="how many guests?" subtitle="10 to 20 guests for this experience." />
 
       <div style={{ marginBottom: 12 }}>
@@ -1385,7 +1434,7 @@ function PartyGuestStep({ partyPkg, guestCount, setGuestCount, onNext }) {
         )}
       </div>
 
-      <button onClick={onNext} disabled={!canNext} style={{ ...CS.cta, ...(!canNext ? CS.ctaDisabled : {}) }}>
+      <button onClick={onNext} disabled={!canNext} className="book-cta" style={{ ...CS.cta, ...(!canNext ? CS.ctaDisabled : {}) }}>
         Continue →
       </button>
     </div>
@@ -1396,7 +1445,7 @@ function PartyGuestStep({ partyPkg, guestCount, setGuestCount, onNext }) {
 function PartyAppetizerConfirmStep({ onBack, onNext }) {
   return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Back</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← Back</button>
       <StepHeader kanji="参" eyebrow="step 3" title="appetizers included" subtitle="all three appetizers are included with Package B — no selection needed." />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
@@ -1432,7 +1481,7 @@ function PartySummaryStep({ partyPkg, guestCount, eventDate, eventTime, chefNote
 
   return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Edit notes</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← Edit notes</button>
       <StepHeader kanji="五" eyebrow="review" title="review your booking" />
 
       <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 24 }}>
@@ -1493,7 +1542,7 @@ function PartyPaymentScreen({ partyPkg, guestCount, user, eventDate, eventTime, 
 
   if (intentError) return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Back to review</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← Back to review</button>
       <div style={{ padding: "40px 0", fontFamily: FONT_BODY, fontSize: 15, color: PERSIMMON, fontStyle: "italic" }}>
         {intentError} — please try again or contact us directly.
       </div>
@@ -1608,7 +1657,7 @@ function PartyPaymentForm({ clientSecret, partyPkg, guestCount, user, eventDate,
 
   return (
     <div style={CS.card}>
-      <button onClick={onBack} style={CS.back}>← Back to review</button>
+      <button onClick={onBack} className="book-back" style={CS.back}>← Back to review</button>
       <StepHeader kanji="払" eyebrow="payment" title="secure payment" subtitle="pay your 25% deposit to confirm the booking." />
 
       <div style={{ background: NAVY, color: CREAM, padding: "22px 26px", marginBottom: 28 }}>
@@ -1653,7 +1702,7 @@ function PartyPaymentForm({ clientSecret, partyPkg, guestCount, user, eventDate,
       <button
         onClick={submit}
         disabled={processing || !stripe || !cardComplete}
-        style={{ ...CS.cta, ...(processing || !stripe || !cardComplete ? CS.ctaDisabled : {}), width: "100%" }}
+        className="book-cta" style={{ ...CS.cta, ...(processing || !stripe || !cardComplete ? CS.ctaDisabled : {}), width: "100%" }}
       >
         {processing ? "Processing…" : `Pay ${fmt2(deposit)} & Confirm Booking`}
       </button>

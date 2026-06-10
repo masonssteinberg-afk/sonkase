@@ -33,6 +33,12 @@ button {
   cursor: pointer;
 }
 
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #E8C97E;
+  outline-offset: 3px;
+}
+
 input, textarea, select {
   font-family: inherit;
 }

@@ -34,6 +34,44 @@ function fmt2(n) {
   return "$" + Number(n).toFixed(2);
 }
 
+function ProfileStyles() {
+  return (
+    <style>{`
+      .profile-cta {
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1);
+      }
+      .profile-cta::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+        transform: translateX(-120%);
+        transition: transform 0.6s ease;
+        pointer-events: none;
+      }
+      .profile-cta:disabled::after { display: none; }
+      .profile-cta:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(232,201,126,0.25);
+      }
+      .profile-cta:not(:disabled):hover::after { transform: translateX(120%); }
+      .profile-cta:not(:disabled):active {
+        transform: translateY(0);
+        box-shadow: 0 3px 12px rgba(232,201,126,0.15);
+      }
+      .profile-ghost-btn { transition: border-color 0.2s, color 0.2s; }
+      .profile-ghost-btn:hover { border-color: #E8C97E !important; color: #fff8ec !important; }
+      @media (prefers-reduced-motion: reduce) {
+        .profile-cta, .profile-ghost-btn { transition: none !important; }
+        .profile-cta::after { display: none; }
+        .profile-cta:not(:disabled):hover { transform: none; }
+      }
+    `}</style>
+  );
+}
+
 function SectionLabel({ children }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -98,6 +136,7 @@ function CancellationModal({ booking, onClose, onConfirm, sending }) {
           <button
             onClick={onConfirm}
             disabled={sending}
+            className="profile-cta"
             style={{
               background: GOLD, color: BG, border: "none",
               padding: "14px", fontFamily: F, fontSize: 13, letterSpacing: "0.15em",
@@ -109,6 +148,7 @@ function CancellationModal({ booking, onClose, onConfirm, sending }) {
           </button>
           <button
             onClick={onClose}
+            className="profile-ghost-btn"
             style={{
               background: "none", border: `1px solid rgba(232,201,126,0.25)`, color: MUTED,
               padding: "12px", fontFamily: F, fontSize: 13, cursor: "pointer",
@@ -403,6 +443,7 @@ function BookingCard({ booking: b, expanded, onToggle }) {
             <div style={{ paddingTop: 16, borderTop: `1px solid rgba(232,201,126,0.1)` }}>
               <button
                 onClick={() => setShowCancelModal(true)}
+                className="profile-ghost-btn"
                 style={{
                   background: "none", border: `1px solid rgba(232,201,126,0.35)`, color: GOLD,
                   padding: "10px 20px", fontFamily: F, fontSize: 12, letterSpacing: "0.12em",
@@ -544,6 +585,7 @@ export default function Profile() {
 
   if (!user) return (
     <div style={{ background: BG, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <ProfileStyles />
       <div style={{ maxWidth: 440, width: "100%", textAlign: "center" }}>
         <div style={{ fontFamily: F, fontSize: 28, color: CREAM, marginBottom: 6 }}>Sign In</div>
         <div style={{ fontFamily: F, fontSize: 14, color: MUTED, fontStyle: "italic", marginBottom: 36 }}>
@@ -572,6 +614,7 @@ export default function Profile() {
             <button
               onClick={signIn}
               disabled={signingIn}
+              className="profile-cta"
               style={{ width: "100%", padding: 16, background: signingIn ? "rgba(232,201,126,0.4)" : GOLD, color: BG, border: "none", fontFamily: F, fontSize: 13, letterSpacing: "0.2em", textTransform: "uppercase", cursor: signingIn ? "not-allowed" : "pointer", minHeight: 52 }}
             >
               {signingIn ? "Sending…" : "Send Sign-In Link →"}
@@ -587,6 +630,7 @@ export default function Profile() {
 
   return (
     <div style={{ background: BG, minHeight: "100vh", padding: "48px 20px", overflowX: "hidden", color: CREAM, fontFamily: F }}>
+      <ProfileStyles />
       <style>{`
         @media (max-width: 768px) {
           .profile-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; margin-bottom: 28px !important; }
@@ -610,7 +654,7 @@ export default function Profile() {
           </div>
           <div className="profile-header-actions" style={{ display: "flex", gap: 12, alignItems: "center", flexShrink: 0 }}>
             <a href="/" style={{ fontFamily: F, fontSize: 12, color: FAINT, fontStyle: "italic", textDecoration: "none", whiteSpace: "nowrap" }}>← Home</a>
-            <button onClick={signOut} style={{ background: "none", border: `1px solid rgba(232,201,126,0.25)`, padding: "10px 20px", fontFamily: F, fontSize: 12, color: MUTED, letterSpacing: "0.1em", cursor: "pointer", whiteSpace: "nowrap", minHeight: 44, textTransform: "uppercase" }}>
+            <button onClick={signOut} className="profile-ghost-btn" style={{ background: "none", border: `1px solid rgba(232,201,126,0.25)`, padding: "10px 20px", fontFamily: F, fontSize: 12, color: MUTED, letterSpacing: "0.1em", cursor: "pointer", whiteSpace: "nowrap", minHeight: 44, textTransform: "uppercase" }}>
               Sign Out
             </button>
           </div>
@@ -622,7 +666,7 @@ export default function Profile() {
             <div style={{ fontFamily: F, fontSize: 15, color: MUTED, fontStyle: "italic", marginBottom: 28 }}>
               Book your first private dining experience.
             </div>
-            <a href="/book" style={{ background: GOLD, color: BG, padding: "14px 28px", fontFamily: F, fontSize: 13, letterSpacing: "0.15em", textTransform: "uppercase", textDecoration: "none", display: "inline-block", minHeight: 52, lineHeight: "24px" }}>
+            <a href="/book" className="profile-cta" style={{ background: GOLD, color: BG, padding: "14px 28px", fontFamily: F, fontSize: 13, letterSpacing: "0.15em", textTransform: "uppercase", textDecoration: "none", display: "inline-block", minHeight: 52, lineHeight: "24px" }}>
               Reserve an Experience →
             </a>
           </div>
