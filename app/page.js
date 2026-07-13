@@ -15,15 +15,13 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
 // ── Packages (no ™ on individual names per brand guidelines) ──
-// No itemized course counts on the homepage — the menu is chef's choice.
+// No menu details on the homepage — the menu is chef's choice.
 const PACKAGES = [
   { id: "datenight",       name: "date night",      guests: 2, price: 315 },
   { id: "doubledatenight", name: "double date",     guests: 4, price: 485 },
   { id: "smallgathering",  name: "small gathering", guests: 6, price: 665 },
   { id: "gettogether",     name: "get together",    guests: 8, price: 830 },
 ];
-
-const CHEFS_CHOICE_LINE = "appetizers, nigiri, and rolls — chef's selection, sized for your party";
 
 // ── Promo helpers ─────────────────────────────────────────────
 const HINT_FNS = [
@@ -56,25 +54,6 @@ function calcDiscountedPrice(price, promo) {
     : Math.max(0, price - promo.discount_value);
   return Math.round(raw / 5) * 5;
 }
-
-const SONAKASE_INFO = [
-  {
-    eyebrow: "what is sonakase",
-    body: "A private dinner for special occasions where the spotlight shines equally on the food and your comfort. A premium multi-course omakase experience, enjoyed surrounded by friends and family in your own home — Sonakase is Chef Steinberg's ideal sushi experience.",
-  },
-  {
-    eyebrow: "how it works",
-    body: "Our chefs use fresh seasonal ingredients from local sources. They bring their expertise into your home and prepare your meal right before you. Every nigiri piece will be made by hand while you watch as we recreate the experience of a sushi bar in the comfort of your own home.",
-  },
-  {
-    eyebrow: "why sonakase",
-    body: "Birthdays, anniversaries, housewarmings, celebrations — Sonakase transforms your space into a private gastronomic experience. The intimacy of home with the quality of the best seat in the house.",
-  },
-  {
-    eyebrow: "reservations",
-    body: "Choose your package above, pick your date, and secure it with a deposit. Rather talk it through first? Use the contact form below and we'll help you find the right fit for your evening.",
-  },
-];
 
 /* ======================================================================
    LEGACY CODE — All previous Chef's Special homepage code preserved below.
@@ -110,16 +89,6 @@ export default function Home() {
     if (typeof window === "undefined") return;
     if (window.location.hash.includes("access_token")) {
       window.location.href = "/profile" + window.location.hash;
-      return;
-    }
-    if (!window.location.hash) {
-      // Disable browser scroll restoration so reload always lands on the hero,
-      // keeping the definition above as a scroll-up easter egg.
-      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-      const hero = document.getElementById("top");
-      if (hero) requestAnimationFrame(() =>
-        window.scrollTo({ top: hero.offsetTop, behavior: "instant" })
-      );
     }
   }, []);
 
@@ -133,10 +102,8 @@ export default function Home() {
       <PageStyles />
       <ScrollRoll />
       <Nav />
-      <AboutSection />
       <Hero onLetsRoll={() => router.push("/book")} onLogoClick={() => setShowAnim(true)} />
       <ExperiencesSection />
-      <SonakaseInfoSection />
       <AboutChefSection />
       <ContactSection />
       <PhotoSection />
@@ -151,7 +118,7 @@ function PageStyles() {
   return (
     <style>{`
       :root { --header-h: 100px; }
-      @media (max-width: 768px)  { :root { --header-h: 72px; } .sk-scroll-roll { display: none !important; } .sk-info-row { grid-template-columns: 1fr !important; gap: 16px !important; } }
+      @media (max-width: 768px)  { :root { --header-h: 72px; } .sk-scroll-roll { display: none !important; } }
       @media (max-width: 1100px) { .sk-scroll-roll { transform: translateY(-50%) scale(0.65) !important; left: 2px !important; transform-origin: left center; } }
 
       .sk-hero { padding: calc(140px + var(--banner-h, 0px)) 40px 100px; }
@@ -829,13 +796,7 @@ function ExperiencesSection() {
 
                 {/* Divider */}
                 <div style={{ height: 1, background: GOLD, opacity: 0.2, marginBottom: 28 }} />
-
-                {/* Chef's choice */}
-                <div style={{ flex: 1, marginBottom: 36 }}>
-                  <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.7)`, fontStyle: "italic", lineHeight: 1.6 }}>
-                    {CHEFS_CHOICE_LINE}
-                  </div>
-                </div>
+                <div style={{ flex: 1 }} />
 
                 {/* CTA */}
                 <a href="/book" onClick={storePromo} className="sk-reserve-link">
@@ -856,43 +817,6 @@ function ExperiencesSection() {
           </div>
         </Reveal>
 
-      </div>
-    </section>
-  );
-}
-
-// ── How It Works ──────────────────────────────────────────────
-function SonakaseInfoSection() {
-  return (
-    <section style={{ background: BG, backgroundImage: N(0.80, 0.035), position: "relative", overflow: "hidden" }}>
-      <ChiyogamiPattern id="sk-shippo-info" opacity={0.04} />
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1000, margin: "0 auto", boxSizing: "border-box" }}>
-          <Reveal>
-            <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
-              sonakase
-            </div>
-            <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(28px, 4vw, 56px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 80, lineHeight: 1.15 }}>
-              the experience explained.
-            </h2>
-          </Reveal>
-
-          <div>
-            {SONAKASE_INFO.map((item, i) => (
-              <Reveal key={item.eyebrow} delay={i * 0.08}>
-                <div className="sk-info-row" style={{ display: "grid", gridTemplateColumns: "210px 1fr", gap: "0 64px", padding: "52px 0", borderTop: "1px solid rgba(232,201,126,0.12)" }}>
-                  <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.4em", textTransform: "uppercase", paddingTop: 4 }}>
-                    {item.eyebrow}
-                  </div>
-                  <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 15, color: "rgba(245,240,232,0.65)", lineHeight: 1.9, margin: 0, paddingTop: 4 }}>
-                    {item.body}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
-            <div style={{ height: 1, background: "rgba(232,201,126,0.12)" }} />
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -1111,71 +1035,6 @@ function PhotoSection() {
           Photography coming soon.
         </p>
       </div>
-    </section>
-  );
-}
-
-// ── About Section (Dictionary Card) ──────────────────────────
-function AboutSection() {
-  const G = "#b8892a";
-  const T = "#5a4a3a";
-  const F = "'Shippori Mincho', Georgia, serif";
-  return (
-    <section style={{ background: "#f5f0e8", backgroundImage: N(0.90, 0.06), padding: "calc(100px + var(--header-h, 100px)) 40px 100px", boxSizing: "border-box" }}>
-      <Reveal>
-      <div style={{ maxWidth: 780, margin: "0 auto" }}>
-
-        {/* Top divider: line · dot · line */}
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 40 }}>
-          <div style={{ flex: 1, height: 1, background: G, opacity: 0.5 }} />
-          <div style={{ width: 5, height: 5, borderRadius: "50%", background: G, margin: "0 14px", opacity: 0.7 }} />
-          <div style={{ flex: 1, height: 1, background: G, opacity: 0.5 }} />
-        </div>
-
-        {/* Word + pronunciation */}
-        <div style={{ display: "flex", alignItems: "baseline", gap: 24, marginBottom: 10, flexWrap: "wrap" }}>
-          <div style={{ fontFamily: F, fontSize: "clamp(44px, 7vw, 64px)", fontWeight: 400, color: G, letterSpacing: "12px", textTransform: "uppercase", lineHeight: 1 }}>
-            SONAKASE
-          </div>
-          <div style={{ fontFamily: F, fontSize: 18, fontStyle: "italic", color: G, letterSpacing: "0.02em" }}>
-            /ˈsoʊ &middot; nə &middot; keɪs/
-          </div>
-        </div>
-
-        {/* Noun line + rule */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
-          <span style={{ fontFamily: F, fontSize: 13, fontStyle: "italic", color: G, whiteSpace: "nowrap" }}>noun &middot; proper</span>
-          <div style={{ flex: 1, height: 1, background: G, opacity: 0.35 }} />
-        </div>
-
-        {/* Etymology */}
-        <div style={{ fontFamily: F, fontSize: 14, fontStyle: "italic", color: G, lineHeight: 1.8, marginBottom: 32 }}>
-          [ son &middot; from Japanese 尊 (son), meaning reverence, esteem + kase &middot; derived from omakase おまかせ, &ldquo;I leave it to you&rdquo; ]
-        </div>
-
-        {/* Definition 1 */}
-        <div style={{ display: "flex", gap: 16, marginBottom: 20 }}>
-          <span style={{ fontFamily: F, fontSize: 14, color: G, fontWeight: 400, flexShrink: 0, marginTop: 1 }}>1.</span>
-          <p style={{ fontFamily: F, fontSize: 16, color: T, lineHeight: 1.85, margin: 0 }}>
-            A private, chef-led dining experience in which the guest surrenders all culinary decisions to the chef, receiving each course as an act of{" "}
-            <em style={{ color: G }}>studied trust</em>{" "}
-            and mutual respect.
-          </p>
-        </div>
-
-        {/* Definition 2 */}
-        <div style={{ display: "flex", gap: 16, marginBottom: 36 }}>
-          <span style={{ fontFamily: F, fontSize: 14, color: G, fontWeight: 400, flexShrink: 0, marginTop: 1 }}>2.</span>
-          <p style={{ fontFamily: F, fontSize: 16, color: T, lineHeight: 1.85, margin: 0 }}>
-            An intimate omakase offered within the sanctity of a private home; the transformation of one&rsquo;s own table into a{" "}
-            <em style={{ color: G }}>singular, unrepeatable</em>{" "}
-            occasion.
-          </p>
-        </div>
-
-
-      </div>
-      </Reveal>
     </section>
   );
 }
