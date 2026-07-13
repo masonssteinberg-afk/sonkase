@@ -38,7 +38,7 @@ const PARTY_PACKAGES = {
     pricePerGuest: 95,
     appetizerCount: 1,
     includes: [
-      "2 rolls per guest, chef's selection",
+      "rolls for every guest, chef's selection",
       "1 appetizer of your choice",
       "Tricolor nigiri platter",
     ],
@@ -49,7 +49,7 @@ const PARTY_PACKAGES = {
     pricePerGuest: 125,
     allAppetizers: true,
     includes: [
-      "3 rolls per guest, chef's selection",
+      "rolls for every guest, chef's selection",
       "All 3 appetizers included",
       "Tricolor nigiri platter",
       "Tricolor sashimi platter",
@@ -65,9 +65,9 @@ const OMAKASE_PACKAGES = [
     kanji: "宴",
     guests: 2, price: 315, deposit: 78.75, rolls: 5, nigiri: 9, appetizerCount: 1,
     includes: [
-      "9 piece nigiri course",
+      "handmade nigiri course, chef's selection",
       "1 appetizer of your choice",
-      "5 rolls, chef's selection",
+      "specialty rolls, chef's selection",
     ],
   },
   {
@@ -76,9 +76,9 @@ const OMAKASE_PACKAGES = [
     kanji: "双",
     guests: 4, price: 485, deposit: 121.25, rolls: 10, nigiri: 18, appetizerCount: 2,
     includes: [
-      "18 piece nigiri course",
+      "handmade nigiri course, chef's selection",
       "2 appetizers of your choice",
-      "10 rolls, chef's selection",
+      "specialty rolls, chef's selection",
     ],
   },
   {
@@ -87,9 +87,9 @@ const OMAKASE_PACKAGES = [
     kanji: "集",
     guests: 6, price: 665, deposit: 166.25, rolls: 14, nigiri: 27, appetizerCount: 3,
     includes: [
-      "27 piece nigiri course",
+      "handmade nigiri course, chef's selection",
       "3 appetizers of your choice",
-      "14 rolls, chef's selection",
+      "specialty rolls, chef's selection",
     ],
   },
   {
@@ -98,9 +98,9 @@ const OMAKASE_PACKAGES = [
     kanji: "会",
     guests: 8, price: 830, deposit: 207.50, rolls: 18, nigiri: 36, appetizerCount: 4,
     includes: [
-      "36 piece nigiri course",
+      "handmade nigiri course, chef's selection",
       "4 appetizers of your choice",
-      "18 rolls, chef's selection",
+      "specialty rolls, chef's selection",
     ],
   },
 ];

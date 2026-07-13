@@ -13,7 +13,7 @@ const PARTY_CARDS = [
     name: "Package A",
     pricePerGuest: 95,
     includes: [
-      "2 rolls per guest, chef's selection",
+      "rolls for every guest, chef's selection",
       "1 appetizer of your choice",
       "Tricolor nigiri platter",
     ],
@@ -23,7 +23,7 @@ const PARTY_CARDS = [
     name: "Package B",
     pricePerGuest: 125,
     includes: [
-      "3 rolls per guest, chef's selection",
+      "rolls for every guest, chef's selection",
       "All 3 appetizers included",
       "Tricolor nigiri platter",
       "Tricolor sashimi platter",
