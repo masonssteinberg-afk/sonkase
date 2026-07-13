@@ -10,6 +10,9 @@ const BG    = "#0d0d0d";
 const BG2   = "#141414";
 const GOLD  = "#E8C97E";
 const CREAM = "#F5F0E8";
+const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif";
+// iOS-style spring for transforms; standard ease-out for everything else
+const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
 // ── Packages (no ™ on individual names per brand guidelines) ──
 // No itemized course counts on the homepage — the menu is chef's choice.
@@ -158,9 +161,11 @@ function PageStyles() {
         50%       { opacity: 1;   transform: scale(1.06); }
       }
       .sk-promo-hint {
-        font-family: 'Shippori Mincho', Georgia, serif;
-        font-style: italic;
-        font-size: 12px;
+        font-family: ${FONT_UI};
+        font-style: normal;
+        font-size: 11.5px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
         color: #E8C97E;
         margin-top: 12px;
         display: block;
@@ -176,30 +181,25 @@ function PageStyles() {
       .hero-icon { animation: bob 2.5s ease-in-out infinite; }
 
       .sk-nav-link {
-        font-family: 'Shippori Mincho', Georgia, serif;
-        font-size: 12px;
-        letter-spacing: 0.12em;
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
         color: #e6dac8;
         text-decoration: none;
-        transition: color 0.2s;
-        padding: 0 20px;
-        min-height: 44px;
+        transition: color 0.2s, background 0.2s, transform 0.2s ${SPRING};
+        padding: 0 16px;
+        min-height: 38px;
         display: inline-flex;
         align-items: center;
         position: relative;
+        border-radius: 999px;
       }
-      .sk-nav-link::after {
-        content: "";
-        position: absolute;
-        left: 20px; right: 20px; bottom: 10px;
-        height: 1px;
-        background: ${GOLD};
-        transform: scaleX(0);
-        transform-origin: left center;
-        transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+      .sk-nav-link:hover {
+        color: #fff;
+        background: rgba(245,240,232,0.08);
       }
-      .sk-nav-link:hover { color: #fff; }
-      .sk-nav-link:hover::after { transform: scaleX(1); }
+      .sk-nav-link:active { transform: scale(0.96); }
 
       .sk-arrow {
         display: inline-block;
@@ -207,13 +207,15 @@ function PageStyles() {
       }
 
       .sk-btn-fill {
-        background: ${GOLD};
+        background: linear-gradient(180deg, #F0D796 0%, ${GOLD} 100%);
         color: ${BG};
         border: none;
-        font-family: 'Shippori Mincho', Georgia, serif;
-        font-size: 12px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
+        border-radius: 999px;
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: none;
         cursor: pointer;
         text-decoration: none;
         display: inline-flex;
@@ -224,7 +226,8 @@ function PageStyles() {
         padding: 0 32px;
         position: relative;
         overflow: hidden;
-        transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(232,201,126,0.12);
+        transition: transform 0.3s ${SPRING}, box-shadow 0.3s ${SPRING};
       }
       .sk-btn-fill::after {
         content: "";
@@ -236,24 +239,26 @@ function PageStyles() {
         pointer-events: none;
       }
       .sk-btn-fill:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 28px rgba(232,201,126,0.25);
+        transform: translateY(-2px) scale(1.015);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 10px 32px rgba(232,201,126,0.3);
       }
       .sk-btn-fill:hover::after { transform: translateX(120%); }
       .sk-btn-fill:hover .sk-arrow { transform: translateX(4px); }
       .sk-btn-fill:active {
-        transform: translateY(0);
-        box-shadow: 0 3px 12px rgba(232,201,126,0.15);
+        transform: scale(0.97);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 3px 12px rgba(232,201,126,0.15);
       }
 
       .sk-btn-ghost {
-        background: transparent;
+        background: rgba(232,201,126,0.06);
         color: ${GOLD};
-        border: 1px solid ${GOLD};
-        font-family: 'Shippori Mincho', Georgia, serif;
-        font-size: 12px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
+        border: 1px solid rgba(232,201,126,0.35);
+        border-radius: 999px;
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: none;
         cursor: pointer;
         text-decoration: none;
         display: inline-flex;
@@ -265,7 +270,9 @@ function PageStyles() {
         position: relative;
         overflow: hidden;
         z-index: 0;
-        transition: color 0.3s, transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: color 0.3s, transform 0.3s ${SPRING}, box-shadow 0.3s ${SPRING};
       }
       .sk-btn-ghost::before {
         content: "";
@@ -279,12 +286,12 @@ function PageStyles() {
       }
       .sk-btn-ghost:hover {
         color: ${BG};
-        transform: translateY(-2px);
+        transform: translateY(-2px) scale(1.015);
         box-shadow: 0 8px 28px rgba(232,201,126,0.18);
       }
       .sk-btn-ghost:hover::before { transform: scaleY(1); }
       .sk-btn-ghost:hover .sk-arrow { transform: translateX(4px); }
-      .sk-btn-ghost:active { transform: translateY(0); }
+      .sk-btn-ghost:active { transform: scale(0.97); }
 
       .sk-btn-fill:focus-visible,
       .sk-btn-ghost:focus-visible,
@@ -296,48 +303,71 @@ function PageStyles() {
       }
 
       .sk-contact-field {
-        background: transparent;
-        border: none;
-        border-bottom: 1px solid rgba(232,201,126,0.4);
+        background: rgba(245,240,232,0.045);
+        border: 1px solid rgba(232,201,126,0.16);
+        border-radius: 14px;
         color: ${CREAM};
-        font-family: 'Shippori Mincho', Georgia, serif;
+        font-family: ${FONT_UI};
         font-size: 16px;
         width: 100%;
-        padding: 14px 0;
+        padding: 15px 18px;
         outline: none;
-        transition: border-color 0.2s;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
       }
       .sk-contact-field::placeholder { color: rgba(245,240,232,0.35); }
-      .sk-contact-field:focus { border-bottom-color: ${GOLD}; }
+      .sk-contact-field:focus {
+        border-color: rgba(232,201,126,0.6);
+        background: rgba(245,240,232,0.06);
+        box-shadow: 0 0 0 3px rgba(232,201,126,0.12);
+      }
 
       .sk-pkg-card {
-        background: ${BG};
-        border: 1px solid rgba(232,201,126,0.2);
+        background: linear-gradient(180deg, rgba(245,240,232,0.045) 0%, rgba(245,240,232,0.015) 100%);
+        border: 1px solid rgba(232,201,126,0.14);
+        border-radius: 24px;
         padding: 40px 36px 36px;
         display: flex;
         flex-direction: column;
-        transition: border-color 0.3s, transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s cubic-bezier(0.16,1,0.3,1);
+        height: 100%;
+        box-sizing: border-box;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: inset 0 1px 0 rgba(245,240,232,0.06), 0 4px 24px rgba(0,0,0,0.25);
+        transition: border-color 0.3s, transform 0.4s ${SPRING}, box-shadow 0.4s ${SPRING};
       }
       .sk-pkg-card:hover {
-        border-color: rgba(232,201,126,0.45);
-        transform: translateY(-4px);
-        box-shadow: 0 14px 44px rgba(0,0,0,0.5);
+        border-color: rgba(232,201,126,0.4);
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: inset 0 1px 0 rgba(245,240,232,0.08), 0 20px 48px rgba(0,0,0,0.5);
       }
 
       .sk-reserve-link {
-        font-family: 'Shippori Mincho', Georgia, serif;
-        font-size: 12px;
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 600;
         color: ${GOLD};
-        letter-spacing: 0.2em;
+        letter-spacing: 0.03em;
         text-decoration: none;
-        text-transform: uppercase;
+        text-transform: none;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
-        transition: color 0.2s;
+        min-height: 44px;
+        padding: 0 24px;
+        border-radius: 999px;
+        border: 1px solid rgba(232,201,126,0.25);
+        background: rgba(232,201,126,0.05);
+        align-self: flex-start;
+        transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.25s ${SPRING};
       }
-      .sk-reserve-link:hover { color: #fff8ec; }
+      .sk-reserve-link:hover {
+        color: #fff8ec;
+        background: rgba(232,201,126,0.12);
+        border-color: rgba(232,201,126,0.5);
+      }
       .sk-reserve-link:hover .sk-arrow { transform: translateX(5px); }
+      .sk-reserve-link:active { transform: scale(0.96); }
 
       .sk-party-btn {
         display: inline-flex;
@@ -346,22 +376,27 @@ function PageStyles() {
         gap: 10px;
         height: 52px;
         padding: 0 40px;
-        border: 1px solid rgba(232,201,126,0.4);
-        background: transparent;
-        font-family: 'Shippori Mincho', Georgia, serif;
+        border: 1px solid rgba(232,201,126,0.3);
+        border-radius: 999px;
+        background: rgba(232,201,126,0.05);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        font-family: ${FONT_UI};
         font-size: 13px;
+        font-weight: 500;
         color: ${GOLD};
-        letter-spacing: 0.2em;
+        letter-spacing: 0.03em;
         text-decoration: none;
-        transition: border-color 0.3s, color 0.3s, background 0.3s, transform 0.25s cubic-bezier(0.16,1,0.3,1);
+        transition: border-color 0.3s, color 0.3s, background 0.3s, transform 0.3s ${SPRING};
       }
       .sk-party-btn:hover {
         border-color: ${GOLD};
         color: #fff8ec;
-        background: rgba(232,201,126,0.06);
-        transform: translateY(-2px);
+        background: rgba(232,201,126,0.1);
+        transform: translateY(-2px) scale(1.01);
       }
       .sk-party-btn:hover .sk-arrow { transform: translateX(4px); }
+      .sk-party-btn:active { transform: scale(0.97); }
 
       @media (prefers-reduced-motion: reduce) {
         .sk-btn-fill, .sk-btn-ghost, .sk-party-btn, .sk-pkg-card,
@@ -425,15 +460,18 @@ function Nav() {
   return (
     <nav style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-      background: BG,
-      borderBottom: `1px solid rgba(232,201,126,${scrolled ? "0.18" : "0.1"})`,
-      transition: "border-color 0.3s",
+      background: scrolled ? "rgba(13,13,13,0.72)" : "rgba(13,13,13,0.35)",
+      backdropFilter: "blur(20px) saturate(160%)",
+      WebkitBackdropFilter: "blur(20px) saturate(160%)",
+      borderBottom: `1px solid rgba(232,201,126,${scrolled ? "0.18" : "0.08"})`,
+      transition: "border-color 0.3s, background 0.3s",
     }}>
       <div className="sk-nav-inner" style={{
         maxWidth: 1200, margin: "0 auto",
-        padding: "0 40px", height: 100,
+        padding: "0 40px", height: scrolled ? 76 : 100,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         boxSizing: "border-box",
+        transition: "height 0.35s cubic-bezier(0.16,1,0.3,1)",
       }}>
         <a href="/" style={{ textDecoration: "none" }}>
           <svg className="sk-nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="320" height="90" role="img" aria-label="Sonakase Private Dining">
@@ -752,7 +790,7 @@ function ExperiencesSection() {
         </Reveal>
 
         {/* Package cards */}
-        <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, marginBottom: 48 }}>
+        <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 48 }}>
           {PACKAGES.map((p, idx) => {
             const discounted = calcDiscountedPrice(p.price, activePromo);
             const hintParts = activePromo && hintIndices.length > 0
@@ -768,7 +806,7 @@ function ExperiencesSection() {
                 </div>
 
                 {/* Guest count */}
-                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: "#b8892a", letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 24 }}>
+                <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 500, color: "#b8892a", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 24 }}>
                   homakase · {p.guests} guests
                 </div>
 
