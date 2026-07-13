@@ -12,24 +12,15 @@ const GOLD  = "#E8C97E";
 const CREAM = "#F5F0E8";
 
 // ── Packages (no ™ on individual names per brand guidelines) ──
+// No itemized course counts on the homepage — the menu is chef's choice.
 const PACKAGES = [
-  {
-    id: "datenight", name: "date night", guests: 2, price: 315,
-    includes: ["9 piece nigiri course", "1 appetizer of your choice", "5 rolls, chef's selection"],
-  },
-  {
-    id: "doubledatenight", name: "double date", guests: 4, price: 485,
-    includes: ["18 piece nigiri course", "2 appetizers of your choice", "10 rolls, chef's selection"],
-  },
-  {
-    id: "smallgathering", name: "small gathering", guests: 6, price: 665,
-    includes: ["27 piece nigiri course", "3 appetizers of your choice", "14 rolls, chef's selection"],
-  },
-  {
-    id: "gettogether", name: "get together", guests: 8, price: 830,
-    includes: ["36 piece nigiri course", "4 appetizers of your choice", "18 rolls, chef's selection"],
-  },
+  { id: "datenight",       name: "date night",      guests: 2, price: 315 },
+  { id: "doubledatenight", name: "double date",     guests: 4, price: 485 },
+  { id: "smallgathering",  name: "small gathering", guests: 6, price: 665 },
+  { id: "gettogether",     name: "get together",    guests: 8, price: 830 },
 ];
+
+const CHEFS_CHOICE_LINE = "appetizers, nigiri, and rolls — chef's selection, sized for your party";
 
 // ── Promo helpers ─────────────────────────────────────────────
 const HINT_FNS = [
@@ -801,13 +792,11 @@ function ExperiencesSection() {
                 {/* Divider */}
                 <div style={{ height: 1, background: GOLD, opacity: 0.2, marginBottom: 28 }} />
 
-                {/* Includes */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1, marginBottom: 36 }}>
-                  {p.includes.map((item) => (
-                    <div key={item} style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.7)`, lineHeight: 1.5 }}>
-                      {item}
-                    </div>
-                  ))}
+                {/* Chef's choice */}
+                <div style={{ flex: 1, marginBottom: 36 }}>
+                  <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.7)`, fontStyle: "italic", lineHeight: 1.6 }}>
+                    {CHEFS_CHOICE_LINE}
+                  </div>
                 </div>
 
                 {/* CTA */}
