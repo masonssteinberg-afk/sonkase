@@ -314,6 +314,10 @@ export default function AdminDashboard() {
         .arow:hover { background: ${BG3} !important; }
         .abtn:hover { opacity: 0.8; }
 
+        button:not(.atab) { border-radius: 999px; transition: transform 0.25s cubic-bezier(0.34,1.3,0.64,1), opacity 0.2s; }
+        button:not(.atab):active { transform: scale(0.96); }
+        input:not(.pw-input), select, textarea { border-radius: 12px; }
+
         @media (max-width: 768px) {
           .admin-stat-grid { grid-template-columns: 1fr 1fr !important; }
           .admin-filter-row { flex-wrap: wrap !important; }
@@ -326,7 +330,7 @@ export default function AdminDashboard() {
       `}</style>
 
       {/* Header */}
-      <header style={{ position: "sticky", top: 0, zIndex: 50, background: BG, borderBottom: `1px solid ${BORDER}` }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(13,13,13,0.72)", backdropFilter: "blur(20px) saturate(160%)", WebkitBackdropFilter: "blur(20px) saturate(160%)", borderBottom: `1px solid ${BORDER}` }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 32px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
             <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}>
@@ -451,14 +455,14 @@ function BookingsTab({ bookings, filtered, counts, filter, setFilter, onUpdateSt
   return (
     <>
       {/* Stat cards */}
-      <div className="admin-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, marginBottom: 40 }}>
+      <div className="admin-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 40 }}>
         {[
           { label: "Total",     count: counts.all,       color: CREAM },
           { label: "Pending",   count: counts.pending,   color: GOLD },
           { label: "Confirmed", count: counts.confirmed, color: GREEN },
           { label: "Cancelled", count: counts.cancelled, color: RED },
         ].map((s) => (
-          <div key={s.label} style={{ background: BG2, border: `1px solid ${BORDER}`, padding: "28px 28px 24px" }}>
+          <div key={s.label} style={{ background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, padding: "28px 28px 24px" }}>
             <div style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.35em", textTransform: "uppercase", marginBottom: 12 }}>{s.label}</div>
             <div style={{ fontFamily: F, fontSize: 44, color: s.color, lineHeight: 1, fontWeight: 400 }}>{s.count}</div>
           </div>
@@ -571,11 +575,11 @@ function BookingRow({ booking: b, onUpdateStatus }) {
 
           {b.service_type === "datenight" && (
             <div style={{ marginBottom: 20, display: "flex", gap: 12 }}>
-              <div style={{ flex: 1, background: BG2, border: `1px solid ${BORDER}`, padding: "14px 18px" }}>
+              <div style={{ flex: 1, background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, padding: "14px 18px" }}>
                 <Label>Appetizer</Label>
                 <div style={{ fontFamily: F, fontSize: 13, color: CREAM, marginTop: 6 }}>{b.appetizer_choice || "—"}</div>
               </div>
-              <div style={{ flex: 1, background: BG2, border: `1px solid ${BORDER}`, padding: "14px 18px" }}>
+              <div style={{ flex: 1, background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, padding: "14px 18px" }}>
                 <Label>Guests</Label>
                 <div style={{ fontFamily: F, fontSize: 13, color: CREAM, marginTop: 6 }}>2 · Chef chooses 5 rolls</div>
               </div>
@@ -666,7 +670,7 @@ function Label({ children }) {
 
 function Tag({ children, color }) {
   return (
-    <span style={{ fontFamily: F, fontSize: 12, color: color || MUTED, background: BG2, border: `1px solid ${BORDER}`, padding: "4px 12px" }}>
+    <span style={{ fontFamily: F, fontSize: 12, color: color || MUTED, background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, padding: "4px 12px" }}>
       {children}
     </span>
   );
@@ -706,7 +710,7 @@ function LogisticsSummary({ bookings, onSelect }) {
       {bookings.length === 0 ? (
         <div style={{ textAlign: "center", padding: "80px 0", fontFamily: F, fontSize: 14, color: FAINT, fontStyle: "italic" }}>No bookings yet.</div>
       ) : (
-        <div style={{ background: BG2, border: `1px solid ${BORDER}` }}>
+        <div style={{ background: BG2, borderRadius: 16, border: `1px solid ${BORDER}` }}>
           {/* Header row */}
           <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1.6fr 0.7fr 0.9fr 0.9fr 180px", padding: "10px 22px", borderBottom: `1px solid ${BORDER}` }}>
             {["Date", "Client", "Guests", "Revenue", "Balance Due", "Prep"].map((h) => (
@@ -761,7 +765,7 @@ function LogisticsDetail({ booking: b, onBack }) {
       </button>
 
       {/* Event header */}
-      <div style={{ background: BG2, border: `1px solid ${BORDER}`, borderLeft: `2px solid ${GOLD2}`, padding: "20px 24px", marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div style={{ background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, borderLeft: `2px solid ${GOLD2}`, padding: "20px 24px", marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div style={{ fontFamily: F, fontSize: 10, color: GOLD2, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 8 }}>{b.package || "event"}</div>
           <div style={{ fontFamily: F, fontSize: 18, color: CREAM }}>{b.user_email}</div>
@@ -860,7 +864,7 @@ function MenuTab({ booking: b }) {
           No items yet — add your first roll above.
         </div>
       ) : (
-        <div style={{ background: BG2, border: `1px solid ${BORDER}`, marginBottom: 24 }}>
+        <div style={{ background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, marginBottom: 24 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 70px 1.5fr 32px", padding: "8px 16px", borderBottom: `1px solid ${BORDER}` }}>
             {["Item", "Qty", "Notes", ""].map((h) => <div key={h} style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.15em", textTransform: "uppercase" }}>{h}</div>)}
           </div>
@@ -916,7 +920,7 @@ function ShoppingTab({ booking: b }) {
           No items yet — add your first item below.
         </div>
       ) : (
-        <div style={{ background: BG2, border: `1px solid ${BORDER}`, marginBottom: 16, overflowX: "auto" }}>
+        <div style={{ background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, marginBottom: 16, overflowX: "auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr 1fr 0.9fr 1.2fr 32px", padding: "8px 16px", borderBottom: `1px solid ${BORDER}`, minWidth: 600 }}>
             {["Item", "Amount / Qty", "Store", "Price ($)", "Notes", ""].map((h) => (
               <div key={h} style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.15em", textTransform: "uppercase" }}>{h}</div>
@@ -1060,7 +1064,7 @@ function ReceiptTab({ booking: b }) {
 
       {/* Summary if complete */}
       {receipt.total && (
-        <div style={{ background: BG2, border: `1px solid ${BORDER}`, borderLeft: `2px solid ${GREEN}`, padding: "16px 20px", marginTop: 32 }}>
+        <div style={{ background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, borderLeft: `2px solid ${GREEN}`, padding: "16px 20px", marginTop: 32 }}>
           <div style={{ fontFamily: F, fontSize: 10, color: GREEN, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 10 }}>logged</div>
           <div style={{ display: "flex", gap: 40 }}>
             <div>
@@ -1269,7 +1273,7 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
       </div>
 
       {showForm && (
-        <div style={{ background: BG2, border: `1px solid ${BORDER}`, borderTop: `2px solid ${GOLD2}`, padding: "28px 32px", marginBottom: 32 }}>
+        <div style={{ background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, borderTop: `2px solid ${GOLD2}`, padding: "28px 32px", marginBottom: 32 }}>
           <div style={{ fontFamily: F, fontSize: 13, color: MUTED, marginBottom: 20, letterSpacing: "0.1em" }}>
             {editingId ? "edit code" : "new code"}
           </div>
@@ -1311,7 +1315,7 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
       {promoCodes.length === 0 && !showForm ? (
         <div style={{ fontFamily: F, fontSize: 13, color: FAINT, fontStyle: "italic", padding: "60px 0", textAlign: "center" }}>No promo codes yet.</div>
       ) : (
-        <div style={{ background: BG2, border: `1px solid ${BORDER}`, overflowX: "auto" }}>
+        <div style={{ background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, overflowX: "auto" }}>
           <THead cols={["Code", "Type", "Value", "Uses", "Max", "Expires", "Status", "Markdown", "Actions"]} />
           {promoCodes.map((pc) => {
             const isExpired = pc.expires_at && pc.expires_at < today;
@@ -1418,7 +1422,7 @@ function BannerTab({ promoCodes }) {
       <SectionHead>Announcement Banner</SectionHead>
 
       {/* Toggle */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28, padding: "20px 24px", background: BG2, border: `1px solid ${BORDER}` }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28, padding: "20px 24px", background: BG2, borderRadius: 16, border: `1px solid ${BORDER}` }}>
         <div onClick={() => setEnabled((v) => !v)} style={{ width: 44, height: 24, borderRadius: 12, flexShrink: 0, background: enabled ? GOLD2 : BG3, border: `1px solid ${enabled ? GOLD2 : BORDER2}`, cursor: "pointer", position: "relative", transition: "all 0.2s" }}>
           <div style={{ width: 16, height: 16, borderRadius: "50%", background: enabled ? CREAM : FAINT, position: "absolute", top: 3, left: enabled ? 24 : 3, transition: "left 0.2s" }} />
         </div>
@@ -1430,7 +1434,7 @@ function BannerTab({ promoCodes }) {
         <label style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.25em", textTransform: "uppercase", display: "block", marginBottom: 10 }}>Message</label>
         <input type="text" value={text} onChange={(e) => setText(e.target.value)}
           placeholder="Founding guest pricing ends July 31 · Use code FOUNDING for 20% off"
-          style={{ width: "100%", padding: "12px 16px", background: BG2, border: `1px solid ${BORDER}`, color: CREAM, fontFamily: F, fontSize: 13, outline: "none", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "12px 16px", background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, color: CREAM, fontFamily: F, fontSize: 13, outline: "none", boxSizing: "border-box" }}
         />
       </div>
 
@@ -1438,7 +1442,7 @@ function BannerTab({ promoCodes }) {
         <div style={{ marginBottom: 28, display: "flex", alignItems: "center", gap: 12 }}>
           <label style={{ fontFamily: F, fontSize: 10, color: FAINT, letterSpacing: "0.2em", textTransform: "uppercase", flexShrink: 0 }}>Insert Code</label>
           <select value={selectedPromo} onChange={(e) => { setSelectedPromo(e.target.value); if (e.target.value) insertPromo(e.target.value); }}
-            style={{ padding: "8px 14px", background: BG2, border: `1px solid ${BORDER}`, color: CREAM, fontFamily: F, fontSize: 13, cursor: "pointer", outline: "none", colorScheme: "dark" }}>
+            style={{ padding: "8px 14px", background: BG2, borderRadius: 16, border: `1px solid ${BORDER}`, color: CREAM, fontFamily: F, fontSize: 13, cursor: "pointer", outline: "none", colorScheme: "dark" }}>
             <option value="">— select active code —</option>
             {activeCodes.map((pc) => <option key={pc.id} value={pc.code}>{pc.code} ({pc.discount_type === "percent" ? `${pc.discount_value}% off` : `$${Number(pc.discount_value).toFixed(0)} off`})</option>)}
           </select>

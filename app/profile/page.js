@@ -14,6 +14,7 @@ const CREAM = "#F5F0E8";
 const MUTED = "rgba(245,240,232,0.55)";
 const FAINT = "rgba(245,240,232,0.3)";
 const F     = "'Shippori Mincho', Georgia, serif";
+const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif";
 
 const STATUS_STYLE = {
   confirmed: { color: GOLD,                        border: GOLD },
@@ -40,7 +41,10 @@ function ProfileStyles() {
       .profile-cta {
         position: relative;
         overflow: hidden;
-        transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1);
+        border-radius: 999px;
+        font-family: ${FONT_UI} !important;
+        font-weight: 600;
+        transition: transform 0.3s cubic-bezier(0.34,1.3,0.64,1), box-shadow 0.3s cubic-bezier(0.34,1.3,0.64,1);
       }
       .profile-cta::after {
         content: "";
@@ -53,15 +57,21 @@ function ProfileStyles() {
       }
       .profile-cta:disabled::after { display: none; }
       .profile-cta:not(:disabled):hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 28px rgba(232,201,126,0.25);
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 8px 28px rgba(232,201,126,0.3);
       }
       .profile-cta:not(:disabled):hover::after { transform: translateX(120%); }
       .profile-cta:not(:disabled):active {
-        transform: translateY(0);
+        transform: scale(0.97);
         box-shadow: 0 3px 12px rgba(232,201,126,0.15);
       }
-      .profile-ghost-btn { transition: border-color 0.2s, color 0.2s; }
+      .profile-ghost-btn {
+        border-radius: 999px;
+        font-family: ${FONT_UI} !important;
+        transition: border-color 0.2s, color 0.2s, transform 0.25s cubic-bezier(0.34,1.3,0.64,1);
+      }
+      .profile-ghost-btn:active { transform: scale(0.96); }
+      .profile-roll-pill { border-radius: 999px; }
       .profile-ghost-btn:hover { border-color: #E8C97E !important; color: #fff8ec !important; }
       @media (prefers-reduced-motion: reduce) {
         .profile-cta, .profile-ghost-btn { transition: none !important; }
@@ -105,19 +115,21 @@ function CancellationModal({ booking, onClose, onConfirm, sending }) {
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 200,
-      background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
       padding: 16,
     }} onClick={onClose}>
       <div style={{
         background: BG2, maxWidth: 480, width: "100%", padding: "36px 32px",
         border: `1px solid rgba(232,201,126,0.2)`, borderTop: `2px solid ${GOLD}`,
+        borderRadius: 24, boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
       }} onClick={(e) => e.stopPropagation()}>
         <div style={{ fontFamily: F, fontSize: 22, color: CREAM, marginBottom: 8 }}>Request Cancellation</div>
         <div style={{ fontFamily: F, fontSize: 13, color: MUTED, fontStyle: "italic", marginBottom: 24 }}>
           Confirmation #{booking.confirmation_number || "—"}
         </div>
 
-        <div style={{ background: "rgba(232,201,126,0.06)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, padding: "14px 16px", marginBottom: 20 }}>
+        <div style={{ background: "rgba(232,201,126,0.06)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, borderRadius: 14, padding: "14px 16px", marginBottom: 20 }}>
           <div style={{ fontFamily: F, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>
             You qualify for a full refund
           </div>
@@ -220,7 +232,7 @@ function BookingCard({ booking: b, expanded, onToggle }) {
     : null;
 
   return (
-    <div style={{ background: BG2, border: `1px solid rgba(232,201,126,0.15)`, overflow: "hidden" }}>
+    <div style={{ background: "linear-gradient(180deg, rgba(245,240,232,0.04) 0%, rgba(245,240,232,0.015) 100%)", border: `1px solid rgba(232,201,126,0.14)`, borderRadius: 20, boxShadow: "inset 0 1px 0 rgba(245,240,232,0.05), 0 4px 20px rgba(0,0,0,0.2)", overflow: "hidden" }}>
       {showCancelModal && (
         <CancellationModal
           booking={b}
@@ -239,9 +251,9 @@ function BookingCard({ booking: b, expanded, onToggle }) {
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
             <span style={{ fontFamily: F, fontSize: 17, color: CREAM, fontWeight: 400, lineHeight: 1.2 }}>{pkg}</span>
             <span style={{
-              fontFamily: F, fontSize: 10, color: ss.color,
-              border: `1px solid ${ss.border}`,
-              padding: "3px 10px", letterSpacing: "0.15em", textTransform: "uppercase", flexShrink: 0,
+              fontFamily: FONT_UI, fontSize: 10, fontWeight: 600, color: ss.color,
+              border: `1px solid ${ss.border}`, borderRadius: 999,
+              padding: "4px 12px", letterSpacing: "0.1em", textTransform: "uppercase", flexShrink: 0,
             }}>
               {b.status}
             </span>
@@ -286,7 +298,7 @@ function BookingCard({ booking: b, expanded, onToggle }) {
               <SectionLabel>Appetizers</SectionLabel>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {b.appetizers_selected.map((a) => (
-                  <span key={a} style={{ fontFamily: F, fontSize: 13, color: GOLD, background: "rgba(232,201,126,0.08)", border: `1px solid rgba(232,201,126,0.2)`, padding: "5px 12px" }}>{a}</span>
+                  <span key={a} style={{ fontFamily: F, fontSize: 13, color: GOLD, background: "rgba(232,201,126,0.08)", border: `1px solid rgba(232,201,126,0.2)`, borderRadius: 999, padding: "5px 14px" }}>{a}</span>
                 ))}
               </div>
             </div>
@@ -354,7 +366,7 @@ function BookingCard({ booking: b, expanded, onToggle }) {
                         <span key={`inc-${a.name}`} style={{
                           fontFamily: F, fontSize: 13, color: GOLD,
                           background: "rgba(232,201,126,0.08)", border: `1px solid rgba(232,201,126,0.2)`,
-                          padding: "5px 12px",
+                          borderRadius: 999, padding: "5px 14px",
                         }}>
                           {a.name} × {a.included_qty}
                         </span>
@@ -370,7 +382,7 @@ function BookingCard({ booking: b, expanded, onToggle }) {
                         <span key={`ext-${a.name}`} style={{
                           fontFamily: F, fontSize: 13, color: CREAM,
                           background: BG2, border: `1px solid rgba(232,201,126,0.15)`,
-                          padding: "5px 12px",
+                          borderRadius: 999, padding: "5px 14px",
                         }}>
                           {a.name} × {a.extra_qty}
                           {a.extra_cost ? ` · $${Number(a.extra_cost).toFixed(0)}` : ""}
@@ -389,7 +401,7 @@ function BookingCard({ booking: b, expanded, onToggle }) {
               <SectionLabel>Platters Ordered</SectionLabel>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {b.platters_ordered.map((po, i) => (
-                  <div key={i} style={{ background: BG2, border: `1px solid rgba(232,201,126,0.15)`, padding: "12px 16px" }}>
+                  <div key={i} style={{ background: BG2, border: `1px solid rgba(232,201,126,0.15)`, borderRadius: 12, padding: "12px 16px" }}>
                     <div style={{ fontFamily: F, fontSize: 14, color: CREAM, marginBottom: 4 }}>
                       {po.quantity}× {po.platter_name}
                     </div>
@@ -435,7 +447,7 @@ function BookingCard({ booking: b, expanded, onToggle }) {
 
           {/* Cancellation */}
           {cancelDone && (
-            <div style={{ padding: "12px 16px", background: "rgba(232,201,126,0.06)", border: `1px solid rgba(232,201,126,0.2)`, fontFamily: F, fontSize: 13, color: GOLD, fontStyle: "italic" }}>
+            <div style={{ padding: "12px 16px", background: "rgba(232,201,126,0.06)", border: `1px solid rgba(232,201,126,0.2)`, borderRadius: 12, fontFamily: F, fontSize: 13, color: GOLD, fontStyle: "italic" }}>
               Cancellation request sent. We&rsquo;ll follow up via email within 24 hours.
             </div>
           )}
@@ -604,7 +616,7 @@ export default function Profile() {
               onKeyDown={(e) => e.key === "Enter" && signIn()}
               placeholder="you@example.com"
               autoFocus
-              style={{ width: "100%", padding: "14px 16px", background: "#141414", border: "1px solid rgba(232,201,126,0.25)", fontFamily: F, fontSize: 15, color: CREAM, marginBottom: 12, boxSizing: "border-box", outline: "none" }}
+              style={{ width: "100%", padding: "14px 18px", background: "rgba(245,240,232,0.045)", border: "1px solid rgba(232,201,126,0.25)", borderRadius: 14, fontFamily: FONT_UI, fontSize: 15, color: CREAM, marginBottom: 12, boxSizing: "border-box", outline: "none" }}
             />
             {signInError && (
               <div style={{ fontFamily: F, fontSize: 13, color: "#c5552d", fontStyle: "italic", marginBottom: 12 }}>

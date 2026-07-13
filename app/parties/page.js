@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 const BG    = "#0d0d0d";
 const GOLD  = "#E8C97E";
 const CREAM = "#F5F0E8";
+const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif";
 
 const N = (f, o) =>
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${f}' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='${o}'/%3E%3C/svg%3E")`;
@@ -118,7 +119,7 @@ export default function PartiesPage() {
 
       {/* Package Cards */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px 80px", boxSizing: "border-box" }}>
-        <div className="parties-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1 }}>
+        <div className="parties-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           {PARTY_CARDS.map((card, idx) => {
             const discounted = calcDiscountedPrice(card.pricePerGuest, activePromo);
             const hintParts = activePromo && hintIndices.length > 0
@@ -153,8 +154,10 @@ export default function PartiesPage() {
 function PackageCard({ name, pricePerGuest, includes, href, discounted, hintParts, onReserve }) {
   return (
     <div className="party-card" style={{
-      background: BG,
-      border: "1px solid rgba(232,201,126,0.2)",
+      background: "linear-gradient(180deg, rgba(245,240,232,0.045) 0%, rgba(245,240,232,0.015) 100%)",
+      border: "1px solid rgba(232,201,126,0.14)",
+      borderRadius: 24,
+      boxShadow: "inset 0 1px 0 rgba(245,240,232,0.06), 0 4px 24px rgba(0,0,0,0.25)",
       padding: "40px 36px 36px",
       display: "flex",
       flexDirection: "column",
@@ -206,9 +209,11 @@ function PartiesStyles() {
         50%       { opacity: 1;   transform: scale(1.06); }
       }
       .sk-promo-hint {
-        font-family: 'Shippori Mincho', Georgia, serif;
-        font-style: italic;
-        font-size: 12px;
+        font-family: ${FONT_UI};
+        font-style: normal;
+        font-size: 11.5px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
         color: #E8C97E;
         margin-top: 12px;
         display: block;
@@ -216,42 +221,61 @@ function PartiesStyles() {
         animation: hint-pulse 2.4s ease-in-out infinite;
       }
       .party-card {
-        transition: border-color 0.3s, transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s cubic-bezier(0.16,1,0.3,1) !important;
+        transition: border-color 0.3s, transform 0.4s cubic-bezier(0.34,1.3,0.64,1), box-shadow 0.4s cubic-bezier(0.34,1.3,0.64,1) !important;
       }
       .party-card:hover {
-        border-color: rgba(232,201,126,0.45) !important;
-        transform: translateY(-4px);
-        box-shadow: 0 14px 44px rgba(0,0,0,0.5);
+        border-color: rgba(232,201,126,0.4) !important;
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: inset 0 1px 0 rgba(245,240,232,0.08), 0 20px 48px rgba(0,0,0,0.5) !important;
       }
       .sk-arrow {
         display: inline-block;
         transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
       }
       .sk-reserve-link {
-        font-family: 'Shippori Mincho', Georgia, serif;
-        font-size: 12px;
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 600;
         color: #E8C97E;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.03em;
         text-decoration: none;
-        text-transform: uppercase;
+        text-transform: none;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
-        transition: color 0.2s;
+        min-height: 44px;
+        padding: 0 24px;
+        border-radius: 999px;
+        border: 1px solid rgba(232,201,126,0.25);
+        background: rgba(232,201,126,0.05);
+        align-self: flex-start;
+        transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.25s cubic-bezier(0.34,1.3,0.64,1);
       }
-      .sk-reserve-link:hover { color: #fff8ec; }
+      .sk-reserve-link:hover {
+        color: #fff8ec;
+        background: rgba(232,201,126,0.12);
+        border-color: rgba(232,201,126,0.5);
+      }
       .sk-reserve-link:hover .sk-arrow { transform: translateX(5px); }
+      .sk-reserve-link:active { transform: scale(0.96); }
       .sk-back-link {
-        font-family: 'Shippori Mincho', Georgia, serif;
-        font-size: 12px;
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 500;
         color: #E8C97E;
-        letter-spacing: 0.15em;
+        letter-spacing: 0.03em;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        transition: color 0.2s;
+        min-height: 38px;
+        padding: 0 16px;
+        margin-left: -16px;
+        border-radius: 999px;
+        transition: color 0.2s, background 0.2s;
       }
+      .sk-back-link:hover { background: rgba(232,201,126,0.08); }
       .sk-back-link:hover { color: #fff8ec; }
       .sk-back-link:hover .sk-arrow { transform: translateX(-5px); }
       @media (prefers-reduced-motion: reduce) {

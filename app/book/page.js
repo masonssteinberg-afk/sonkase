@@ -29,6 +29,8 @@ const _OLD_FOREST      = "#2d4a3a";
 
 const FONT_DISPLAY = `'Shippori Mincho', Georgia, serif`;
 const FONT_BODY    = `'Shippori Mincho', Georgia, serif`;
+const FONT_UI      = `'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif`;
+const SPRING       = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
 // ── Party Packages (per-guest pricing, 10–20 guests) ─────────
 const PARTY_PACKAGES = {
@@ -439,9 +441,12 @@ function BookStyles() {
       }
 
       input::placeholder { color: rgba(245,240,232,0.35); }
-      input:focus, textarea:focus { outline: none; border-color: #E8C97E !important; }
+      input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: rgba(232,201,126,0.6) !important;
+        box-shadow: 0 0 0 3px rgba(232,201,126,0.12);
+      }
       button { font-family: inherit; }
-      select:focus { outline: none; }
       select option { background: #141414; color: #F5F0E8; }
 
       :root { --header-h: 100px; }
@@ -452,7 +457,7 @@ function BookStyles() {
       .book-cta {
         position: relative;
         overflow: hidden;
-        transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1);
+        transition: transform 0.3s cubic-bezier(0.34,1.3,0.64,1), box-shadow 0.3s cubic-bezier(0.34,1.3,0.64,1);
       }
       .book-cta::after {
         content: "";
@@ -465,12 +470,12 @@ function BookStyles() {
       }
       .book-cta:disabled::after { display: none; }
       .book-cta:not(:disabled):hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 28px rgba(232,201,126,0.25);
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 10px 32px rgba(232,201,126,0.3);
       }
       .book-cta:not(:disabled):hover::after { transform: translateX(120%); }
       .book-cta:not(:disabled):active {
-        transform: translateY(0);
+        transform: scale(0.97);
         box-shadow: 0 3px 12px rgba(232,201,126,0.15);
       }
 
@@ -482,12 +487,17 @@ function BookStyles() {
 
       .book-pkg-grid > button,
       .book-app-grid > button {
-        transition: border-color 0.15s ease, transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1) !important;
+        border-radius: 20px;
+        transition: border-color 0.15s ease, background 0.15s ease, transform 0.35s cubic-bezier(0.34,1.3,0.64,1), box-shadow 0.35s cubic-bezier(0.34,1.3,0.64,1) !important;
       }
       .book-pkg-grid > button:hover,
       .book-app-grid > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        transform: translateY(-3px) scale(1.01);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+      }
+      .book-pkg-grid > button:active,
+      .book-app-grid > button:active {
+        transform: scale(0.98);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -516,7 +526,7 @@ function BookStyles() {
 // ── Book Header ───────────────────────────────────────────────
 function BookHeader({ user, onSignOut }) {
   return (
-    <header style={{ background: NAVY, position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, borderBottom: "1px solid rgba(232,201,126,0.15)" }}>
+    <header style={{ background: "rgba(13,13,13,0.72)", backdropFilter: "blur(20px) saturate(160%)", WebkitBackdropFilter: "blur(20px) saturate(160%)", position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, borderBottom: "1px solid rgba(232,201,126,0.15)" }}>
       <div className="book-header-inner" style={{ maxWidth: 760, margin: "0 auto", padding: "9px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" }}>
         <a href="/" style={{ textDecoration: "none" }}>
           <Image src="/sonakase-logo.svg" alt="Sonakase Private Dining" width={280} height={82} priority className="book-header-logo" />
@@ -524,7 +534,7 @@ function BookHeader({ user, onSignOut }) {
         {user && (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontFamily: FONT_BODY, fontSize: 12, color: "rgba(245,240,232,0.45)", fontStyle: "italic" }}>{user.email}</span>
-            <button onClick={onSignOut} className="book-signout" style={{ background: "none", border: `1px solid rgba(232,201,126,0.4)`, color: GOLD, padding: "6px 14px", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer", fontFamily: FONT_BODY }}>
+            <button onClick={onSignOut} className="book-signout" style={{ background: "rgba(232,201,126,0.05)", border: `1px solid rgba(232,201,126,0.4)`, borderRadius: 999, color: GOLD, padding: "7px 16px", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", fontFamily: FONT_UI }}>
               Sign out
             </button>
           </div>
@@ -546,12 +556,14 @@ function BookStepIndicator({ steps, current }) {
           return (
             <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative", flex: 1 }}>
               <div style={{
-                width: 26, height: 26,
+                width: 26, height: 26, borderRadius: "50%",
                 background: done ? GOLD : active ? GOLD : "transparent",
                 border: `1px solid ${done || active ? GOLD : "rgba(232,201,126,0.3)"}`,
                 color: done || active ? NAVY : "rgba(232,201,126,0.4)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 11, fontWeight: 600, marginBottom: 4,
+                fontFamily: FONT_UI,
+                transition: "background 0.3s, border-color 0.3s",
               }}>
                 {done ? "✓" : i + 1}
               </div>
@@ -750,7 +762,7 @@ function DateTimeStep({ eventDate, setEventDate, eventTime, setEventTime, onBack
         )}
 
         {/* Rush booking note */}
-        <div style={{ marginTop: 16, padding: "14px 16px", background: "rgba(232,201,126,0.04)", border: "1px solid rgba(232,201,126,0.15)", borderLeft: `2px solid rgba(232,201,126,0.35)` }}>
+        <div style={{ marginTop: 16, padding: "14px 16px", background: "rgba(232,201,126,0.04)", border: "1px solid rgba(232,201,126,0.15)", borderLeft: `2px solid rgba(232,201,126,0.35)`, borderRadius: 14 }}>
           <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 6 }}>Need it sooner?</div>
           <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, lineHeight: 1.65 }}>
             Rush bookings may be available — reach out and we&rsquo;ll do our best to make it work.{" "}
@@ -926,6 +938,7 @@ function NotesStep({ value, onChange, isParty, onBack, onNext }) {
               width: "100%",
               background: trueOmakase ? GOLD : "rgba(232,201,126,0.06)",
               border: `2px solid ${GOLD}`,
+              borderRadius: 18,
               color: trueOmakase ? NAVY : GOLD,
               fontFamily: FONT_DISPLAY,
               fontSize: 15,
@@ -962,10 +975,11 @@ function NotesStep({ value, onChange, isParty, onBack, onNext }) {
                 key={opt}
                 onClick={() => toggle(opt)}
                 style={{
-                  background: active ? "rgba(232,201,126,0.08)" : "#0d0d0d",
+                  background: active ? "rgba(232,201,126,0.08)" : "rgba(245,240,232,0.03)",
                   border: `1px solid rgba(232,201,126,${active ? "0.45" : "0.2"})`,
+                  borderRadius: 12,
                   padding: "14px 16px",
-                  fontFamily: FONT_BODY, fontSize: 13,
+                  fontFamily: FONT_UI, fontSize: 13,
                   color: active ? GOLD : CREAM,
                   textAlign: "left", cursor: "pointer",
                   display: "flex", alignItems: "center", gap: 10,
@@ -973,8 +987,9 @@ function NotesStep({ value, onChange, isParty, onBack, onNext }) {
                 }}
               >
                 <span style={{
-                  width: 14, height: 14, border: `1px solid ${active ? GOLD : "rgba(232,201,126,0.3)"}`,
+                  width: 16, height: 16, borderRadius: 5, border: `1px solid ${active ? GOLD : "rgba(232,201,126,0.3)"}`,
                   background: active ? GOLD : "transparent",
+                  transition: "background 0.15s, border-color 0.15s",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   flexShrink: 0, fontSize: 9, color: "#0d0d0d", fontWeight: 700,
                 }}>
@@ -1024,7 +1039,7 @@ function SummaryStep({ pkg, eventDate, eventTime, appetizers, chefNotes, onBack,
       <StepHeader kanji="五" eyebrow="step 5 of 6" title="review your booking" />
 
       {/* Order recap */}
-      <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 24 }}>
+      <div style={{ background: "rgba(13,13,13,0.5)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, padding: "20px 24px", marginBottom: 24 }}>
         <SummaryRow label="Experience" value={pkg.name} />
         <SummaryRow label="Guests"     value={`${pkg.guests} guests`} />
         <SummaryRow label="Date"       value={fmtDate(eventDate)} />
@@ -1034,14 +1049,14 @@ function SummaryStep({ pkg, eventDate, eventTime, appetizers, chefNotes, onBack,
       </div>
 
       {/* Pricing */}
-      <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 24 }}>
+      <div style={{ background: "rgba(13,13,13,0.5)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, padding: "20px 24px", marginBottom: 24 }}>
         <SummaryRow label="Total"               value={fmt2(pkg.price)} />
         <SummaryRow label="Deposit due today (25%)" value={fmt2(pkg.deposit)} highlight />
         <SummaryRow label="Balance due at event"    value={fmt2(balance)} />
       </div>
 
       {/* Cancellation */}
-      <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, padding: "14px 16px", marginBottom: 28 }}>
+      <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, borderRadius: 14, padding: "14px 16px", marginBottom: 28 }}>
         <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 400, marginBottom: 6 }}>cancellation policy</div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, lineHeight: 1.6 }}>
           Cancel 72 hours or more before your event for a full deposit refund. Cancellations within 72 hours forfeit the deposit.
@@ -1281,7 +1296,7 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
       <StepHeader kanji="払" eyebrow="step 6 of 6" title="secure payment" subtitle="pay your 25% deposit to confirm the booking." />
 
       {/* Deposit panel */}
-      <div style={{ background: NAVY, color: CREAM, padding: "22px 26px", marginBottom: 28 }}>
+      <div style={{ background: "rgba(13,13,13,0.6)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, color: CREAM, padding: "22px 26px", marginBottom: 28 }}>
         <div className="book-pay-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
           <div>
             <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: PERSIMMON, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 6 }}>deposit due today</div>
@@ -1307,16 +1322,18 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
         {appliedPromo ? (
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
-              flex: 1, padding: "12px 14px",
+              flex: 1, padding: "12px 16px",
               background: "rgba(232,201,126,0.08)", border: `1px solid rgba(232,201,126,0.4)`,
-              fontFamily: FONT_DISPLAY, fontSize: 14, color: GOLD, letterSpacing: "0.06em",
+              borderRadius: 14,
+              fontFamily: FONT_UI, fontSize: 14, fontWeight: 500, color: GOLD, letterSpacing: "0.04em",
             }}>
               ✓ {appliedPromo.code} — {fmt2(appliedPromo.discount_amount)} off
             </div>
             <button onClick={onRemovePromo} style={{
               background: "none", border: `1px solid rgba(232,201,126,0.3)`,
+              borderRadius: 12,
               color: "rgba(232,201,126,0.6)", padding: "12px 14px",
-              fontFamily: FONT_BODY, fontSize: 13, cursor: "pointer",
+              fontFamily: FONT_UI, fontSize: 13, cursor: "pointer",
             }}>✕</button>
           </div>
         ) : (
@@ -1328,9 +1345,10 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
               placeholder="Optional"
               disabled={promoLoading}
               style={{
-                flex: 1, padding: "12px 14px",
-                background: "#0d0d0d", border: `1px solid rgba(232,201,126,0.25)`,
-                fontFamily: FONT_DISPLAY, fontSize: 14, color: CREAM, letterSpacing: "0.06em",
+                flex: 1, padding: "12px 16px",
+                background: "rgba(245,240,232,0.045)", border: `1px solid rgba(232,201,126,0.25)`,
+                borderRadius: 14,
+                fontFamily: FONT_UI, fontSize: 14, color: CREAM, letterSpacing: "0.04em",
                 outline: "none",
               }}
             />
@@ -1340,8 +1358,8 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
               style={{
                 background: promoInput.trim() && !promoLoading ? GOLD : "rgba(232,201,126,0.12)",
                 color: promoInput.trim() && !promoLoading ? NAVY : "rgba(232,201,126,0.3)",
-                border: "none", padding: "0 18px",
-                fontFamily: FONT_BODY, fontSize: 12, letterSpacing: "0.12em",
+                border: "none", borderRadius: 999, padding: "0 20px",
+                fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
                 textTransform: "uppercase", cursor: promoInput.trim() ? "pointer" : "not-allowed",
                 whiteSpace: "nowrap",
               }}
@@ -1360,11 +1378,11 @@ function OmakasePaymentForm({ clientSecret, pkg, user, eventDate, eventTime, app
       {/* Card input */}
       <div style={{ marginBottom: 20 }}>
         <label style={CS.label}>card details</label>
-        <div style={{ padding: "14px 16px", background: "#0d0d0d", border: `1px solid rgba(232,201,126,0.25)` }}>
+        <div style={{ padding: "15px 18px", background: "rgba(245,240,232,0.045)", border: `1px solid rgba(232,201,126,0.25)`, borderRadius: 14 }}>
           <CardElement
             options={{
               style: {
-                base: { fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
+                base: { fontFamily: "Inter, -apple-system, sans-serif", fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
                 invalid: { color: "#E8C97E" },
               },
               hidePostalCode: true,
@@ -1453,6 +1471,7 @@ function PartyAppetizerConfirmStep({ onBack, onNext }) {
           <div key={a.id} style={{
             background: "rgba(232,201,126,0.05)",
             border: "1px solid rgba(232,201,126,0.25)",
+            borderRadius: 16,
             padding: "18px 20px",
             display: "flex", gap: 16, alignItems: "flex-start",
           }}>
@@ -1484,7 +1503,7 @@ function PartySummaryStep({ partyPkg, guestCount, eventDate, eventTime, chefNote
       <button onClick={onBack} className="book-back" style={CS.back}>← Edit notes</button>
       <StepHeader kanji="五" eyebrow="review" title="review your booking" />
 
-      <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 24 }}>
+      <div style={{ background: "rgba(13,13,13,0.5)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, padding: "20px 24px", marginBottom: 24 }}>
         <SummaryRow label="Experience"    value={partyPkg.name} />
         <SummaryRow label="Guests"        value={`${guestCount} guests`} />
         <SummaryRow label="Price/Guest"   value={`$${partyPkg.pricePerGuest}`} />
@@ -1496,14 +1515,14 @@ function PartySummaryStep({ partyPkg, guestCount, eventDate, eventTime, chefNote
         <SummaryRow label="Preferences"   value={chefNotes} />
       </div>
 
-      <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 24 }}>
+      <div style={{ background: "rgba(13,13,13,0.5)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, padding: "20px 24px", marginBottom: 24 }}>
         <SummaryRow label="Total"                  value={fmt2(total)} />
         <SummaryRow label="Deposit due today (25%)" value={fmt2(deposit)} highlight />
         <SummaryRow label="Balance due at event"   value={fmt2(balance)} />
         <SummaryRow label="Gratuity"               value="Included" />
       </div>
 
-      <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, padding: "14px 16px", marginBottom: 28 }}>
+      <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, borderRadius: 14, padding: "14px 16px", marginBottom: 28 }}>
         <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 6 }}>cancellation policy</div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, lineHeight: 1.6 }}>
           Cancel 72 hours or more before your event for a full deposit refund. Cancellations within 72 hours forfeit the deposit.
@@ -1660,7 +1679,7 @@ function PartyPaymentForm({ clientSecret, partyPkg, guestCount, user, eventDate,
       <button onClick={onBack} className="book-back" style={CS.back}>← Back to review</button>
       <StepHeader kanji="払" eyebrow="payment" title="secure payment" subtitle="pay your 25% deposit to confirm the booking." />
 
-      <div style={{ background: NAVY, color: CREAM, padding: "22px 26px", marginBottom: 28 }}>
+      <div style={{ background: "rgba(13,13,13,0.6)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, color: CREAM, padding: "22px 26px", marginBottom: 28 }}>
         <div className="book-pay-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
           <div>
             <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: PERSIMMON, letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: 6 }}>deposit due today</div>
@@ -1675,11 +1694,11 @@ function PartyPaymentForm({ clientSecret, partyPkg, guestCount, user, eventDate,
 
       <div style={{ marginBottom: 20 }}>
         <label style={CS.label}>card details</label>
-        <div style={{ padding: "14px 16px", background: "#0d0d0d", border: `1px solid rgba(232,201,126,0.25)` }}>
+        <div style={{ padding: "15px 18px", background: "rgba(245,240,232,0.045)", border: `1px solid rgba(232,201,126,0.25)`, borderRadius: 14 }}>
           <CardElement
             options={{
               style: {
-                base: { fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
+                base: { fontFamily: "Inter, -apple-system, sans-serif", fontSize: "16px", color: "#F5F0E8", "::placeholder": { color: "rgba(245,240,232,0.35)" } },
                 invalid: { color: "#E8C97E" },
               },
               hidePostalCode: true,
@@ -1725,7 +1744,7 @@ function ConfirmationStep({ confirmation, user, onReset }) {
           your Sonakase™ event is on the calendar.
         </p>
         <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: PERSIMMON, letterSpacing: "0.1em", marginBottom: 32 }}>#{id}</div>
-        <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 28, textAlign: "left" }}>
+        <div style={{ background: "rgba(13,13,13,0.5)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, padding: "20px 24px", marginBottom: 28, textAlign: "left" }}>
           <SummaryRow label="Experience"        value={partyPkg.name} />
           <SummaryRow label="Date"              value={fmtDate(eventDate)} />
           <SummaryRow label="Time"              value={fmtTime(eventTime)} />
@@ -1737,7 +1756,7 @@ function ConfirmationStep({ confirmation, user, onReset }) {
           <SummaryRow label="Deposit Paid"      value={fmt2(deposit)} highlight />
           <SummaryRow label="Balance Due"       value={fmt2(balance)} />
         </div>
-        <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, padding: "16px 20px", marginBottom: 28, textAlign: "left" }}>
+        <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, borderRadius: 14, padding: "16px 20px", marginBottom: 28, textAlign: "left" }}>
           <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>what happens next</div>
           <ul style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.9, paddingLeft: 18, fontStyle: "italic", margin: 0 }}>
             <li>Your chef will review your notes and plan the menu</li>
@@ -1771,7 +1790,7 @@ function ConfirmationStep({ confirmation, user, onReset }) {
         #{id}
       </div>
 
-      <div style={{ background: "#0d0d0d", border: "1px solid rgba(232,201,126,0.15)", padding: "20px 24px", marginBottom: 28, textAlign: "left" }}>
+      <div style={{ background: "rgba(13,13,13,0.5)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, padding: "20px 24px", marginBottom: 28, textAlign: "left" }}>
         <SummaryRow label="Experience" value={pkg.name} />
         <SummaryRow label="Date"       value={fmtDate(eventDate)} />
         <SummaryRow label="Time"       value={fmtTime(eventTime)} />
@@ -1781,7 +1800,7 @@ function ConfirmationStep({ confirmation, user, onReset }) {
         <SummaryRow label="Balance Due at Event" value={fmt2(pkg.price - pkg.deposit)} />
       </div>
 
-      <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, padding: "16px 20px", marginBottom: 28, textAlign: "left" }}>
+      <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, borderRadius: 14, padding: "16px 20px", marginBottom: 28, textAlign: "left" }}>
         <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>what happens next</div>
         <ul style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.9, paddingLeft: 18, fontStyle: "italic", margin: 0 }}>
           <li>Your chef will review your notes before the event</li>
@@ -1820,32 +1839,39 @@ function StepHeader({ kanji, eyebrow, title, subtitle }) {
 // ── Component Styles ──────────────────────────────────────────
 const CS = {
   card: {
-    background: "#141414", border: "1px solid rgba(232,201,126,0.15)",
+    background: "linear-gradient(180deg, rgba(245,240,232,0.04) 0%, rgba(245,240,232,0.015) 100%)",
+    border: "1px solid rgba(232,201,126,0.14)",
+    borderRadius: 24,
+    boxShadow: "inset 0 1px 0 rgba(245,240,232,0.06), 0 4px 24px rgba(0,0,0,0.25)",
     padding: "36px 32px",
   },
   label: {
-    display: "block", fontFamily: FONT_BODY, fontSize: 11, color: GOLD,
-    letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 400, marginBottom: 8,
+    display: "block", fontFamily: FONT_UI, fontSize: 11, color: GOLD,
+    letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 600, marginBottom: 8,
   },
   input: {
-    display: "block", width: "100%", padding: "12px 14px",
-    border: `1px solid rgba(232,201,126,0.25)`, background: "#0d0d0d",
-    fontFamily: FONT_BODY, fontSize: 15, color: CREAM,
+    display: "block", width: "100%", padding: "13px 16px",
+    border: `1px solid rgba(232,201,126,0.18)`, background: "rgba(245,240,232,0.045)",
+    borderRadius: 14,
+    fontFamily: FONT_UI, fontSize: 15, color: CREAM,
   },
   cta: {
     display: "block", width: "100%", padding: "16px",
-    background: GOLD, color: NAVY, border: "none",
-    fontFamily: FONT_DISPLAY, fontSize: 13, letterSpacing: "0.2em",
+    background: `linear-gradient(180deg, #F0D796 0%, ${GOLD} 100%)`, color: NAVY, border: "none",
+    borderRadius: 999,
+    fontFamily: FONT_UI, fontSize: 13, fontWeight: 600, letterSpacing: "0.06em",
     textTransform: "uppercase", cursor: "pointer", minHeight: 52,
     textAlign: "center",
+    boxShadow: "0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(232,201,126,0.12)",
   },
   ctaDisabled: {
     background: "rgba(232,201,126,0.15)", color: "rgba(232,201,126,0.3)", cursor: "not-allowed",
+    boxShadow: "none",
   },
   back: {
     background: "none", border: "none", padding: "0 0 20px",
-    fontFamily: FONT_BODY, fontSize: 13, color: "rgba(245,240,232,0.4)",
-    cursor: "pointer", fontStyle: "italic", display: "block",
+    fontFamily: FONT_UI, fontSize: 13, color: "rgba(245,240,232,0.4)",
+    cursor: "pointer", display: "block",
   },
 };
 
