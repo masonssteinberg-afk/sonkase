@@ -3,7 +3,7 @@ export async function POST(req) {
     const { Resend } = await import("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const { name, email, subject, message } = await req.json();
+    const { name, email, subject, message, guestCount } = await req.json();
 
     if (!name || !email || !message) {
       return Response.json({ error: "Missing required fields" }, { status: 400 });
@@ -28,6 +28,8 @@ export async function POST(req) {
         `<td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:15px;color:#0d0d0d;">${email}</td></tr>` +
         (subjectLine ? `<tr><td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:10px;color:#E8C97E;letter-spacing:0.2em;text-transform:uppercase;padding-right:20px;white-space:nowrap;">Subject</td>` +
         `<td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:15px;color:#0d0d0d;">${subjectLine}</td></tr>` : "") +
+        (guestCount ? `<tr><td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:10px;color:#E8C97E;letter-spacing:0.2em;text-transform:uppercase;padding-right:20px;white-space:nowrap;">Guest Count</td>` +
+        `<td style="padding:10px 0;border-bottom:1px solid rgba(14,14,14,0.1);font-size:15px;color:#0d0d0d;">${guestCount} guests</td></tr>` : "") +
         `</table>` +
         `<div style="font-size:10px;color:#E8C97E;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:10px;">Message</div>` +
         `<div style="font-size:15px;color:#0d0d0d;line-height:1.7;white-space:pre-wrap;">${message}</div>` +

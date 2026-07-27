@@ -733,6 +733,16 @@ function ExperiencesSection() {
           ))}
         </div>
 
+        {/* Small-group note — quoted case by case, not a published tier */}
+        <Reveal delay={0.1}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(245,240,232,0.5)", letterSpacing: "0.04em", textAlign: "center", margin: "0 0 8px" }}>
+            Smaller gatherings under 8 guests are available by request.{" "}
+            <a href="#contact" style={{ color: "rgba(232,201,126,0.85)", textDecoration: "none", borderBottom: "1px solid rgba(232,201,126,0.4)" }}>
+              Get in touch
+            </a>.
+          </p>
+        </Reveal>
+
       </div>
     </section>
   );
@@ -832,11 +842,12 @@ function AboutChefSection() {
 
 // ── Contact Section ───────────────────────────────────────────
 function ContactSection() {
-  const [name, setName]       = useState("");
-  const [email, setEmail]     = useState("");
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [status, setStatus]   = useState("idle"); // idle | sending | success | error
+  const [name, setName]             = useState("");
+  const [email, setEmail]           = useState("");
+  const [subject, setSubject]       = useState("");
+  const [guestCount, setGuestCount] = useState("");
+  const [message, setMessage]       = useState("");
+  const [status, setStatus]         = useState("idle"); // idle | sending | success | error
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -858,7 +869,7 @@ function ContactSection() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), subject: subject.trim(), message: message.trim() }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), subject: subject.trim(), guestCount: guestCount.trim(), message: message.trim() }),
       });
       const data = await res.json();
       setStatus(data.success ? "success" : "error");
@@ -886,7 +897,7 @@ function ContactSection() {
         <Reveal delay={0.1}>
         {status === "success" ? (
           <div style={{ textAlign: "center", padding: "40px 0", fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 18, color: GOLD, fontStyle: "italic", lineHeight: 1.6 }}>
-            Thank you. We&rsquo;ll be in touch.
+            Thank you. You&rsquo;ll hear back shortly.
           </div>
         ) : (
           <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
@@ -917,6 +928,17 @@ function ContactSection() {
                 placeholder="Subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
+              />
+            </div>
+            <div>
+              <input
+                type="number"
+                min="1"
+                inputMode="numeric"
+                className="sk-contact-field"
+                placeholder="Guest count (if inquiring about an event)"
+                value={guestCount}
+                onChange={(e) => setGuestCount(e.target.value)}
               />
             </div>
             <div>

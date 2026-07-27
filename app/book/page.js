@@ -71,9 +71,12 @@ export default function App() {
 
   // The quote is derived from the guest count on every render — no stored
   // tier state — so changing the count re-resolves tier, total, and deposit.
+  // Under MIN_GUESTS there is no quote and no payment path: those groups
+  // are quoted individually through the contact form.
   const guests    = parseInt(guestInput, 10);
-  const quote     = Number.isFinite(guests) && guests >= 1 ? quoteForGuests(guests) : null;
+  const tooFew    = Number.isFinite(guests) && guests >= 1 && guests < MIN_GUESTS;
   const tooMany   = Number.isFinite(guests) && guests > MAX_GUESTS;
+  const quote     = Number.isFinite(guests) && guests >= MIN_GUESTS ? quoteForGuests(guests) : null;
 
   const emailValid = contactEmail.includes("@") && contactEmail.trim().length >= 5;
   const phoneValid = contactPhone.replace(/\D/g, "").length >= 7;
@@ -120,6 +123,7 @@ export default function App() {
                 style={{ ...CS.input, maxWidth: 260 }}
               />
 
+              {tooFew && <UnderMinPanel />}
               {tooMany && <Over50Panel />}
               {quote && <TierPanel quote={quote} />}
             </div>
@@ -150,10 +154,10 @@ export default function App() {
                 <div style={{ marginTop: 16, padding: "14px 16px", background: "rgba(232,201,126,0.04)", border: "1px solid rgba(232,201,126,0.15)", borderLeft: `2px solid rgba(232,201,126,0.35)`, borderRadius: 14 }}>
                   <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 6 }}>Need it sooner?</div>
                   <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, lineHeight: 1.65 }}>
-                    Rush bookings may be available — reach out and we&rsquo;ll do our best to make it work.
+                    Rush bookings may be available — send the date and you&rsquo;ll get an answer quickly.
                   </div>
-                  <a href={`/?subject=${encodeURIComponent("I'd like to request an event within 7 days")}#contact`} style={{ display: "inline-block", marginTop: 8, fontFamily: FONT_BODY, fontSize: 12, color: GOLD, letterSpacing: "0.1em", textDecoration: "none" }}>
-                    Contact us →
+                  <a href={`/?subject=${encodeURIComponent("Rush booking request (within 7 days)")}#contact`} style={{ display: "inline-block", marginTop: 8, fontFamily: FONT_BODY, fontSize: 12, color: GOLD, letterSpacing: "0.1em", textDecoration: "none" }}>
+                    Get in touch →
                   </a>
                 </div>
               </div>
@@ -259,8 +263,10 @@ export default function App() {
             ) : (
               <div style={{ ...CS.card, textAlign: "center", fontFamily: FONT_BODY, fontSize: 14, color: INK_FAINT, fontStyle: "italic" }}>
                 {tooMany
-                  ? "Events over 50 guests are booked through the contact form above."
-                  : "Enter your guest count, date, time, and contact details to continue to payment."}
+                  ? "Events over 50 guests are booked through the contact form."
+                  : tooFew
+                    ? `Groups under ${MIN_GUESTS} are quoted individually through the contact form — no deposit is taken here.`
+                    : "Enter your guest count, date, time, and contact details to continue to payment."}
               </div>
             )}
           </div>
@@ -273,7 +279,6 @@ export default function App() {
 // ── Tier panel — live quote under the guest input ─────────────
 function TierPanel({ quote }) {
   const { tier, guests, total, deposit, balance, minimumApplied } = quote;
-  const belowRange = guests < MIN_GUESTS;
 
   return (
     <div style={{ marginTop: 24 }}>
@@ -293,11 +298,6 @@ function TierPanel({ quote }) {
         {minimumApplied && (
           <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: "rgba(232,201,126,0.75)", fontStyle: "italic", marginTop: 12 }}>
             {formatUSD(tier.eventMinimum)} event minimum applies at this guest count.
-          </div>
-        )}
-        {belowRange && (
-          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", marginTop: 6 }}>
-            Smaller gathering? You&rsquo;re welcome to book — the event minimum covers parties under {MIN_GUESTS}.
           </div>
         )}
 
@@ -320,6 +320,27 @@ function TierPanel({ quote }) {
   );
 }
 
+// ── Under-8 panel — quoted individually, no price shown ───────
+function UnderMinPanel() {
+  return (
+    <div style={{ marginTop: 24, background: "rgba(232,201,126,0.04)", border: "1px solid rgba(232,201,126,0.25)", borderLeft: `2px solid ${GOLD}`, borderRadius: 14, padding: "18px 20px" }}>
+      <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>
+        under {MIN_GUESTS} guests
+      </div>
+      <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK_SOFT, lineHeight: 1.7, marginBottom: 14 }}>
+        Groups under {MIN_GUESTS} are quoted individually. Send your date and guest count and you&rsquo;ll get a reply within 24 hours.
+      </div>
+      <a
+        href={`/?subject=${encodeURIComponent(`Small gathering inquiry (under ${MIN_GUESTS} guests)`)}#contact`}
+        className="book-cta"
+        style={{ ...CS.cta, display: "inline-block", width: "auto", padding: "14px 32px", textDecoration: "none", boxSizing: "border-box" }}
+      >
+        Get in Touch →
+      </a>
+    </div>
+  );
+}
+
 // ── Over-50 panel — route to contact form ─────────────────────
 function Over50Panel() {
   return (
@@ -328,13 +349,13 @@ function Over50Panel() {
         over {MAX_GUESTS} guests
       </div>
       <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK_SOFT, lineHeight: 1.7, marginBottom: 10 }}>
-        Events this size are planned directly with the chef. Tell us about your event and we&rsquo;ll build it together.
+        Events this size are planned directly with the chef. Send the details and you&rsquo;ll get a custom plan.
       </div>
       <a
         href={`/?subject=${encodeURIComponent(`Large event inquiry (over ${MAX_GUESTS} guests)`)}#contact`}
         style={{ display: "inline-block", fontFamily: FONT_BODY, fontSize: 13, color: GOLD, letterSpacing: "0.1em", textDecoration: "none" }}
       >
-        Contact us →
+        Get in touch →
       </a>
     </div>
   );
@@ -415,7 +436,7 @@ function PaymentSection({ quote, contact, eventDate, eventTime, eventAddress, ch
   if (intentError) return (
     <div style={CS.card}>
       <div style={{ padding: "40px 0", fontFamily: FONT_BODY, fontSize: 15, color: PERSIMMON, fontStyle: "italic" }}>
-        {intentError} — please try again or contact us directly.
+        {intentError} — please try again or use the contact form.
       </div>
     </div>
   );
@@ -499,7 +520,7 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
     });
     const saveData = await saveRes.json();
     if (!saveData.success) {
-      setError(`Booking could not be saved: ${saveData.error}. Your payment was charged — please contact us directly.`);
+      setError(`Booking could not be saved: ${saveData.error}. Your payment was charged — please get in touch right away and it will be sorted out.`);
       setProcessing(false); return;
     }
 
