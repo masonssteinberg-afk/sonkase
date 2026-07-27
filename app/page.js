@@ -737,7 +737,7 @@ function ExperiencesSection() {
         <Reveal delay={0.1}>
           <p style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(245,240,232,0.5)", letterSpacing: "0.04em", textAlign: "center", margin: "0 0 8px" }}>
             Smaller gatherings under 8 guests are available by request.{" "}
-            <a href="#contact" style={{ color: "rgba(232,201,126,0.85)", textDecoration: "none", borderBottom: "1px solid rgba(232,201,126,0.4)" }}>
+            <a href={`/?subject=${encodeURIComponent("Small gathering inquiry (under 8 guests)")}#contact`} style={{ color: "rgba(232,201,126,0.85)", textDecoration: "none", borderBottom: "1px solid rgba(232,201,126,0.4)" }}>
               Get in touch
             </a>.
           </p>
