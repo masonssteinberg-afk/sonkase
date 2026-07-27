@@ -1,30 +1,54 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { TIERS, PIECES_PER_GUEST, tierTotalRange, formatUSD } from "@/lib/pricing";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+const SushiSlice  = dynamic(() => import("./components/SushiSlice"),  { ssr: false });
+const ScrollRoll  = dynamic(() => import("./components/ScrollRoll"),  { ssr: false });
 
-/* ── Design tokens — editorial minimalism ─────────────────────
-   Type-led, heavy whitespace, one strong image per section.
-   One accent, used on links, Reserve buttons, and eyebrows only. */
-const PAPER  = "#FAF8F4";
-const INK    = "#1A1A18";
-const MUTED  = "#6B6862";
-const HAIR   = "#E2DED6";
-const ACCENT = "#C4562F";
-const IMGBG  = "#EDE9E1";
+// ── Design Tokens ──────────────────────────────────────────────
+const BG    = "#0d0d0d";
+const BG2   = "#141414";
+const GOLD  = "#E8C97E";
+const CREAM = "#F5F0E8";
+const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif";
+// iOS-style spring for transforms; standard ease-out for everything else
+const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
-const SERIF = "'Fraunces', Georgia, serif";
-const SANS  = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif";
+// ── Tiers — all pricing comes from lib/pricing, no literals here ──
+import { TIERS, MENU_LINE, tierTotalRange, formatUSD } from "@/lib/pricing";
 
-// Sections not yet live — flip on when content exists.
-const SHOW_TESTIMONIALS = false;
-const SHOW_INSTAGRAM    = false;
+const N = (f, o) =>
+  `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${f}' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='${o}'/%3E%3C/svg%3E")`;
 
-// ── Page ──────────────────────────────────────────────────────
+/* ======================================================================
+   LEGACY CODE — All previous Chef's Special homepage code preserved below.
+   Not displayed. Not deleted.
+   ======================================================================
+
+   Previous brand: Chef's Special™ · Private Sushi · Gainesville
+   Previous color palette: NAVY #0d1729, PERSIMMON #c5552d, CREAM #f5ecd9, GOLD #a07736
+   Previous fonts: Shippori Mincho (display), Crimson Pro (body)
+
+   Previous homepage sections:
+   - Nav with "Chef's Special™" wordmark, "How It Works" + "Book Now" links
+   - Hero with rotating headlines (5 phrases), full viewport, dark navy background
+   - ExperienceSection: 4 package cards in 2x2 grid (Date Night, Double Date Night, Small Gathering, Get Together)
+   - HowItWorksSection: 4 steps, navy background
+   - MenuSection: 34 rolls organized by tier (Classics, Signatures, Specialty, Premium)
+   - PhotoSection: placeholder
+   - SiteFooter: wordmark left, CTA right
+
+   Previous package/roll/platter data (OMAKASE_PACKAGES, ROLLS, per-guest
+   packages A/B/C, drop-off platters) was removed in the 2026 pricing
+   overhaul — see git history if needed. All current pricing lives in
+   lib/pricing.ts.
+   ====================================================================== */
+
+// ── Main Page ─────────────────────────────────────────────────
 export default function Home() {
-  const [pastHero, setPastHero] = useState(false);
-  const heroEndRef = useRef(null);
+  const router = useRouter();
+  const [showAnim, setShowAnim] = useState(false);
 
-  // Supabase magic-link redirect (unchanged auth behavior)
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.location.hash.includes("access_token")) {
@@ -32,189 +56,278 @@ export default function Home() {
     }
   }, []);
 
-  // Header goes paper-backed once the hero scrolls past
-  useEffect(() => {
-    const el = heroEndRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => setPastHero(!e.isIntersecting),
-      { rootMargin: "-80px 0px 0px 0px" }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
   return (
-    <div style={{ background: PAPER, color: INK, fontFamily: SANS, overflowX: "hidden", minHeight: "100vh" }}>
+    <div style={{ background: BG, color: CREAM, fontFamily: "'Shippori Mincho', Georgia, serif", overflowX: "hidden" }}>
+      {showAnim && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+          <SushiSlice onEnter={() => { setShowAnim(false); router.push("/book"); }} />
+        </div>
+      )}
       <PageStyles />
-      <Header pastHero={pastHero} />
-      <Hero />
-      <div ref={heroEndRef} aria-hidden="true" />
-      <HowItWorks />
-      <Standards />
-      <PricingSection />
-      <ReserveBand />
-      <ChefBio />
-      <Sourcing />
-      {SHOW_TESTIMONIALS && <Testimonials />}
-      {SHOW_INSTAGRAM && <InstagramGrid />}
+      <ScrollRoll />
+      <Nav />
+      <Hero onLetsRoll={() => router.push("/book")} onLogoClick={() => setShowAnim(true)} />
+      <ExperiencesSection />
+      <AboutChefSection />
       <ContactSection />
-      <Footer />
+      <PhotoSection />
+      <SiteFooter />
     </div>
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────
+
+// ── Page Styles ───────────────────────────────────────────────
 function PageStyles() {
   return (
     <style>{`
-      .sk-home { background: ${PAPER}; }
-      .sk-home ::selection { background: ${ACCENT}; color: ${PAPER}; }
+      :root { --header-h: 100px; }
+      @media (max-width: 768px)  { :root { --header-h: 72px; } .sk-scroll-roll { display: none !important; } }
+      @media (max-width: 1100px) { .sk-scroll-roll { transform: translateY(-50%) scale(0.65) !important; left: 2px !important; transform-origin: left center; } }
 
-      .rv { opacity: 0; transform: translateY(16px); }
-      .rv.rv-in { opacity: 1; transform: translateY(0); }
-      @media (prefers-reduced-motion: no-preference) {
-        .rv { transition: opacity 400ms ease-out, transform 400ms ease-out; }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        html { scroll-behavior: auto; }
-        .rv { opacity: 1; transform: none; }
-      }
+      .sk-hero { padding: calc(140px + var(--banner-h, 0px)) 40px 100px; }
 
-      .sk-btn {
-        display: inline-block;
-        background: ${ACCENT};
-        color: ${PAPER};
-        font-family: ${SANS};
-        font-size: 14px;
+      @keyframes bob {
+        0%   { transform: translateY(0px); }
+        50%  { transform: translateY(16px); }
+        100% { transform: translateY(0px); }
+      }
+      .hero-icon { animation: bob 2.5s ease-in-out infinite; }
+
+      .sk-nav-link {
+        font-family: ${FONT_UI};
+        font-size: 13px;
         font-weight: 500;
         letter-spacing: 0.02em;
-        padding: 14px 36px;
+        color: #e6dac8;
+        text-decoration: none;
+        transition: color 0.2s, background 0.2s, transform 0.2s ${SPRING};
+        padding: 0 16px;
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        position: relative;
+        border-radius: 999px;
+      }
+      .sk-nav-link:hover {
+        color: #fff;
+        background: rgba(245,240,232,0.08);
+      }
+      .sk-nav-link:active { transform: scale(0.96); }
+
+      .sk-arrow {
+        display: inline-block;
+        transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+      }
+
+      .sk-btn-fill {
+        background: linear-gradient(180deg, #F0D796 0%, ${GOLD} 100%);
+        color: ${BG};
         border: none;
-        border-radius: 2px;
+        border-radius: 999px;
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: none;
         cursor: pointer;
         text-decoration: none;
-        transition: background 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 52px;
+        padding: 0 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(232,201,126,0.12);
+        transition: transform 0.3s ${SPRING}, box-shadow 0.3s ${SPRING};
       }
-      .sk-btn:hover { background: #A94523; }
-      .sk-btn:focus-visible, .sk-link:focus-visible { outline: 2px solid ${ACCENT}; outline-offset: 3px; }
+      .sk-btn-fill::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+        transform: translateX(-120%);
+        transition: transform 0.6s ease;
+        pointer-events: none;
+      }
+      .sk-btn-fill:hover {
+        transform: translateY(-2px) scale(1.015);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 10px 32px rgba(232,201,126,0.3);
+      }
+      .sk-btn-fill:hover::after { transform: translateX(120%); }
+      .sk-btn-fill:hover .sk-arrow { transform: translateX(4px); }
+      .sk-btn-fill:active {
+        transform: scale(0.97);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 3px 12px rgba(232,201,126,0.15);
+      }
 
-      .sk-link {
-        color: ${ACCENT};
+      .sk-btn-ghost {
+        background: rgba(232,201,126,0.06);
+        color: ${GOLD};
+        border: 1px solid rgba(232,201,126,0.35);
+        border-radius: 999px;
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        cursor: pointer;
         text-decoration: none;
-        font-family: ${SANS};
-        font-size: 14px;
-        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 52px;
+        padding: 0 32px;
+        position: relative;
+        overflow: hidden;
+        z-index: 0;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: color 0.3s, transform 0.3s ${SPRING}, box-shadow 0.3s ${SPRING};
       }
-      .sk-link:hover { text-decoration: underline; }
-
-      .sk-navlink {
-        color: ${INK};
-        font-family: ${SANS};
-        font-size: 14px;
-        font-weight: 400;
-        text-decoration: none;
-        padding: 8px 14px;
+      .sk-btn-ghost::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: ${GOLD};
+        transform: scaleY(0);
+        transform-origin: bottom center;
+        transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+        z-index: -1;
       }
-      .sk-navlink:hover { color: ${ACCENT}; }
+      .sk-btn-ghost:hover {
+        color: ${BG};
+        transform: translateY(-2px) scale(1.015);
+        box-shadow: 0 8px 28px rgba(232,201,126,0.18);
+      }
+      .sk-btn-ghost:hover::before { transform: scaleY(1); }
+      .sk-btn-ghost:hover .sk-arrow { transform: translateX(4px); }
+      .sk-btn-ghost:active { transform: scale(0.97); }
 
-      .sk-field {
-        width: 100%;
-        background: #FFFFFF;
-        border: 1px solid ${HAIR};
-        border-radius: 2px;
-        color: ${INK};
-        font-family: ${SANS};
+      .sk-btn-fill:focus-visible,
+      .sk-btn-ghost:focus-visible,
+      .sk-reserve-link:focus-visible,
+      .sk-nav-link:focus-visible {
+        outline: 2px solid ${GOLD};
+        outline-offset: 3px;
+      }
+
+      .sk-contact-field {
+        background: rgba(245,240,232,0.045);
+        border: 1px solid rgba(232,201,126,0.16);
+        border-radius: 14px;
+        color: ${CREAM};
+        font-family: ${FONT_UI};
         font-size: 16px;
-        padding: 14px 16px;
+        width: 100%;
+        padding: 15px 18px;
         outline: none;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
       }
-      .sk-field::placeholder { color: ${MUTED}; opacity: 0.7; }
-      .sk-field:focus { border-color: ${ACCENT}; }
+      .sk-contact-field::placeholder { color: rgba(245,240,232,0.35); }
+      .sk-contact-field:focus {
+        border-color: rgba(232,201,126,0.6);
+        background: rgba(245,240,232,0.06);
+        box-shadow: 0 0 0 3px rgba(232,201,126,0.12);
+      }
 
-      .sk-hero-media { aspect-ratio: 16 / 9; }
-      .sk-split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-      .sk-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-      .sk-section { padding: 128px 24px; }
-      .sk-h1 { font-size: 64px; }
-      .sk-h2 { font-size: 40px; }
+      .sk-pkg-card {
+        background: linear-gradient(180deg, rgba(245,240,232,0.045) 0%, rgba(245,240,232,0.015) 100%);
+        border: 1px solid rgba(232,201,126,0.14);
+        border-radius: 24px;
+        padding: 40px 36px 36px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-sizing: border-box;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: inset 0 1px 0 rgba(245,240,232,0.06), 0 4px 24px rgba(0,0,0,0.25);
+        transition: border-color 0.3s, transform 0.4s ${SPRING}, box-shadow 0.4s ${SPRING};
+      }
+      .sk-pkg-card:hover {
+        border-color: rgba(232,201,126,0.4);
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: inset 0 1px 0 rgba(245,240,232,0.08), 0 20px 48px rgba(0,0,0,0.5);
+      }
+
+      .sk-reserve-link {
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 600;
+        color: ${GOLD};
+        letter-spacing: 0.03em;
+        text-decoration: none;
+        text-transform: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 24px;
+        border-radius: 999px;
+        border: 1px solid rgba(232,201,126,0.25);
+        background: rgba(232,201,126,0.05);
+        align-self: flex-start;
+        transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.25s ${SPRING};
+      }
+      .sk-reserve-link:hover {
+        color: #fff8ec;
+        background: rgba(232,201,126,0.12);
+        border-color: rgba(232,201,126,0.5);
+      }
+      .sk-reserve-link:hover .sk-arrow { transform: translateX(5px); }
+      .sk-reserve-link:active { transform: scale(0.96); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .sk-btn-fill, .sk-btn-ghost, .sk-pkg-card,
+        .sk-arrow, .sk-nav-link::after, .sk-btn-ghost::before, .sk-btn-fill::after {
+          transition: none !important;
+        }
+        .sk-btn-fill::after { display: none; }
+        .hero-icon { animation: none !important; }
+        .sk-btn-fill:hover, .sk-btn-ghost:hover, .sk-pkg-card:hover {
+          transform: none;
+        }
+      }
+
+      .sk-about-grid {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 80px;
+        align-items: start;
+      }
 
       @media (max-width: 768px) {
-        .sk-hero-media { aspect-ratio: 4 / 5; }
-        .sk-split { grid-template-columns: 1fr !important; gap: 40px; }
-        .sk-cards { grid-template-columns: 1fr; }
-        .sk-section { padding: 72px 24px; }
-        .sk-h1 { font-size: 38px; }
-        .sk-h2 { font-size: 28px; }
-        .sk-nav-center { display: none !important; }
-        .sk-split-img-first { order: -1; }
+        .sk-nav-links .sk-nav-link, .sk-nav-links + .sk-nav-link { font-size: 12px; padding: 0 9px; }
+        .sk-pkg-grid  { grid-template-columns: 1fr !important; }
+        .sk-how-grid  { grid-template-columns: 1fr !important; }
+        .sk-hero-logo { width: 220px !important; }
+        .sk-section   { padding: 60px 20px !important; }
+        .sk-hero      { padding: calc(110px + var(--banner-h, 0px)) 20px 60px !important; }
+        .sk-footer-inner { flex-direction: column !important; gap: 32px !important; align-items: flex-start !important; }
+        .sk-nav-inner { height: 72px !important; padding: 0 12px !important; }
+        .sk-nav-logo  { width: 128px !important; height: 40px !important; }
+        .sk-pkg-card  { padding: 28px 20px 24px !important; }
+        .sk-about-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
       }
     `}</style>
   );
 }
 
-// ── Shared bits ───────────────────────────────────────────────
-function Reveal({ children }) {
-  const ref = useRef(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { threshold: 0.15 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return <div ref={ref} className={`rv${inView ? " rv-in" : ""}`}>{children}</div>;
-}
-
-function Eyebrow({ children }) {
-  return (
-    <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.12em", color: ACCENT, marginBottom: 20 }}>
-      {children}
-    </div>
-  );
-}
-
-function Heading({ children, style }) {
-  return (
-    <h2 className="sk-h2" style={{ fontFamily: SERIF, fontWeight: 400, textTransform: "lowercase", color: INK, lineHeight: 1.15, margin: "0 0 28px", ...style }}>
-      {children}
-    </h2>
-  );
-}
-
-/* Flat placeholder block until photography exists — the label names the shot. */
-function ImageSlot({ label, aspect = "4 / 3", className = "" }) {
-  return (
-    <div className={className} style={{ background: IMGBG, aspectRatio: aspect, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
-      <span style={{ fontFamily: SANS, fontSize: 12, color: MUTED, letterSpacing: "0.08em" }}>{label}</span>
-    </div>
-  );
-}
-
-function Logo({ height = 44 }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" height={height} role="img" aria-label="Sonakase">
-      <g transform="translate(18, 10) scale(0.9)">
-        <line x1="35" y1="12" x2="42" y2="108" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />
-        <line x1="55" y1="12" x2="48" y2="108" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />
-        <circle cx="45" cy="19" r="3" fill={MUTED} />
-        <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke={MUTED} strokeWidth="2" strokeLinecap="round" fill="none" />
-        <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke={MUTED} strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5" />
-        <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke={MUTED} strokeWidth="0.8" strokeLinecap="round" fill="none" opacity="0.25" />
-      </g>
-      <line x1="118" y1="28" x2="118" y2="112" stroke={MUTED} strokeWidth="0.7" opacity="0.6" />
-      <text x="138" y="88" fontFamily="'Fraunces', Georgia, serif" fontWeight="400" fontSize="52" letterSpacing="11" fill={INK}>sonakase</text>
-    </svg>
-  );
-}
-
-// ── Header ────────────────────────────────────────────────────
-function Header({ pastHero }) {
+// ── Nav ───────────────────────────────────────────────────────
+function Nav() {
+  const [scrolled, setScrolled] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -227,205 +340,431 @@ function Header({ pastHero }) {
   }, []);
 
   return (
-    <header style={{
+    <nav style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-      background: pastHero ? PAPER : "transparent",
-      borderBottom: `1px solid ${pastHero ? HAIR : "transparent"}`,
-      transition: "background 0.25s, border-color 0.25s",
+      background: scrolled ? "rgba(13,13,13,0.72)" : "rgba(13,13,13,0.35)",
+      backdropFilter: "blur(20px) saturate(160%)",
+      WebkitBackdropFilter: "blur(20px) saturate(160%)",
+      borderBottom: `1px solid rgba(232,201,126,${scrolled ? "0.18" : "0.08"})`,
+      transition: "border-color 0.3s, background 0.3s",
     }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-        <a href="/" style={{ display: "flex", alignItems: "center" }} aria-label="Sonakase home">
-          <Logo height={36} />
+      <div className="sk-nav-inner" style={{
+        maxWidth: 1200, margin: "0 auto",
+        padding: "0 40px", height: scrolled ? 76 : 100,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        boxSizing: "border-box",
+        transition: "height 0.35s cubic-bezier(0.16,1,0.3,1)",
+      }}>
+        <a href="/" style={{ textDecoration: "none" }}>
+          <svg className="sk-nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="320" height="90" role="img" aria-label="Sonakase Private Dining">
+            <defs>
+              <style>{"@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Cormorant+Garamond:wght@300&display=swap');"}</style>
+            </defs>
+            <g transform="translate(18, 10) scale(0.9)">
+              <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+              <line x1="55" y1="12" x2="48" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+              <circle cx="45" cy="19" r="3" fill="#b8892a"/>
+              <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke="#b8892a" strokeWidth="2" strokeLinecap="round" fill="none"/>
+              <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke="#b8892a" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5"/>
+              <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke="#b8892a" strokeWidth="0.8" strokeLinecap="round" fill="none" opacity="0.22"/>
+            </g>
+            <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
+            <text x="138" y="88" fontFamily="'Shippori Mincho', 'Hiragino Mincho Pro', 'Times New Roman', serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
+          </svg>
         </a>
-        <nav className="sk-nav-center" style={{ display: "flex", alignItems: "center" }}>
-          <a href="#how"     className="sk-navlink">how it works</a>
-          <a href="#pricing" className="sk-navlink">pricing</a>
-          <a href="#about"   className="sk-navlink">about</a>
-          <a href="#contact" className="sk-navlink">contact</a>
-          <a href="/profile" className="sk-navlink">{loggedIn ? "my bookings" : "login"}</a>
-        </nav>
-        <a href="/book" className="sk-btn" style={{ padding: "11px 26px" }}>reserve</a>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div className="sk-nav-links" style={{ display: "flex", alignItems: "center" }}>
+            <a href="/book"    className="sk-nav-link">book</a>
+            <a href="#about"   className="sk-nav-link">about</a>
+            <a href="#contact" className="sk-nav-link">contact</a>
+          </div>
+          <a href="/profile" className="sk-nav-link">{loggedIn ? "my bookings" : "login"}</a>
+        </div>
       </div>
-    </header>
+    </nav>
+  );
+}
+
+// ── Star field (3-layer parallax) ────────────────────────────
+function StarField() {
+  const [stars, setStars] = useState([]);
+  const ref0 = useRef(null);
+  const ref1 = useRef(null);
+  const ref2 = useRef(null);
+
+  useEffect(() => {
+    const out = [];
+    for (let i = 0; i < 95; i++) {
+      // 0 = far/small, 1 = mid, 2 = near/large
+      const layer   = i < 58 ? 0 : i < 82 ? 1 : 2;
+      const twinkle = Math.random() > 0.72;
+      const r       = layer === 0 ? 0.2 + Math.random() * 0.65
+                    : layer === 1 ? 0.45 + Math.random() * 0.85
+                    :               0.85 + Math.random() * 1.1;
+      out.push({
+        layer,
+        x:       Math.random() * 100,
+        y:       Math.random() * 100,
+        r,
+        fill:    r > 1.2 ? "#ffffff" : "#F0EBE0",
+        opacity: twinkle ? undefined : 0.05 + Math.random() * 0.5,
+        cls:     twinkle ? `sk-st${Math.floor(Math.random() * 3)}` : undefined,
+      });
+    }
+    setStars(out);
+  }, []);
+
+  // Parallax: far stars move slow, near stars move fast — direct DOM update for perf
+  useEffect(() => {
+    const layerRefs = [ref0, ref1, ref2];
+    const factors   = [0.10, 0.26, 0.46];
+    let raf;
+    const onScroll = () => {
+      raf = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        layerRefs.forEach((r, i) => {
+          if (r.current) r.current.style.transform = `translateY(${y * -factors[i]}px)`;
+        });
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
+  }, []);
+
+  const layerRefs = [ref0, ref1, ref2];
+
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+      <style>{`
+        @keyframes sk-tw0 { 0%,100%{opacity:.52} 50%{opacity:.03} }
+        @keyframes sk-tw1 { 0%,100%{opacity:.28} 50%{opacity:.05} }
+        @keyframes sk-tw2 { 0%,100%{opacity:.40} 50%{opacity:.02} }
+        .sk-st0 { animation: sk-tw0 2.9s ease-in-out infinite backwards; }
+        .sk-st1 { animation: sk-tw1 4.1s 1.3s ease-in-out infinite backwards; }
+        .sk-st2 { animation: sk-tw2 3.4s 2.6s ease-in-out infinite backwards; }
+      `}</style>
+      {[0, 1, 2].map((layer) => (
+        <svg
+          key={layer}
+          ref={layerRefs[layer]}
+          width="100%" height="100%"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ position: "absolute", inset: 0, willChange: "transform" }}
+        >
+          {stars.filter((s) => s.layer === layer).map((s, i) => (
+            <circle
+              key={i}
+              cx={`${s.x}%`}
+              cy={`${s.y}%`}
+              r={s.r}
+              fill={s.fill}
+              opacity={s.opacity}
+              className={s.cls}
+            />
+          ))}
+        </svg>
+      ))}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "radial-gradient(ellipse 78% 62% at 50% 44%, transparent 0%, rgba(13,13,13,0.78) 100%)",
+      }} />
+    </div>
+  );
+}
+
+// ── Scroll reveal ─────────────────────────────────────────────
+function Reveal({ children, delay = 0 }) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.08 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0px)" : "translateY(34px)",
+        transition: `opacity 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
+        height: "100%",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ── Chiyogami / Shippo pattern ───────────────────────────────
+function ChiyogamiPattern({ id, opacity = 0.04 }) {
+  return (
+    <svg
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <pattern id={id} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+          {/* Shippo (七宝) — five overlapping circles per tile create interlocking petal grid */}
+          <circle cx="0"  cy="0"  r="20" fill="none" stroke="#E8C97E" strokeWidth="0.4" />
+          <circle cx="40" cy="0"  r="20" fill="none" stroke="#E8C97E" strokeWidth="0.4" />
+          <circle cx="0"  cy="40" r="20" fill="none" stroke="#E8C97E" strokeWidth="0.4" />
+          <circle cx="40" cy="40" r="20" fill="none" stroke="#E8C97E" strokeWidth="0.4" />
+          <circle cx="20" cy="20" r="20" fill="none" stroke="#E8C97E" strokeWidth="0.4" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill={`url(#${id})`} opacity={opacity} />
+    </svg>
   );
 }
 
 // ── Hero ──────────────────────────────────────────────────────
-function Hero() {
+function Hero({ onLetsRoll, onLogoClick }) {
   return (
-    <section style={{ position: "relative" }}>
-      <ImageSlot label="overhead counter build" className="sk-hero-media" />
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 64px", width: "100%" }}>
-          <Eyebrow>gainesville, florida</Eyebrow>
-          <h1 className="sk-h1" style={{ fontFamily: SERIF, fontWeight: 400, textTransform: "lowercase", color: INK, lineHeight: 1.08, margin: "0 0 20px" }}>
-            a sushi chef<br />in your kitchen
-          </h1>
-          <p style={{ fontFamily: SANS, fontSize: 17, color: MUTED, lineHeight: 1.7, margin: "0 0 32px", maxWidth: 480 }}>
-            private sushi catering for 8 to 50 guests, cut in front of your guests.
-          </p>
-          <a href="/book" className="sk-btn">reserve</a>
+    <section style={{
+      background: BG, backgroundImage: N(0.65, 0.022), minHeight: "100vh",
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      textAlign: "center", position: "relative",
+    }}
+      className="sk-hero"
+      id="top"
+    >
+      <ChiyogamiPattern id="sk-shippo-hero" opacity={0.08} />
+      <StarField />
+
+      {/* Gold horizontal accent lines */}
+      <div style={{
+        position: "absolute",
+        top: "calc(var(--header-h, 100px) + var(--banner-h, 0px) + 18px)",
+        left: 0, right: 0, height: 1,
+        background: "rgba(232,201,126,0.30)",
+        zIndex: 2, pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", bottom: 24,
+        left: 0, right: 0, height: 1,
+        background: "rgba(232,201,126,0.30)",
+        zIndex: 2, pointerEvents: "none",
+      }} />
+
+      {/* Content sits above the star layer */}
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+
+        {/* Logo with radial glow behind the mark */}
+        <div style={{ position: "relative", marginBottom: 36 }}>
+          <div style={{
+            position: "absolute", top: "50%", left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400, height: 400,
+            background: "radial-gradient(circle, rgba(232,201,126,0.06) 0%, transparent 70%)",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+          <a href="/" onClick={(e) => { e.preventDefault(); onLogoClick?.(); }} style={{ textDecoration: "none", display: "block", position: "relative", zIndex: 1, cursor: "pointer" }} className="hero-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="18 14 78 100"
+              width={160}
+              role="img"
+              aria-label="Sonakase"
+              style={{ display: "block" }}
+            >
+              <g transform="translate(18, 10) scale(0.9)">
+                <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="2.2" strokeLinecap="round"/>
+                <line x1="55" y1="12" x2="48" y2="108" stroke="#e6dac8" strokeWidth="2.2" strokeLinecap="round"/>
+                <circle cx="45" cy="19" r="4" fill="#b8892a"/>
+                <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke="#b8892a" strokeWidth="2.8" strokeLinecap="round" fill="none"/>
+                <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke="#b8892a" strokeWidth="1.9" strokeLinecap="round" fill="none" opacity="0.5"/>
+                <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke="#b8892a" strokeWidth="1.1" strokeLinecap="round" fill="none" opacity="0.25"/>
+              </g>
+            </svg>
+          </a>
+        </div>
+
+        {/* Gold line */}
+        <div style={{ width: 120, height: 1, background: GOLD, opacity: 0.6, margin: "0 auto 32px" }} />
+
+        {/* Headline */}
+        <h1 style={{
+          fontFamily: "'Shippori Mincho', Georgia, serif", fontWeight: 400,
+          fontSize: "clamp(28px, 5vw, 52px)",
+          color: CREAM, letterSpacing: "0.04em",
+          margin: "0 0 20px", lineHeight: 1.1,
+        }}>
+          the sonakase experience
+        </h1>
+
+        {/* Tagline */}
+        <div style={{
+          fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(14px, 2vw, 18px)",
+          color: GOLD, letterSpacing: "0.15em", fontStyle: "italic",
+          marginBottom: 56,
+        }}>
+          American Omakase Where You Are
+        </div>
+
+        {/* CTAs */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%", maxWidth: 340 }}>
+          <button
+            onClick={onLetsRoll}
+            className="sk-btn-fill"
+            style={{ width: "100%", border: "none", cursor: "pointer" }}
+          >
+            Let's Roll <span className="sk-arrow">→</span>
+          </button>
         </div>
       </div>
     </section>
   );
 }
 
-// ── Split section scaffold ────────────────────────────────────
-function Split({ id, eyebrow, heading, imageLabel, imageAspect, flip, children }) {
+// ── Experiences Section ───────────────────────────────────────
+// Tier cards show name, guest range, per-head price, and one format line.
+// No promo display here — promos apply in the booking flow only.
+function ExperiencesSection() {
   return (
-    <section id={id} style={{ borderTop: `1px solid ${HAIR}` }}>
-      <div className="sk-section" style={{ maxWidth: 1100, margin: "0 auto" }}>
+    <section id="experiences" style={{ background: BG2, backgroundImage: N(0.55, 0.04) }}>
+      <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
+      <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
-          <div className="sk-split">
-            {flip && <ImageSlot label={imageLabel} aspect={imageAspect} className="sk-split-img-first" />}
-            <div>
-              <Eyebrow>{eyebrow}</Eyebrow>
-              <Heading>{heading}</Heading>
-              {children}
-            </div>
-            {!flip && <ImageSlot label={imageLabel} aspect={imageAspect} />}
-          </div>
+          {/* Headline */}
+          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(32px, 5vw, 68px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 24, lineHeight: 1.1 }}>
+            authentic american omakase.
+          </h2>
+
+          {/* Body */}
+          <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, textAlign: "center", maxWidth: 560, margin: "0 auto 80px", lineHeight: 1.8 }}>
+            A live countertop build in your home. Sushi made in front of your guests and laid out over banana leaves in waves — two hours of dinner service, start to finish.
+          </p>
         </Reveal>
-      </div>
-    </section>
-  );
-}
 
-// ── How it works ──────────────────────────────────────────────
-function HowItWorks() {
-  return (
-    <Split
-      id="how"
-      eyebrow="no restaurant, no reservation, no drive home"
-      heading="how it works"
-      imageLabel="chef slicing"
-      imageAspect="4 / 3"
-    >
-      <p style={{ fontFamily: SANS, fontSize: 17, color: MUTED, lineHeight: 1.7, margin: 0 }}>
-        I arrive about an hour before service and set up on your kitchen counter.
-        For the next two hours I cut sushi in front of your guests and lay it out
-        as they eat, so nothing sits. Around {PIECES_PER_GUEST === 16 ? "sixteen" : PIECES_PER_GUEST} pieces
-        per person, a mix of nigiri and rolls, plus sides and sauces. You provide
-        counter space. I bring everything else and clean up before I leave.
-      </p>
-    </Split>
-  );
-}
+        {/* Tier cards */}
+        <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
+          {TIERS.map((t, idx) => (
+            <Reveal key={t.id} delay={idx * 0.09}>
+              <div className="sk-pkg-card">
+              {/* Name */}
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
+                {t.name.toLowerCase()}
+              </div>
 
-// ── Standards ─────────────────────────────────────────────────
-const STANDARDS = [
-  "Fish gets cut the day you eat it, never the day before.",
-  "Rice gets seasoned the morning of your event, and it is the thing I am pickiest about.",
-  "I leave your kitchen cleaner than I found it.",
-];
+              {/* Guest range */}
+              <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 500, color: "#b8892a", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 24 }}>
+                {t.minGuests}–{t.maxGuests} guests
+              </div>
 
-function Standards() {
-  return (
-    <Split
-      eyebrow="what i care about"
-      heading="three things I do not compromise on"
-      imageLabel="finished spread"
-      imageAspect="3 / 4"
-      flip
-    >
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {STANDARDS.map((s) => (
-          <div key={s} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <span aria-hidden="true" style={{ color: ACCENT, fontSize: 15, lineHeight: "27px", flexShrink: 0 }}>✓</span>
-            <span style={{ fontFamily: SANS, fontSize: 17, color: INK, lineHeight: 1.7 }}>{s}</span>
-          </div>
-        ))}
-      </div>
-    </Split>
-  );
-}
-
-// ── Pricing ───────────────────────────────────────────────────
-function PricingSection() {
-  return (
-    <section id="pricing" style={{ borderTop: `1px solid ${HAIR}` }}>
-      <div className="sk-section" style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <Reveal>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <Eyebrow>three sizes</Eyebrow>
-            <Heading style={{ marginBottom: 0 }}>what it costs</Heading>
-          </div>
-        </Reveal>
-        <Reveal>
-          <div className="sk-cards">
-            {TIERS.map((t) => {
-              const range = tierTotalRange(t);
-              return (
-                <div key={t.id} style={{ border: `1px solid ${HAIR}`, borderRadius: 2, padding: "40px 32px", background: "#FFFFFF", display: "flex", flexDirection: "column" }}>
-                  <div style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 400, textTransform: "lowercase", color: INK, marginBottom: 6 }}>
-                    {t.name.toLowerCase()}
-                  </div>
-                  <div style={{ fontFamily: SANS, fontSize: 14, color: MUTED, marginBottom: 28 }}>
-                    {t.minGuests} to {t.maxGuests} guests
-                  </div>
-                  <div style={{ fontFamily: SERIF, fontSize: 32, fontWeight: 400, color: INK, lineHeight: 1.1, whiteSpace: "nowrap" }}>
-                    {formatUSD(range.low)}<span style={{ color: MUTED }}>–</span>{formatUSD(range.high)}
-                  </div>
-                  <div style={{ fontFamily: SANS, fontSize: 14, color: MUTED, margin: "10px 0 24px" }}>
-                    ${t.perGuest} per guest
-                  </div>
-                  <p style={{ fontFamily: SANS, fontSize: 15, color: MUTED, lineHeight: 1.7, margin: "0 0 28px" }}>
-                    {t.tagline}
-                  </p>
-                  <div style={{ flex: 1 }} />
-                  <a href="/book" className="sk-link">reserve →</a>
+              {/* Event price (starting at the floored low quote), per-guest rate below */}
+              <div style={{ marginBottom: 28 }}>
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(245,240,232,0.5)", fontStyle: "italic", marginBottom: 6 }}>
+                  starting at
                 </div>
-              );
-            })}
-          </div>
-        </Reveal>
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 34, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
+                  {formatUSD(tierTotalRange(t).low)}
+                </div>
+                <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(232,201,126,0.75)", letterSpacing: "0.06em", marginTop: 10 }}>
+                  ${t.perGuest} per guest
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div style={{ height: 1, background: GOLD, opacity: 0.2, marginBottom: 20 }} />
+
+              {/* Format line */}
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(245,240,232,0.6)", lineHeight: 1.7, margin: "0 0 10px" }}>
+                {t.tagline}
+              </p>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(232,201,126,0.7)", fontStyle: "italic", marginBottom: 28 }}>
+                {MENU_LINE}
+              </div>
+              <div style={{ flex: 1 }} />
+
+              {/* CTA */}
+              <a href="/book" className="sk-reserve-link">
+                Reserve <span className="sk-arrow">→</span>
+              </a>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
       </div>
     </section>
   );
 }
 
-function ReserveBand() {
+// ── About Chef Section ────────────────────────────────────────
+function AboutChefSection() {
   return (
-    <section style={{ padding: "0 24px 128px", textAlign: "center" }}>
-      <Reveal>
-        <a href="/book" className="sk-btn">reserve your date</a>
-      </Reveal>
-    </section>
-  );
-}
-
-// ── Chef bio ──────────────────────────────────────────────────
-function ChefBio() {
-  return (
-    <section id="about" style={{ borderTop: `1px solid ${HAIR}` }}>
-      <div className="sk-section" style={{ maxWidth: 1100, margin: "0 auto" }}>
+    <section id="about" style={{ background: BG2, backgroundImage: N(0.65, 0.035) }}>
+      <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
+      <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1100, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
-          <div className="sk-split">
-            <img
-              src="/chef-portrait.jpg"
-              alt="Mason Steinberg, Founder & Executive Chef"
-              className="sk-split-img-first"
-              style={{ width: "100%", display: "block" }}
-            />
+          <div className="sk-about-grid">
+
+            {/* Left — Chef portrait */}
             <div>
-              <Eyebrow>fifteen years old, washing dishes</Eyebrow>
-              <Heading style={{ marginBottom: 8 }}>mason steinberg</Heading>
-              <div style={{ fontFamily: SANS, fontSize: 13, color: MUTED, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
+              <img
+                src="/chef-portrait.jpg"
+                alt="Mason Steinberg, Founder & Executive Chef"
+                style={{ width: "100%", display: "block" }}
+              />
+            </div>
+
+            {/* Right — Text content */}
+            <div>
+              {/* Eyebrow */}
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: GOLD, letterSpacing: "0.5em", textTransform: "uppercase", marginBottom: 20 }}>
+                Meet Your Chef
+              </div>
+
+              {/* Name */}
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 36, color: CREAM, fontWeight: 400, marginBottom: 10 }}>
+                Mason Steinberg
+              </div>
+
+              {/* Title */}
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12, color: GOLD, letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: 32 }}>
                 Founder &amp; Executive Chef
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                <p style={{ fontFamily: SANS, fontSize: 16, color: MUTED, lineHeight: 1.7, margin: 0 }}>
+
+              {/* Top divider */}
+              <div style={{ width: 60, height: 1, background: GOLD, opacity: 0.4, marginBottom: 32 }} />
+
+              {/* Bio */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 0 }}>
+                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
                   Mason grew up sitting at the sushi bar as a kid, watching the chef work. He started practicing at home, rolling on his own with grocery store fish and YouTube. By 15 he had his first kitchen job as a dishwasher.
                 </p>
-                <p style={{ fontFamily: SANS, fontSize: 16, color: MUTED, lineHeight: 1.7, margin: 0 }}>
+                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
                   The week he turned 16 and got his license, he drove back to the place he grew up sitting in front of the bar — now working behind it. Over the next few years he worked his way through some of Gainesville&rsquo;s most notable sushi spots, moving from prep to rolling, learning the craft the right way across multiple kitchens.
                 </p>
-                <p style={{ fontFamily: SANS, fontSize: 16, color: MUTED, lineHeight: 1.7, margin: 0 }}>
+                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
                   Along the way he started doing sushi nights for his family. Rolling for the people he grew up with, at home, around the table. It was always his favorite part. At 20 he decided other people deserved that too. That is Sonakase&trade;.
                 </p>
               </div>
+
+              {/* Lower divider */}
+              <div style={{ width: 60, height: 1, background: GOLD, opacity: 0.2, margin: "32px 0" }} />
+
+              {/* Sourcing */}
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 20, color: CREAM, marginBottom: 16 }}>
+                The Sourcing
+              </div>
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 15, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: "0 0 16px" }}>
+                Every protein is sourced fresh from trusted local and regional seafood markets. Rice is seasoned the day of your event. Nothing is prepared days in advance.
+              </p>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(232,201,126,0.70)", fontStyle: "italic" }}>
+                ServSafe Food Manager Certified
+              </div>
             </div>
+
           </div>
         </Reveal>
       </div>
@@ -433,35 +772,7 @@ function ChefBio() {
   );
 }
 
-// ── Sourcing ──────────────────────────────────────────────────
-function Sourcing() {
-  return (
-    <Split
-      eyebrow="cut the day you eat it"
-      heading="the sourcing"
-      imageLabel="fresh fish, day of"
-      imageAspect="1 / 1"
-    >
-      <p style={{ fontFamily: SANS, fontSize: 17, color: MUTED, lineHeight: 1.7, margin: "0 0 20px" }}>
-        Every protein is sourced fresh from trusted local and regional seafood markets. Rice is seasoned the day of your event. Nothing is prepared days in advance.
-      </p>
-      <div style={{ fontFamily: SANS, fontSize: 14, color: INK, fontWeight: 500 }}>
-        ServSafe Food Manager Certified
-      </div>
-    </Split>
-  );
-}
-
-// ── Flagged-off sections ──────────────────────────────────────
-function Testimonials() {
-  return null; // populate when testimonials exist, then flip SHOW_TESTIMONIALS
-}
-
-function InstagramGrid() {
-  return null; // populate with feed embed, then flip SHOW_INSTAGRAM
-}
-
-// ── Contact ───────────────────────────────────────────────────
+// ── Contact Section ───────────────────────────────────────────
 function ContactSection() {
   const [name, setName]       = useState("");
   const [email, setEmail]     = useState("");
@@ -499,71 +810,145 @@ function ContactSection() {
   };
 
   return (
-    <section id="contact" style={{ borderTop: `1px solid ${HAIR}` }}>
-      <div className="sk-section" style={{ maxWidth: 560, margin: "0 auto" }}>
+    <section id="contact" style={{ background: BG2, backgroundImage: N(0.45, 0.03) }}>
+      <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
+      <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <Eyebrow>get in touch</Eyebrow>
-            <Heading style={{ marginBottom: 0 }}>have a question?</Heading>
+          {/* Eyebrow */}
+          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
+            get in touch
           </div>
+
+          {/* Headline */}
+          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(28px, 4vw, 56px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 56, lineHeight: 1.2 }}>
+            have a question?
+          </h2>
         </Reveal>
-        <Reveal>
-          {status === "success" ? (
-            <div style={{ textAlign: "center", fontFamily: SANS, fontSize: 17, color: INK, lineHeight: 1.7 }}>
-              Thank you. We&rsquo;ll be in touch.
+
+        <Reveal delay={0.1}>
+        {status === "success" ? (
+          <div style={{ textAlign: "center", padding: "40px 0", fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 18, color: GOLD, fontStyle: "italic", lineHeight: 1.6 }}>
+            Thank you. We&rsquo;ll be in touch.
+          </div>
+        ) : (
+          <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+            <div>
+              <input
+                type="text"
+                className="sk-contact-field"
+                placeholder="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </div>
-          ) : (
-            <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <input type="text"  className="sk-field" placeholder="Name"    value={name}    onChange={(e) => setName(e.target.value)} required />
-              <input type="email" className="sk-field" placeholder="Email"   value={email}   onChange={(e) => setEmail(e.target.value)} required />
-              <input type="text"  className="sk-field" placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
-              <textarea className="sk-field" placeholder="Message" rows={5} value={message} onChange={(e) => setMessage(e.target.value)} required style={{ resize: "vertical" }} />
-              {status === "error" && (
-                <div style={{ fontFamily: SANS, fontSize: 14, color: ACCENT }}>
-                  Something went wrong. Please try again.
-                </div>
-              )}
-              <button type="submit" disabled={status === "sending"} className="sk-btn" style={{ opacity: status === "sending" ? 0.6 : 1 }}>
-                {status === "sending" ? "sending…" : "send message"}
-              </button>
-            </form>
-          )}
+            <div>
+              <input
+                type="email"
+                className="sk-contact-field"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <input
+                type="text"
+                className="sk-contact-field"
+                placeholder="Subject"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+              />
+            </div>
+            <div>
+              <textarea
+                className="sk-contact-field"
+                placeholder="Message"
+                rows={5}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                required
+                style={{ resize: "vertical" }}
+              />
+            </div>
+
+            {status === "error" && (
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "#c5552d", fontStyle: "italic" }}>
+                Something went wrong. Please try again.
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={status === "sending"}
+              className="sk-btn-fill"
+              style={{ width: "100%", opacity: status === "sending" ? 0.6 : 1 }}
+            >
+              {status === "sending" ? "Sending…" : "Send Message"}
+            </button>
+          </form>
+        )}
         </Reveal>
       </div>
     </section>
   );
 }
 
-// ── Footer ────────────────────────────────────────────────────
-function Footer() {
+// ── Photo Placeholder ─────────────────────────────────────────
+function PhotoSection() {
   return (
-    <footer style={{ borderTop: `1px solid ${HAIR}` }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 24px 40px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 32, flexWrap: "wrap", marginBottom: 48 }}>
-          <div>
-            <a href="/" aria-label="Sonakase home"><Logo height={32} /></a>
-            <div style={{ fontFamily: SANS, fontSize: 14, color: MUTED, marginTop: 16 }}>
-              <a href="mailto:bookings@sonakase.com" style={{ color: MUTED }}>bookings@sonakase.com</a>
-            </div>
-            <div style={{ fontFamily: SANS, fontSize: 14, color: MUTED, marginTop: 6 }}>
-              serving gainesville and surrounding areas
-            </div>
+    <section style={{ background: BG, backgroundImage: N(0.70, 0.03), position: "relative", overflow: "hidden", minHeight: 280, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {/* "S" watermark */}
+      <div style={{
+        position: "absolute", inset: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 300, fontWeight: 400,
+        color: GOLD, opacity: 0.05, lineHeight: 1,
+        pointerEvents: "none", userSelect: "none",
+      }}>S</div>
+      <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "80px 40px" }}>
+        <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.3)`, fontStyle: "italic" }}>
+          Photography coming soon.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ── Footer ────────────────────────────────────────────────────
+function SiteFooter() {
+  return (
+    <footer style={{ background: BG, backgroundImage: N(0.60, 0.025), position: "relative", overflow: "hidden" }}>
+      <ChiyogamiPattern id="sk-shippo-footer" opacity={0.04} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 40px 36px", boxSizing: "border-box" }}>
+          <div className="sk-footer-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 32, marginBottom: 48, flexWrap: "wrap" }}>
+            <a href="/" style={{ textDecoration: "none" }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="160" height="45" role="img" aria-label="Sonakase Private Dining">
+                <defs><style>{"@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Cormorant+Garamond:wght@300&display=swap');"}</style></defs>
+                <g transform="translate(18, 10) scale(0.9)">
+                  <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+                  <line x1="55" y1="12" x2="48" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+                  <circle cx="45" cy="19" r="3" fill="#b8892a"/>
+                  <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke="#b8892a" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke="#b8892a" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5"/>
+                  <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke="#b8892a" strokeWidth="0.8" strokeLinecap="round" fill="none" opacity="0.22"/>
+                </g>
+                <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
+                <text x="138" y="88" fontFamily="'Shippori Mincho', 'Times New Roman', serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
+              </svg>
+            </a>
+            <a href="/book" className="sk-btn-fill" style={{ fontSize: 11 }}>
+              Reserve Your Experience <span className="sk-arrow">→</span>
+            </a>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <a href="#how"     className="sk-navlink" style={{ padding: 0 }}>how it works</a>
-            <a href="#pricing" className="sk-navlink" style={{ padding: 0 }}>pricing</a>
-            <a href="#about"   className="sk-navlink" style={{ padding: 0 }}>about</a>
-            <a href="#contact" className="sk-navlink" style={{ padding: 0 }}>contact</a>
-            <a href="/book"    className="sk-btn" style={{ padding: "11px 26px", marginTop: 8, alignSelf: "flex-start" }}>reserve</a>
+          <div style={{ borderTop: `1px solid rgba(232,201,126,0.12)`, paddingTop: 24 }}>
+            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: `rgba(245,240,232,0.3)`, letterSpacing: "0.05em" }}>
+              © 2026 Sonakase™ · All rights reserved.
+            </p>
           </div>
-        </div>
-        <div style={{ borderTop: `1px solid ${HAIR}`, paddingTop: 24, display: "flex", flexDirection: "column", gap: 8 }}>
-          <p style={{ fontFamily: SANS, fontSize: 12, color: MUTED, lineHeight: 1.6, margin: 0 }}>
-            Consuming raw or undercooked seafood may increase your risk of foodborne illness. All fish is sourced and handled to commercial food safety standards.
-          </p>
-          <p style={{ fontFamily: SANS, fontSize: 12, color: MUTED, margin: 0 }}>
-            © 2026 Sonakase™ · All rights reserved.
-          </p>
         </div>
       </div>
     </footer>
