@@ -6,11 +6,11 @@ export const metadata = {
   icons: {
     icon: "/favicon.png",
   },
-  title: "Sonakase™ — Private Dining · Gainesville, FL",
-  description: "Private omakase sushi dining in Gainesville, FL. A personal chef in your home, rolling course by course for your guests.",
+  title: "Sonakase™ — Private Sushi Catering · Gainesville, FL",
+  description: "Private sushi catering in Gainesville, FL. A chef sets up in your kitchen and cuts sushi in front of your guests.",
   openGraph: {
     title: "The Sonakase Experience",
-    description: "In-home personal sushi chef for gatherings in Gainesville, FL.",
+    description: "A sushi chef in your kitchen. Private sushi catering in Gainesville, FL.",
     url: "https://sonakase.com",
     type: "website",
     images: [
@@ -24,7 +24,7 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "The Sonakase Experience",
-    description: "In-home personal sushi chef for gatherings in Gainesville, FL.",
+    description: "A sushi chef in your kitchen. Private sushi catering in Gainesville, FL.",
     images: ["/og-image.png"],
   },
 };
@@ -35,7 +35,7 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400&display=swap" rel="stylesheet" />
       </head>
       <body>
         <Banner />
