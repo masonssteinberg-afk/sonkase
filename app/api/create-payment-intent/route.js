@@ -2,6 +2,19 @@ import Stripe from "stripe";
 
 export async function POST(req) {
   try {
+    // Production guard: never create a payment intent against a test-mode
+    // Stripe key in production. VERCEL_ENV distinguishes real production
+    // from preview deploys (where NODE_ENV is also "production" and test
+    // keys are expected); NODE_ENV is the fallback outside Vercel.
+    const deployEnv = process.env.VERCEL_ENV || process.env.NODE_ENV;
+    if (deployEnv === "production" && process.env.STRIPE_SECRET_KEY?.startsWith("sk_test")) {
+      console.error("create-payment-intent refused: test-mode Stripe key in production");
+      return Response.json(
+        { error: "Payments are temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+
     const { amount } = await req.json();
 
     if (!amount || amount <= 0) {
