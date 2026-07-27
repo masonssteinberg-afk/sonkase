@@ -9,13 +9,11 @@ const ScrollRoll  = dynamic(() => import("./components/ScrollRoll"),  { ssr: fal
 // can generate blur placeholders at build time.
 import imgHeroWide        from "@/public/images/hero-wide.jpg";
 import imgHeroMobile      from "@/public/images/hero-mobile.jpg";
-import imgHowItWorks      from "@/public/images/how-it-works.jpg";
-import imgTileBoard       from "@/public/images/tile-board.jpg";
+import imgHowCutout       from "@/public/images/how-it-works-cutout.png";
 import imgTileLong        from "@/public/images/tile-long.jpg";
 import imgTileEvent       from "@/public/images/tile-event.jpg";
-import imgBandLong        from "@/public/images/band-long.jpg";
-import imgBandSpread      from "@/public/images/band-spread.jpg";
-import imgStandards       from "@/public/images/standards.jpg";
+import imgTileTray        from "@/public/images/tile-tray.jpg";
+import imgSourcing        from "@/public/images/sourcing.jpg";
 import imgTileNigiri      from "@/public/images/tile-nigiri.jpg";
 import imgTileLineup      from "@/public/images/tile-lineup.jpg";
 import imgTilePlate       from "@/public/images/tile-plate.jpg";
@@ -81,10 +79,8 @@ export default function Home() {
       <Nav />
       <Hero onLetsRoll={() => router.push("/book")} />
       <ExperiencesSection />
-      <PhotoBand img={imgBandLong} alt="Sushi arranged in rows across a wooden serving board." />
       <PhotoSection />
       <AboutChefSection />
-      <PhotoBand img={imgBandSpread} alt="A full sushi catering spread laid edge to edge for a private event." />
       <ContactSection />
       <SiteFooter />
     </div>
@@ -246,8 +242,7 @@ function PageStyles() {
         background: linear-gradient(180deg, rgba(245,240,232,0.045) 0%, rgba(245,240,232,0.015) 100%);
         border: 1px solid rgba(232,201,126,0.14);
         border-radius: 24px;
-        padding: 0;
-        overflow: hidden;
+        padding: 40px 36px 36px;
         display: flex;
         flex-direction: column;
         height: 100%;
@@ -309,28 +304,13 @@ function PageStyles() {
         align-items: start;
       }
 
-      .sk-pkg-card-body {
-        padding: 28px 36px 36px;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-      }
-      .sk-card-photo {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 3 / 2;
-      }
       .sk-how-grid {
         display: grid;
         grid-template-columns: 1fr 420px;
         gap: 64px;
         align-items: center;
       }
-      .sk-how-photo {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 4 / 5;
-      }
+      .sk-how-photo { width: 100%; }
       .sk-sourcing-grid {
         display: grid;
         grid-template-columns: 1fr 380px;
@@ -342,7 +322,6 @@ function PageStyles() {
         width: 100%;
         aspect-ratio: 1 / 1;
       }
-      .sk-band { position: relative; height: 240px; }
       .sk-gallery {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -368,10 +347,9 @@ function PageStyles() {
         .sk-footer-inner { flex-direction: column !important; gap: 32px !important; align-items: flex-start !important; }
         .sk-nav-inner { height: 72px !important; padding: 0 12px !important; }
         .sk-nav-logo  { width: 128px !important; height: 40px !important; }
-        .sk-pkg-card-body { padding: 22px 20px 24px !important; }
+        .sk-pkg-card  { padding: 28px 20px 24px !important; }
         .sk-about-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
         .sk-sourcing-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
-        .sk-band { height: 160px !important; }
         .sk-gallery { grid-template-columns: repeat(2, 1fr) !important; }
       }
     `}</style>
@@ -704,13 +682,12 @@ function ExperiencesSection() {
             </p>
             <div className="sk-how-photo">
               <Image
-                src={imgHowItWorks}
-                alt="Private sushi chef building a countertop sushi spread in a Gainesville home kitchen."
-                fill
+                src={imgHowCutout}
+                alt="A full platter of specialty sushi rolls prepared for a private event."
                 placeholder="blur"
                 decoding="async"
-                sizes="(max-width: 768px) 100vw, 420px"
-                style={{ objectFit: "cover", borderRadius: 20 }}
+                sizes="(max-width: 768px) 90vw, 420px"
+                style={{ width: "100%", height: "auto", display: "block", filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.55))" }}
               />
             </div>
           </div>
@@ -718,28 +695,9 @@ function ExperiencesSection() {
 
         {/* Tier cards */}
         <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
-          {TIERS.map((t, idx) => {
-            const cardPhoto = {
-              countertop: { src: imgTileBoard, alt: "Sushi laid out on a kitchen counter for a small dinner party." },
-              longtable:  { src: imgTileLong,  alt: "A long board of assorted sushi rolls for a private party." },
-              fullspread: { src: imgTileEvent, alt: "Large sushi catering display for an event in Gainesville, Florida." },
-            }[t.id];
-            return (
+          {TIERS.map((t, idx) => (
             <Reveal key={t.id} delay={idx * 0.09}>
               <div className="sk-pkg-card">
-              {/* Card photo — flush above the tier name */}
-              <div className="sk-card-photo">
-                <Image
-                  src={cardPhoto.src}
-                  alt={cardPhoto.alt}
-                  fill
-                  placeholder="blur"
-                  decoding="async"
-                  sizes="(max-width: 768px) 100vw, 380px"
-                  style={{ objectFit: "cover" }}
-                />
-              </div>
-              <div className="sk-pkg-card-body">
               {/* Name */}
               <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
                 {t.name.toLowerCase()}
@@ -780,31 +738,12 @@ function ExperiencesSection() {
                 Reserve <span className="sk-arrow">→</span>
               </a>
               </div>
-              </div>
             </Reveal>
-            );
-          })}
+          ))}
         </div>
 
       </div>
     </section>
-  );
-}
-
-// ── Full-bleed photo band ─────────────────────────────────────
-function PhotoBand({ img, alt }) {
-  return (
-    <div className="sk-band">
-      <Image
-        src={img}
-        alt={alt}
-        fill
-        placeholder="blur"
-        decoding="async"
-        sizes="100vw"
-        style={{ objectFit: "cover" }}
-      />
-    </div>
   );
 }
 
@@ -884,8 +823,8 @@ function AboutChefSection() {
             </div>
             <div className="sk-sourcing-photo">
               <Image
-                src={imgStandards}
-                alt="Fresh salmon nigiri cut and plated on a wooden board."
+                src={imgTileLong}
+                alt="A long board of assorted sushi rolls for a private party."
                 fill
                 placeholder="blur"
                 decoding="async"
@@ -1027,10 +966,10 @@ function ContactSection() {
 const GALLERY = [
   { src: imgTileNigiri,      alt: "Hand-cut salmon and tuna nigiri from a private sushi catering event in Gainesville." },
   { src: imgTileLineup,      alt: "A lineup of freshly cut sushi rolls plated for a dinner party." },
-  { src: imgTileEvent,       alt: "Sushi catering display at a private event in Gainesville, Florida." },
-  { src: imgTileBoard,       alt: "Assorted sushi arranged on a serving board at a home dinner party." },
+  { src: imgTileEvent,       alt: "Large sushi catering display for an event in Gainesville, Florida." },
+  { src: imgTileTray,        alt: "A tray of freshly rolled sushi ready for service." },
   { src: imgTilePlate,       alt: "A plated selection of nigiri and sushi rolls." },
-  { src: imgTileLong,        alt: "A long board of assorted sushi rolls at a private catering event." },
+  { src: imgSourcing,        alt: "Fresh ingredients prepped for a private sushi event." },
   { src: imgTileSpread,      alt: "A full sushi spread across the kitchen counter at an in-home event." },
   { src: imgTileBoardDetail, alt: "Close-up detail of sushi rolls on a wooden serving board." },
 ];
