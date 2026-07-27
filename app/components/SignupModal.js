@@ -109,25 +109,21 @@ export default function SignupModal() {
         role="dialog"
         aria-modal="true"
         aria-label="Email signup"
+        className="glass-panel"
         style={{
-          background: "#141414",
-          border: "1px solid rgba(232,201,126,0.25)",
-          borderRadius: 24,
           padding: "40px 32px 32px",
           maxWidth: 420, width: "100%",
-          position: "relative",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
           animation: reduced ? "none" : "skSignupRise 0.3s ease-out",
         }}
       >
         <button
           onClick={close}
           aria-label="Close"
+          className="glass-btn-sec"
           style={{
-            position: "absolute", top: 14, right: 14,
-            background: "none", border: "none", cursor: "pointer",
-            color: "rgba(245,240,232,0.5)", fontSize: 18, lineHeight: 1,
-            padding: 8, fontFamily: FONT_UI,
+            position: "absolute", top: 14, right: 14, zIndex: 4,
+            width: 36, height: 36, minHeight: 36, padding: 0,
+            fontSize: 15, lineHeight: 1,
           }}
         >
           ✕
@@ -139,7 +135,7 @@ export default function SignupModal() {
             <div style={{ fontFamily: FONT_DISPLAY, fontSize: 14, color: "rgba(245,240,232,0.6)", fontStyle: "italic", marginBottom: 20 }}>
               You&rsquo;ll be the first to hear about new dates and seasonal menus.
             </div>
-            <button onClick={close} style={{ background: "none", border: "1px solid rgba(232,201,126,0.3)", borderRadius: 999, color: GOLD, padding: "10px 24px", fontFamily: FONT_UI, fontSize: 12, cursor: "pointer" }}>
+            <button onClick={close} className="glass-btn-sec" style={{ minHeight: 44, padding: "0 26px", fontSize: 13 }}>
               Close
             </button>
           </div>
@@ -169,14 +165,8 @@ export default function SignupModal() {
               <button
                 type="submit"
                 disabled={status === "sending"}
-                style={{
-                  width: "100%", padding: "14px",
-                  background: `linear-gradient(180deg, #F0D796 0%, ${GOLD} 100%)`, color: "#0d0d0d",
-                  border: "none", borderRadius: 999,
-                  fontFamily: FONT_UI, fontSize: 13, fontWeight: 600, letterSpacing: "0.06em",
-                  textTransform: "uppercase", cursor: "pointer",
-                  opacity: status === "sending" ? 0.6 : 1,
-                }}
+                className="glass-btn"
+                style={{ width: "100%", opacity: status === "sending" ? 0.6 : 1 }}
               >
                 {status === "sending" ? "Joining…" : "Join the List"}
               </button>
