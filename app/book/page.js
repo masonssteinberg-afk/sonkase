@@ -4,7 +4,7 @@ import Image from "next/image";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import {
-  quoteForGuests, totalAfterDiscount, MENU_INCLUDES, PIECES_PER_GUEST, MIN_GUESTS, MAX_GUESTS, formatUSD,
+  quoteForGuests, totalAfterDiscount, EVENT_INCLUDES, PIECES_PER_GUEST, MIN_GUESTS, MAX_GUESTS, formatUSD,
 } from "@/lib/pricing";
 
 // ── Design Tokens (Sonakase™ palette) ──────────────────────────
@@ -296,11 +296,14 @@ function TierPanel({ quote }) {
         )}
 
         <div style={{ height: 1, background: "rgba(232,201,126,0.15)", margin: "18px 0 14px" }} />
+        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.65, marginBottom: 14 }}>
+          The menu is the chef&rsquo;s choice that day — about {PIECES_PER_GUEST} pieces per guest, built around the freshest catch.
+        </div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 10 }}>
-          every tier includes · about {PIECES_PER_GUEST} pieces per guest
+          also included
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px" }}>
-          {MENU_INCLUDES.map((item) => (
+          {EVENT_INCLUDES.map((item) => (
             <span key={item} style={{ fontFamily: FONT_BODY, fontSize: 13, color: CREAM, display: "inline-flex", alignItems: "center", gap: 6 }}>
               <span style={{ color: GOLD, fontSize: 7, opacity: 0.6 }}>◆</span>{item}
             </span>

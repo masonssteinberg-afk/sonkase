@@ -58,18 +58,12 @@ export const TIERS: readonly Tier[] = [
 export const MIN_GUESTS = 8;
 export const MAX_GUESTS = 50;
 
-// Identical at every tier — no per-tier menu differences, no add-ons, no surcharges.
+// The menu itself is never itemized — it is the chef's choice at every
+// tier. Only quantity and the extras below are promised to the guest.
 export const PIECES_PER_GUEST = 16;
-export const MENU_INCLUDES: readonly string[] = [
-  "Torched salmon nigiri",
-  "Tuna nigiri",
-  "Shrimp nigiri",
-  "Shrimp tempura roll",
-  "Spicy tuna roll",
-  "Signature roll",
-  "Edamame",
-  "Pickled ginger",
-  "Two house sauces",
+export const EVENT_INCLUDES: readonly string[] = [
+  "Edamame appetizer",
+  "Plates, chopsticks & serviceware",
 ] as const;
 
 export interface Quote {
