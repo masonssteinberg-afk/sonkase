@@ -42,3 +42,126 @@ a:focus-visible {
 input, textarea, select {
   font-family: inherit;
 }
+
+/* ═══ Liquid glass system ══════════════════════════════════════════
+   One shared language for panels (cards, header, modal) and buttons.
+   -webkit- prefixes for Safari; @supports fallbacks to solid where
+   backdrop-filter is unsupported; hover motion gated on
+   prefers-reduced-motion; focus uses a solid accent outline that stays
+   visible over translucent surfaces. Accent = #C4562F (persimmon). */
+
+.glass-panel {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+}
+.glass-panel::before {           /* soft specular highlight across the top third */
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 33%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent);
+  pointer-events: none;
+  z-index: 3;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-panel { background: rgba(18, 20, 18, 0.86); }
+}
+
+/* ── Buttons — one glass language, two variants ─────────────────── */
+.glass-btn, .glass-btn-sec {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 32px;
+  border-radius: 999px;
+  font-family: "Inter", -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .glass-btn, .glass-btn-sec {
+    transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+  .glass-btn:hover, .glass-btn-sec:hover { transform: translateY(-2px); }
+  .glass-btn:active, .glass-btn-sec:active { transform: translateY(0); }
+}
+
+/* Primary — kept solid enough to read as pressable. Accent lives in a
+   low-opacity accent-tinted fill (the one accent method, used everywhere). */
+.glass-btn {
+  background:
+    linear-gradient(rgba(196, 86, 47, 0.16), rgba(196, 86, 47, 0.16)),
+    linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16));
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.40);
+}
+.glass-btn:hover {
+  background:
+    linear-gradient(rgba(196, 86, 47, 0.22), rgba(196, 86, 47, 0.22)),
+    linear-gradient(rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.24));
+  border-color: rgba(255, 255, 255, 0.46);
+}
+.glass-btn:active { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.40); }
+
+/* Over photography — an extra dark under-layer keeps the label legible */
+.glass-btn.on-photo {
+  background:
+    linear-gradient(rgba(196, 86, 47, 0.16), rgba(196, 86, 47, 0.16)),
+    linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)),
+    linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16));
+}
+.glass-btn.on-photo:hover {
+  background:
+    linear-gradient(rgba(196, 86, 47, 0.22), rgba(196, 86, 47, 0.22)),
+    linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)),
+    linear-gradient(rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.24));
+}
+
+/* Secondary — lighter, no outer shadow */
+.glass-btn-sec {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.glass-btn-sec:hover { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.30); }
+
+/* Light-background variants — inverted; accent carried by the text */
+.glass-btn.on-light {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  color: #C4562F;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.80);
+}
+.glass-btn-sec.on-light { background: rgba(255, 255, 255, 0.40); border-color: rgba(0, 0, 0, 0.10); color: #1A1A18; }
+
+/* Focus — solid outline, never a shadow ring, so it shows over glass */
+.glass-btn:focus-visible, .glass-btn-sec:focus-visible {
+  outline: 2px solid #C4562F;
+  outline-offset: 2px;
+}
+
+/* Fallback — solid, still clearly a button, where backdrop-filter is unsupported */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-btn, .glass-btn.on-photo { background: #C4562F; border-color: rgba(255, 255, 255, 0.30); }
+  .glass-btn-sec { background: rgba(30, 32, 30, 0.95); }
+  .glass-btn.on-light { background: #ffffff; color: #C4562F; }
+}
+
+/* Mobile — cap the blur so backdrop compositing stays smooth while scrolling */
+@media (max-width: 768px) {
+  .glass-panel { -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%); }
+  .glass-btn, .glass-btn-sec { -webkit-backdrop-filter: blur(10px) saturate(160%); backdrop-filter: blur(10px) saturate(160%); }
+}

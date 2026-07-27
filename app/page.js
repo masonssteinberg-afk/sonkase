@@ -34,6 +34,14 @@ const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 // ── Tiers — all pricing comes from lib/pricing, no literals here ──
 import { TIERS, MENU_LINE, tierTotalRange, formatUSD } from "@/lib/pricing";
 
+// Fixed blurred-photo background per tier card. Assigned as a constant
+// (never Math.random during render) so server and client first paint agree.
+const CARD_IMG = {
+  countertop: imgTileBoardDetail,
+  longtable:  imgTileLong,
+  fullspread: imgTileSpread,
+};
+
 const N = (f, o) =>
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${f}' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='${o}'/%3E%3C/svg%3E")`;
 
@@ -240,25 +248,75 @@ function PageStyles() {
         box-shadow: 0 0 0 3px rgba(232,201,126,0.12);
       }
 
+      /* Tier card = blurred sushi photo + dark scrim + glass body on top */
       .sk-pkg-card {
-        background: linear-gradient(180deg, rgba(245,240,232,0.045) 0%, rgba(245,240,232,0.015) 100%);
-        border: 1px solid rgba(232,201,126,0.14);
+        position: relative;
+        overflow: hidden;
         border-radius: 24px;
-        padding: 40px 36px 36px;
         display: flex;
-        flex-direction: column;
         height: 100%;
         box-sizing: border-box;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        box-shadow: inset 0 1px 0 rgba(245,240,232,0.06), 0 4px 24px rgba(0,0,0,0.25);
-        transition: border-color 0.3s, transform 0.4s ${SPRING}, box-shadow 0.4s ${SPRING};
+        box-shadow: 0 8px 32px rgba(0,0,0,0.38);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
       }
-      .sk-pkg-card:hover {
-        border-color: rgba(232,201,126,0.4);
-        transform: translateY(-6px) scale(1.01);
-        box-shadow: inset 0 1px 0 rgba(245,240,232,0.08), 0 20px 48px rgba(0,0,0,0.5);
+      .sk-pkg-card__media { position: absolute; inset: 0; z-index: 0; }
+      .sk-pkg-card__media img {
+        object-fit: cover;
+        transform: scale(1.12);          /* hide soft edges the blur would reveal */
+        filter: blur(44px) saturate(1.15) brightness(0.55);
       }
+      .sk-pkg-card__scrim {
+        position: absolute; inset: 0; z-index: 1;
+        background:
+          linear-gradient(180deg, rgba(10,12,10,0.30), rgba(10,12,10,0.66)),
+          linear-gradient(rgba(12,14,12,0.62), rgba(12,14,12,0.62));
+      }
+      .sk-pkg-card__body {
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 40px 36px 36px;
+        box-sizing: border-box;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .sk-pkg-card:hover { transform: translateY(-3px); }
+      }
+      .sk-pkg-card:hover { box-shadow: 0 14px 40px rgba(0,0,0,0.46); }
+      .sk-pkg-card:hover .sk-pkg-card__body { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.24); }
+      @media (max-width: 768px) {
+        .sk-pkg-card__media img { filter: blur(26px) saturate(1.15) brightness(0.55); }
+      }
+
+      .sk-reserve-link {
+        font-family: ${FONT_UI};
+        font-size: 13px;
+        font-weight: 600;
+        color: ${GOLD};
+        letter-spacing: 0.03em;
+        text-decoration: none;
+        text-transform: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 24px;
+        border-radius: 999px;
+        border: 1px solid rgba(232,201,126,0.25);
+        background: rgba(232,201,126,0.05);
+        align-self: flex-start;
+        transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.25s ${SPRING};
+      }
+      .sk-reserve-link:hover {
+        color: #fff8ec;
+        background: rgba(232,201,126,0.12);
+        border-color: rgba(232,201,126,0.5);
+      }
+      .sk-reserve-link:hover .sk-arrow { transform: translateX(5px); }
+      .sk-reserve-link:active { transform: scale(0.96); }
 
       .sk-reserve-link {
         font-family: ${FONT_UI};
@@ -349,7 +407,7 @@ function PageStyles() {
         .sk-footer-inner { flex-direction: column !important; gap: 32px !important; align-items: flex-start !important; }
         .sk-nav-inner { height: 72px !important; padding: 0 12px !important; }
         .sk-nav-logo  { width: 128px !important; height: 40px !important; }
-        .sk-pkg-card  { padding: 28px 20px 24px !important; }
+        .sk-pkg-card__body { padding: 28px 20px 24px !important; }
         .sk-about-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
         .sk-sourcing-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
         .sk-gallery { grid-template-columns: repeat(2, 1fr) !important; }
@@ -371,11 +429,11 @@ function Nav() {
   return (
     <nav style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-      background: scrolled ? "rgba(13,13,13,0.72)" : "rgba(13,13,13,0.35)",
-      backdropFilter: "blur(20px) saturate(160%)",
-      WebkitBackdropFilter: "blur(20px) saturate(160%)",
-      borderBottom: `1px solid rgba(232,201,126,${scrolled ? "0.18" : "0.08"})`,
-      transition: "border-color 0.3s, background 0.3s",
+      background: scrolled ? "rgba(13,13,13,0.55)" : "transparent",
+      backdropFilter: scrolled ? "blur(22px) saturate(180%)" : "none",
+      WebkitBackdropFilter: scrolled ? "blur(22px) saturate(180%)" : "none",
+      borderBottom: `1px solid ${scrolled ? "rgba(255,255,255,0.12)" : "transparent"}`,
+      transition: "border-color 0.3s, background 0.3s, backdrop-filter 0.3s",
     }}>
       <div className="sk-nav-inner" style={{
         maxWidth: 1200, margin: "0 auto",
@@ -641,8 +699,8 @@ function Hero({ onLetsRoll }) {
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%", maxWidth: 340 }}>
           <button
             onClick={onLetsRoll}
-            className="sk-btn-fill"
-            style={{ width: "100%", border: "none", cursor: "pointer" }}
+            className="glass-btn on-photo"
+            style={{ width: "100%" }}
           >
             Let's Roll <span className="sk-arrow">→</span>
           </button>
@@ -689,45 +747,54 @@ function ExperiencesSection() {
           {TIERS.map((t, idx) => (
             <Reveal key={t.id} delay={idx * 0.09}>
               <div className="sk-pkg-card">
+              {/* Blurred photo background */}
+              <div className="sk-pkg-card__media" aria-hidden="true">
+                <Image src={CARD_IMG[t.id]} alt="" fill placeholder="blur" sizes="(max-width: 768px) 100vw, 380px" />
+              </div>
+              <div className="sk-pkg-card__scrim" aria-hidden="true" />
+
+              {/* Glass panel body */}
+              <div className="glass-panel sk-pkg-card__body">
               {/* Name */}
               <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
                 {t.name.toLowerCase()}
               </div>
 
               {/* Guest range */}
-              <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 500, color: "#b8892a", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 24 }}>
+              <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, color: GOLD, letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 24 }}>
                 {t.minGuests}–{t.maxGuests} guests
               </div>
 
               {/* Event price (starting at the floored low quote), per-guest rate below */}
               <div style={{ marginBottom: 28 }}>
-                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(245,240,232,0.5)", fontStyle: "italic", marginBottom: 6 }}>
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(245,240,232,0.8)", fontStyle: "italic", marginBottom: 6 }}>
                   starting at
                 </div>
                 <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 34, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
                   {formatUSD(tierTotalRange(t).low)}
                 </div>
-                <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(232,201,126,0.75)", letterSpacing: "0.06em", marginTop: 10 }}>
+                <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(232,201,126,0.9)", letterSpacing: "0.06em", marginTop: 10 }}>
                   ${t.perGuest} per guest
                 </div>
               </div>
 
               {/* Divider */}
-              <div style={{ height: 1, background: GOLD, opacity: 0.2, marginBottom: 20 }} />
+              <div style={{ height: 1, background: "rgba(255,255,255,0.18)", marginBottom: 20 }} />
 
               {/* Format line */}
-              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(245,240,232,0.6)", lineHeight: 1.7, margin: "0 0 10px" }}>
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(245,240,232,0.85)", lineHeight: 1.7, margin: "0 0 10px" }}>
                 {t.tagline}
               </p>
-              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(232,201,126,0.7)", fontStyle: "italic", marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(232,201,126,0.9)", fontStyle: "italic", marginBottom: 28 }}>
                 {MENU_LINE}
               </div>
               <div style={{ flex: 1 }} />
 
               {/* CTA */}
-              <a href="/book" className="sk-reserve-link">
+              <a href="/book" className="glass-btn" style={{ alignSelf: "flex-start", padding: "0 26px", minHeight: 46 }}>
                 Reserve <span className="sk-arrow">→</span>
               </a>
+              </div>
               </div>
             </Reveal>
           ))}
@@ -962,7 +1029,7 @@ function ContactSection() {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="sk-btn-fill"
+              className="glass-btn"
               style={{ width: "100%", opacity: status === "sending" ? 0.6 : 1 }}
             >
               {status === "sending" ? "Sending…" : "Send Message"}
@@ -1033,7 +1100,7 @@ function SiteFooter() {
                 <text x="138" y="88" fontFamily="'Shippori Mincho', 'Times New Roman', serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
               </svg>
             </a>
-            <a href="/book" className="sk-btn-fill" style={{ fontSize: 11 }}>
+            <a href="/book" className="glass-btn" style={{ fontSize: 12 }}>
               Reserve Your Experience <span className="sk-arrow">→</span>
             </a>
           </div>
