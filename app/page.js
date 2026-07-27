@@ -14,46 +14,11 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 // iOS-style spring for transforms; standard ease-out for everything else
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
-// ── Packages (no ™ on individual names per brand guidelines) ──
-// No menu details on the homepage — the menu is chef's choice.
-const PACKAGES = [
-  { id: "datenight",       name: "date night",      guests: 2, price: 315 },
-  { id: "doubledatenight", name: "double date",     guests: 4, price: 485 },
-  { id: "smallgathering",  name: "small gathering", guests: 6, price: 665 },
-  { id: "gettogether",     name: "get together",    guests: 8, price: 830 },
-];
-
-// ── Promo helpers ─────────────────────────────────────────────
-const HINT_FNS = [
-  (code, promo) => [`use `,           code, ` at checkout — ${promo.discount_type === "percent" ? `${promo.discount_value}% off` : `$${promo.discount_value} off`}`],
-  (code, promo) => [`enter `,         code, ` at checkout to save ${promo.discount_type === "percent" ? `${promo.discount_value}%` : `$${promo.discount_value}`}`],
-  (code, promo) => [``,               code, ` at checkout takes ${promo.discount_type === "percent" ? `${promo.discount_value}%` : `$${promo.discount_value}`} off`],
-  (code, promo) => [`apply `,         code, ` at checkout for ${promo.discount_type === "percent" ? `${promo.discount_value}% off` : `$${promo.discount_value} off`}`],
-  (code, promo) => [`use code `,      code, ` at checkout — ${promo.discount_type === "percent" ? `${promo.discount_value}% off` : `$${promo.discount_value} off`} your booking`],
-  (code, promo) => [``,               code, ` saves ${promo.discount_type === "percent" ? `${promo.discount_value}%` : `$${promo.discount_value}`} — add it at checkout`],
-  (code, promo) => [`don't forget: `, code, ` at checkout for ${promo.discount_type === "percent" ? `${promo.discount_value}% off` : `$${promo.discount_value} off`}`],
-];
-
-function HintDisplay({ parts }) {
-  return (
-    <>
-      <span>{parts[0]}</span>
-      <span style={{ color: "#ffffff", fontStyle: "normal", letterSpacing: "0.06em" }}>{parts[1]}</span>
-      <span>{parts[2]}</span>
-    </>
-  );
-}
+// ── Tiers — all pricing comes from lib/pricing, no literals here ──
+import { TIERS } from "@/lib/pricing";
 
 const N = (f, o) =>
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${f}' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='${o}'/%3E%3C/svg%3E")`;
-
-function calcDiscountedPrice(price, promo) {
-  if (!promo) return null;
-  const raw = promo.discount_type === "percent"
-    ? price * (1 - promo.discount_value / 100)
-    : Math.max(0, price - promo.discount_value);
-  return Math.round(raw / 5) * 5;
-}
 
 /* ======================================================================
    LEGACY CODE — All previous Chef's Special homepage code preserved below.
@@ -73,11 +38,10 @@ function calcDiscountedPrice(price, promo) {
    - PhotoSection: placeholder
    - SiteFooter: wordmark left, CTA right
 
-   Previous OMAKASE_PACKAGES data, ROLLS data, TIERS data, HOW_STEPS (4 steps)
-   are all preserved in comments in book/page.js.
-
-   Previous PER-GUEST PACKAGES A / B / C and DROP-OFF PLATTERS are preserved
-   in the LEGACY DATA block in book/page.js.
+   Previous package/roll/platter data (OMAKASE_PACKAGES, ROLLS, per-guest
+   packages A/B/C, drop-off platters) was removed in the 2026 pricing
+   overhaul — see git history if needed. All current pricing lives in
+   lib/pricing.ts.
    ====================================================================== */
 
 // ── Main Page ─────────────────────────────────────────────────
@@ -122,23 +86,6 @@ function PageStyles() {
       @media (max-width: 1100px) { .sk-scroll-roll { transform: translateY(-50%) scale(0.65) !important; left: 2px !important; transform-origin: left center; } }
 
       .sk-hero { padding: calc(140px + var(--banner-h, 0px)) 40px 100px; }
-
-      @keyframes hint-pulse {
-        0%, 100% { opacity: 0.35; transform: scale(0.92); }
-        50%       { opacity: 1;   transform: scale(1.06); }
-      }
-      .sk-promo-hint {
-        font-family: ${FONT_UI};
-        font-style: normal;
-        font-size: 11.5px;
-        font-weight: 500;
-        letter-spacing: 0.01em;
-        color: #E8C97E;
-        margin-top: 12px;
-        display: block;
-        transform-origin: left center;
-        animation: hint-pulse 2.4s ease-in-out infinite;
-      }
 
       @keyframes bob {
         0%   { transform: translateY(0px); }
@@ -262,7 +209,6 @@ function PageStyles() {
 
       .sk-btn-fill:focus-visible,
       .sk-btn-ghost:focus-visible,
-      .sk-party-btn:focus-visible,
       .sk-reserve-link:focus-visible,
       .sk-nav-link:focus-visible {
         outline: 2px solid ${GOLD};
@@ -336,43 +282,14 @@ function PageStyles() {
       .sk-reserve-link:hover .sk-arrow { transform: translateX(5px); }
       .sk-reserve-link:active { transform: scale(0.96); }
 
-      .sk-party-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        height: 52px;
-        padding: 0 40px;
-        border: 1px solid rgba(232,201,126,0.3);
-        border-radius: 999px;
-        background: rgba(232,201,126,0.05);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        font-family: ${FONT_UI};
-        font-size: 13px;
-        font-weight: 500;
-        color: ${GOLD};
-        letter-spacing: 0.03em;
-        text-decoration: none;
-        transition: border-color 0.3s, color 0.3s, background 0.3s, transform 0.3s ${SPRING};
-      }
-      .sk-party-btn:hover {
-        border-color: ${GOLD};
-        color: #fff8ec;
-        background: rgba(232,201,126,0.1);
-        transform: translateY(-2px) scale(1.01);
-      }
-      .sk-party-btn:hover .sk-arrow { transform: translateX(4px); }
-      .sk-party-btn:active { transform: scale(0.97); }
-
       @media (prefers-reduced-motion: reduce) {
-        .sk-btn-fill, .sk-btn-ghost, .sk-party-btn, .sk-pkg-card,
+        .sk-btn-fill, .sk-btn-ghost, .sk-pkg-card,
         .sk-arrow, .sk-nav-link::after, .sk-btn-ghost::before, .sk-btn-fill::after {
           transition: none !important;
         }
         .sk-btn-fill::after { display: none; }
-        .hero-icon, .sk-promo-hint { animation: none !important; }
-        .sk-btn-fill:hover, .sk-btn-ghost:hover, .sk-party-btn:hover, .sk-pkg-card:hover {
+        .hero-icon { animation: none !important; }
+        .sk-btn-fill:hover, .sk-btn-ghost:hover, .sk-pkg-card:hover {
           transform: none;
         }
       }
@@ -385,18 +302,16 @@ function PageStyles() {
       }
 
       @media (max-width: 768px) {
-        .sk-nav-links { display: none !important; }
+        .sk-nav-links .sk-nav-link, .sk-nav-links + .sk-nav-link { font-size: 12px; padding: 0 9px; }
         .sk-pkg-grid  { grid-template-columns: 1fr !important; }
         .sk-how-grid  { grid-template-columns: 1fr !important; }
         .sk-hero-logo { width: 220px !important; }
         .sk-section   { padding: 60px 20px !important; }
         .sk-hero      { padding: calc(110px + var(--banner-h, 0px)) 20px 60px !important; }
         .sk-footer-inner { flex-direction: column !important; gap: 32px !important; align-items: flex-start !important; }
-        .sk-nav-inner { height: 72px !important; padding: 0 16px !important; }
-        .sk-nav-logo  { width: 200px !important; height: 56px !important; }
-        .sk-party-btn { width: 100% !important; box-sizing: border-box !important; }
+        .sk-nav-inner { height: 72px !important; padding: 0 12px !important; }
+        .sk-nav-logo  { width: 128px !important; height: 40px !important; }
         .sk-pkg-card  { padding: 28px 20px 24px !important; }
-        .sk-promo-hint { font-size: 13px !important; }
         .sk-about-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
       }
     `}</style>
@@ -460,9 +375,9 @@ function Nav() {
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <div className="sk-nav-links" style={{ display: "flex", alignItems: "center" }}>
-            <a href="#experiences" className="sk-nav-link">experiences</a>
-            <a href="#about"       className="sk-nav-link">about</a>
-            <a href="#contact"     className="sk-nav-link">contact</a>
+            <a href="/book"    className="sk-nav-link">book</a>
+            <a href="#about"   className="sk-nav-link">about</a>
+            <a href="#contact" className="sk-nav-link">contact</a>
           </div>
           <a href="/profile" className="sk-nav-link">{loggedIn ? "my bookings" : "login"}</a>
         </div>
@@ -711,35 +626,9 @@ function Hero({ onLetsRoll, onLogoClick }) {
 }
 
 // ── Experiences Section ───────────────────────────────────────
+// Tier cards show name, guest range, per-head price, and one format line.
+// No promo display here — promos apply in the booking flow only.
 function ExperiencesSection() {
-  const [activePromo, setActivePromo] = useState(null);
-  const [hintIndices, setHintIndices] = useState([]);
-
-  useEffect(() => {
-    const pool = Array.from({ length: HINT_FNS.length }, (_, i) => i);
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-    setHintIndices(pool.slice(0, PACKAGES.length));
-    fetch("/api/public-promos")
-      .then((r) => r.json())
-      .then(({ promos }) => {
-        if (!promos || promos.length === 0) return;
-        const sorted = [...promos].sort((a, b) => {
-          if (a.discount_type !== b.discount_type) return a.discount_type === "percent" ? -1 : 1;
-          return b.discount_value - a.discount_value;
-        });
-        setActivePromo(sorted[0]);
-      })
-      .catch(() => {});
-  }, []);
-
-  const storePromo = () => {
-    if (!activePromo) return;
-    try { localStorage.setItem("sonkase_promo", JSON.stringify(activePromo)); } catch {}
-  };
-
   return (
     <section id="experiences" style={{ background: BG2, backgroundImage: N(0.55, 0.04) }}>
       <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
@@ -752,70 +641,47 @@ function ExperiencesSection() {
 
           {/* Body */}
           <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, textAlign: "center", maxWidth: 560, margin: "0 auto 80px", lineHeight: 1.8 }}>
-            A private chef in your home, rolling course by course while you watch. For sushi lovers of all kinds.
+            A live countertop build. The chef arrives with rolls prepped, slices nigiri in front of your guests, and lays sushi over banana leaves in waves. About ninety minutes of service.
           </p>
         </Reveal>
 
-        {/* Package cards */}
-        <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 48 }}>
-          {PACKAGES.map((p, idx) => {
-            const discounted = calcDiscountedPrice(p.price, activePromo);
-            const hintParts = activePromo && hintIndices.length > 0
-              ? HINT_FNS[hintIndices[idx] % HINT_FNS.length](activePromo.code, activePromo)
-              : null;
+        {/* Tier cards */}
+        <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
+          {TIERS.map((t, idx) => (
+            <Reveal key={t.id} delay={idx * 0.09}>
+              <div className="sk-pkg-card">
+              {/* Name */}
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
+                {t.name.toLowerCase()}
+              </div>
 
-            return (
-              <Reveal key={p.id} delay={idx * 0.09}>
-                <div className="sk-pkg-card">
-                {/* Name */}
-                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
-                  {p.name}
-                </div>
+              {/* Guest range */}
+              <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 500, color: "#b8892a", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 24 }}>
+                {t.minGuests}–{t.maxGuests} guests
+              </div>
 
-                {/* Guest count */}
-                <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 500, color: "#b8892a", letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 24 }}>
-                  homakase · {p.guests} guests
-                </div>
+              {/* Per-head price */}
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 38, color: CREAM, fontWeight: 400, marginBottom: 28, lineHeight: 1 }}>
+                ${t.perGuest}<span style={{ fontSize: 15, color: "rgba(245,240,232,0.5)" }}> / guest</span>
+              </div>
 
-                {/* Price */}
-                {discounted !== null ? (
-                  <div style={{ marginBottom: 28 }}>
-                    <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 38, color: "rgba(232,201,126,0.35)", fontWeight: 400, lineHeight: 1, textDecoration: "line-through" }}>
-                      ${p.price}
-                    </div>
-                    <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 38, color: GOLD, fontWeight: 400, lineHeight: 1, marginTop: 6 }}>
-                      ${discounted}
-                    </div>
-                    <div className="sk-promo-hint">{hintParts && <HintDisplay parts={hintParts} />}</div>
-                  </div>
-                ) : (
-                  <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 38, color: CREAM, fontWeight: 400, marginBottom: 28, lineHeight: 1 }}>
-                    ${p.price}
-                  </div>
-                )}
+              {/* Divider */}
+              <div style={{ height: 1, background: GOLD, opacity: 0.2, marginBottom: 20 }} />
 
-                {/* Divider */}
-                <div style={{ height: 1, background: GOLD, opacity: 0.2, marginBottom: 28 }} />
-                <div style={{ flex: 1 }} />
+              {/* Format line */}
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(245,240,232,0.6)", lineHeight: 1.7, margin: "0 0 28px" }}>
+                {t.tagline}
+              </p>
+              <div style={{ flex: 1 }} />
 
-                {/* CTA */}
-                <a href="/book" onClick={storePromo} className="sk-reserve-link">
-                  Reserve <span className="sk-arrow">→</span>
-                </a>
-                </div>
-              </Reveal>
-            );
-          })}
+              {/* CTA */}
+              <a href="/book" className="sk-reserve-link">
+                Reserve <span className="sk-arrow">→</span>
+              </a>
+              </div>
+            </Reveal>
+          ))}
         </div>
-
-        {/* Hosting more people */}
-        <Reveal delay={0.1}>
-          <div style={{ textAlign: "center", marginTop: 40 }}>
-            <a href="/parties" className="sk-party-btn">
-              Hosting more people? <span className="sk-arrow">→</span>
-            </a>
-          </div>
-        </Reveal>
 
       </div>
     </section>
