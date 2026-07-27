@@ -15,7 +15,7 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
 // ── Tiers — all pricing comes from lib/pricing, no literals here ──
-import { TIERS, formatUSD } from "@/lib/pricing";
+import { TIERS, MENU_LINE, formatUSD } from "@/lib/pricing";
 
 const N = (f, o) =>
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${f}' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='${o}'/%3E%3C/svg%3E")`;
@@ -676,9 +676,12 @@ function ExperiencesSection() {
               <div style={{ height: 1, background: GOLD, opacity: 0.2, marginBottom: 20 }} />
 
               {/* Format line */}
-              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(245,240,232,0.6)", lineHeight: 1.7, margin: "0 0 28px" }}>
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(245,240,232,0.6)", lineHeight: 1.7, margin: "0 0 10px" }}>
                 {t.tagline}
               </p>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(232,201,126,0.7)", fontStyle: "italic", marginBottom: 28 }}>
+                {MENU_LINE}
+              </div>
               <div style={{ flex: 1 }} />
 
               {/* CTA */}

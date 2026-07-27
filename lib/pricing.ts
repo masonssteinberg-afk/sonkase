@@ -59,7 +59,8 @@ export const MIN_GUESTS = 8;
 export const MAX_GUESTS = 50;
 
 // The menu itself is never itemized — it is the chef's choice at every
-// tier. Only quantity and the extras below are promised to the guest.
+// tier. Only the categories, quantity, and extras below are promised.
+export const MENU_LINE = "rolls, nigiri, sashimi, and more";
 export const PIECES_PER_GUEST = 16;
 export const EVENT_INCLUDES: readonly string[] = [
   "Edamame appetizer",
