@@ -660,16 +660,14 @@ function ExperiencesSection() {
                 {t.minGuests}–{t.maxGuests} guests
               </div>
 
-              {/* Event price range, per-guest rate below */}
+              {/* Event price (starting at the floored low quote), per-guest rate below */}
               <div style={{ marginBottom: 28 }}>
-                {(() => {
-                  const range = tierTotalRange(t);
-                  return (
-                    <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 30, color: CREAM, fontWeight: 400, lineHeight: 1, whiteSpace: "nowrap" }}>
-                      {formatUSD(range.low)}<span style={{ color: "rgba(245,240,232,0.5)" }}>–</span>{formatUSD(range.high)}
-                    </div>
-                  );
-                })()}
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(245,240,232,0.5)", fontStyle: "italic", marginBottom: 6 }}>
+                  starting at
+                </div>
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 34, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
+                  {formatUSD(tierTotalRange(t).low)}
+                </div>
                 <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(232,201,126,0.75)", letterSpacing: "0.06em", marginTop: 10 }}>
                   ${t.perGuest} per guest
                 </div>
