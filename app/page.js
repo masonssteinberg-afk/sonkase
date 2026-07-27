@@ -15,7 +15,7 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
 // ── Tiers — all pricing comes from lib/pricing, no literals here ──
-import { TIERS, MENU_LINE, formatUSD } from "@/lib/pricing";
+import { TIERS, MENU_LINE, tierTotalRange, formatUSD } from "@/lib/pricing";
 
 const N = (f, o) =>
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${f}' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='${o}'/%3E%3C/svg%3E")`;
@@ -660,16 +660,19 @@ function ExperiencesSection() {
                 {t.minGuests}–{t.maxGuests} guests
               </div>
 
-              {/* Per-head price */}
+              {/* Event price range, per-guest rate below */}
               <div style={{ marginBottom: 28 }}>
-                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 38, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
-                  ${t.perGuest}<span style={{ fontSize: 15, color: "rgba(245,240,232,0.5)" }}> / guest</span>
+                {(() => {
+                  const range = tierTotalRange(t);
+                  return (
+                    <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 30, color: CREAM, fontWeight: 400, lineHeight: 1, whiteSpace: "nowrap" }}>
+                      {formatUSD(range.low)}<span style={{ color: "rgba(245,240,232,0.5)" }}>–</span>{formatUSD(range.high)}
+                    </div>
+                  );
+                })()}
+                <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(232,201,126,0.75)", letterSpacing: "0.06em", marginTop: 10 }}>
+                  ${t.perGuest} per guest
                 </div>
-                {t.id === "countertop" && (
-                  <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 500, color: "rgba(232,201,126,0.75)", letterSpacing: "0.08em", marginTop: 10 }}>
-                    {formatUSD(t.eventMinimum)} event minimum
-                  </div>
-                )}
               </div>
 
               {/* Divider */}

@@ -106,6 +106,18 @@ export function quoteForGuests(guests: number): Quote | null {
 }
 
 /**
+ * Low and high event totals for a tier — the quoted totals at the band
+ * edges. Because Countertop's low edge is floored by the event minimum,
+ * the range communicates the minimum without a separate line.
+ */
+export function tierTotalRange(tier: Tier): { low: number; high: number } {
+  const low  = quoteForGuests(tier.minGuests);
+  const high = quoteForGuests(tier.maxGuests);
+  if (!low || !high) throw new Error(`tier ${tier.id} band is outside the bookable range`);
+  return { low: low.total, high: high.total };
+}
+
+/**
  * Total after a promo discount. The event minimum is applied LAST — after
  * every discount — so no booking ever settles below its tier floor.
  * e.g. 10-guest Countertop with 20% off: max(1350 − 270, 1300) = 1300.
