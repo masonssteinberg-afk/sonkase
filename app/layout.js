@@ -15,7 +15,7 @@ export const metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: "/images/og-image.jpg",
         width: 1200,
         height: 630,
       },
@@ -25,7 +25,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "The Sonakase Experience",
     description: "In-home personal sushi chef for gatherings in Gainesville, FL.",
-    images: ["/og-image.png"],
+    images: ["/images/og-image.jpg"],
   },
 };
 

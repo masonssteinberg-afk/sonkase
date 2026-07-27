@@ -1,9 +1,28 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 const SushiSlice  = dynamic(() => import("./components/SushiSlice"),  { ssr: false });
 const ScrollRoll  = dynamic(() => import("./components/ScrollRoll"),  { ssr: false });
+
+// Static imports so next/image knows dimensions (no layout shift) and
+// can generate blur placeholders at build time.
+import imgHeroWide        from "@/public/images/hero-wide.jpg";
+import imgHeroMobile      from "@/public/images/hero-mobile.jpg";
+import imgHowItWorks      from "@/public/images/how-it-works.jpg";
+import imgTileBoard       from "@/public/images/tile-board.jpg";
+import imgTileLong        from "@/public/images/tile-long.jpg";
+import imgTileEvent       from "@/public/images/tile-event.jpg";
+import imgBandLong        from "@/public/images/band-long.jpg";
+import imgBandSpread      from "@/public/images/band-spread.jpg";
+import imgStandards       from "@/public/images/standards.jpg";
+import imgTileNigiri      from "@/public/images/tile-nigiri.jpg";
+import imgTileLineup      from "@/public/images/tile-lineup.jpg";
+import imgTilePlate       from "@/public/images/tile-plate.jpg";
+import imgTileSpread      from "@/public/images/tile-spread.jpg";
+import imgTileBoardDetail from "@/public/images/tile-board-detail.jpg";
+import imgChefPortrait    from "@/public/chef-portrait.jpg";
 
 // ── Design Tokens ──────────────────────────────────────────────
 const BG    = "#0d0d0d";
@@ -68,8 +87,10 @@ export default function Home() {
       <Nav />
       <Hero onLetsRoll={() => router.push("/book")} onLogoClick={() => setShowAnim(true)} />
       <ExperiencesSection />
+      <PhotoBand img={imgBandLong} alt="Sushi arranged in rows across a wooden serving board." />
       <AboutChefSection />
       <ContactSection />
+      <PhotoBand img={imgBandSpread} alt="A full sushi catering spread laid edge to edge for a private event." />
       <PhotoSection />
       <SiteFooter />
     </div>
@@ -238,7 +259,8 @@ function PageStyles() {
         background: linear-gradient(180deg, rgba(245,240,232,0.045) 0%, rgba(245,240,232,0.015) 100%);
         border: 1px solid rgba(232,201,126,0.14);
         border-radius: 24px;
-        padding: 40px 36px 36px;
+        padding: 0;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         height: 100%;
@@ -301,6 +323,55 @@ function PageStyles() {
         align-items: start;
       }
 
+      .sk-pkg-card-body {
+        padding: 28px 36px 36px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+      .sk-card-photo {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 3 / 2;
+      }
+      .sk-how-grid {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 64px;
+        align-items: center;
+      }
+      .sk-how-photo {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 4 / 5;
+      }
+      .sk-sourcing-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 64px;
+        align-items: center;
+      }
+      .sk-sourcing-photo {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+      }
+      .sk-band { position: relative; height: 240px; }
+      .sk-gallery {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2px;
+      }
+      .sk-gallery-tile {
+        position: relative;
+        aspect-ratio: 1 / 1;
+      }
+      .sk-hero-photo-m { display: none; }
+      @media (max-width: 700px) {
+        .sk-hero-photo-d { display: none; }
+        .sk-hero-photo-m { display: block; }
+      }
+
       @media (max-width: 768px) {
         .sk-nav-links .sk-nav-link, .sk-nav-links + .sk-nav-link { font-size: 12px; padding: 0 9px; }
         .sk-pkg-grid  { grid-template-columns: 1fr !important; }
@@ -311,8 +382,11 @@ function PageStyles() {
         .sk-footer-inner { flex-direction: column !important; gap: 32px !important; align-items: flex-start !important; }
         .sk-nav-inner { height: 72px !important; padding: 0 12px !important; }
         .sk-nav-logo  { width: 128px !important; height: 40px !important; }
-        .sk-pkg-card  { padding: 28px 20px 24px !important; }
+        .sk-pkg-card-body { padding: 22px 20px 24px !important; }
         .sk-about-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+        .sk-sourcing-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+        .sk-band { height: 160px !important; }
+        .sk-gallery { grid-template-columns: repeat(2, 1fr) !important; }
       }
     `}</style>
   );
@@ -537,8 +611,36 @@ function Hero({ onLetsRoll, onLogoClick }) {
       className="sk-hero"
       id="top"
     >
-      <ChiyogamiPattern id="sk-shippo-hero" opacity={0.08} />
-      <StarField />
+      {/* Hero photo — wide crop above 700px, tall crop below */}
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }} aria-hidden="false">
+        <div className="sk-hero-photo-d" style={{ position: "absolute", inset: 0 }}>
+          <Image
+            src={imgHeroWide}
+            alt="Sushi spread laid out along a kitchen counter at a private event in Gainesville."
+            fill
+            priority
+            placeholder="blur"
+            sizes="100vw"
+            style={{ objectFit: "cover" }}
+          />
+        </div>
+        <div className="sk-hero-photo-m" style={{ position: "absolute", inset: 0 }}>
+          <Image
+            src={imgHeroMobile}
+            alt="Sushi spread laid out along a kitchen counter at a private event in Gainesville."
+            fill
+            priority
+            placeholder="blur"
+            sizes="100vw"
+            style={{ objectFit: "cover" }}
+          />
+        </div>
+        {/* Readability gradient — darker top and bottom, lighter through the middle */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(180deg, rgba(13,13,13,0.82) 0%, rgba(13,13,13,0.38) 32%, rgba(13,13,13,0.38) 68%, rgba(13,13,13,0.86) 100%)",
+        }} />
+      </div>
 
       {/* Gold horizontal accent lines */}
       <div style={{
@@ -635,21 +737,53 @@ function ExperiencesSection() {
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
           {/* Headline */}
-          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(32px, 5vw, 68px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 24, lineHeight: 1.1 }}>
+          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(32px, 5vw, 68px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 48, lineHeight: 1.1 }}>
             authentic american omakase.
           </h2>
 
-          {/* Body */}
-          <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, textAlign: "center", maxWidth: 560, margin: "0 auto 80px", lineHeight: 1.8 }}>
-            A live countertop build in your home. Sushi made in front of your guests and laid out over banana leaves in waves — two hours of dinner service, start to finish.
-          </p>
+          {/* Body + how-it-works photo */}
+          <div className="sk-how-grid" style={{ maxWidth: 960, margin: "0 auto 80px" }}>
+            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, margin: 0, lineHeight: 1.8 }}>
+              A live countertop build in your home. Sushi made in front of your guests and laid out over banana leaves in waves — two hours of dinner service, start to finish.
+            </p>
+            <div className="sk-how-photo">
+              <Image
+                src={imgHowItWorks}
+                alt="Private sushi chef building a countertop sushi spread in a Gainesville home kitchen."
+                fill
+                placeholder="blur"
+                decoding="async"
+                sizes="(max-width: 768px) 100vw, 420px"
+                style={{ objectFit: "cover", borderRadius: 20 }}
+              />
+            </div>
+          </div>
         </Reveal>
 
         {/* Tier cards */}
         <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
-          {TIERS.map((t, idx) => (
+          {TIERS.map((t, idx) => {
+            const cardPhoto = {
+              countertop: { src: imgTileBoard, alt: "Sushi laid out on a kitchen counter for a small dinner party." },
+              longtable:  { src: imgTileLong,  alt: "A long board of assorted sushi rolls for a private party." },
+              fullspread: { src: imgTileEvent, alt: "Large sushi catering display for an event in Gainesville, Florida." },
+            }[t.id];
+            return (
             <Reveal key={t.id} delay={idx * 0.09}>
               <div className="sk-pkg-card">
+              {/* Card photo — flush above the tier name */}
+              <div className="sk-card-photo">
+                <Image
+                  src={cardPhoto.src}
+                  alt={cardPhoto.alt}
+                  fill
+                  placeholder="blur"
+                  decoding="async"
+                  sizes="(max-width: 768px) 100vw, 380px"
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
+              <div className="sk-pkg-card-body">
               {/* Name */}
               <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
                 {t.name.toLowerCase()}
@@ -690,12 +824,31 @@ function ExperiencesSection() {
                 Reserve <span className="sk-arrow">→</span>
               </a>
               </div>
+              </div>
             </Reveal>
-          ))}
+            );
+          })}
         </div>
 
       </div>
     </section>
+  );
+}
+
+// ── Full-bleed photo band ─────────────────────────────────────
+function PhotoBand({ img, alt }) {
+  return (
+    <div className="sk-band">
+      <Image
+        src={img}
+        alt={alt}
+        fill
+        placeholder="blur"
+        decoding="async"
+        sizes="100vw"
+        style={{ objectFit: "cover" }}
+      />
+    </div>
   );
 }
 
@@ -710,10 +863,13 @@ function AboutChefSection() {
 
             {/* Left — Chef portrait */}
             <div>
-              <img
-                src="/chef-portrait.jpg"
+              <Image
+                src={imgChefPortrait}
                 alt="Mason Steinberg, Founder & Executive Chef"
-                style={{ width: "100%", display: "block" }}
+                placeholder="blur"
+                decoding="async"
+                sizes="(max-width: 768px) 100vw, 380px"
+                style={{ width: "100%", height: "auto", display: "block" }}
               />
             </div>
 
@@ -750,10 +906,16 @@ function AboutChefSection() {
                 </p>
               </div>
 
-              {/* Lower divider */}
-              <div style={{ width: 60, height: 1, background: GOLD, opacity: 0.2, margin: "32px 0" }} />
+            </div>
 
-              {/* Sourcing */}
+          </div>
+        </Reveal>
+
+        {/* Sourcing — text left, photo right (opposite side from the portrait) */}
+        <Reveal delay={0.08}>
+          <div className="sk-sourcing-grid" style={{ marginTop: 80 }}>
+            <div>
+              <div style={{ width: 60, height: 1, background: GOLD, opacity: 0.2, marginBottom: 32 }} />
               <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 20, color: CREAM, marginBottom: 16 }}>
                 The Sourcing
               </div>
@@ -764,7 +926,17 @@ function AboutChefSection() {
                 ServSafe Food Manager Certified
               </div>
             </div>
-
+            <div className="sk-sourcing-photo">
+              <Image
+                src={imgStandards}
+                alt="Fresh salmon nigiri cut and plated on a wooden board."
+                fill
+                placeholder="blur"
+                decoding="async"
+                sizes="(max-width: 768px) 100vw, 380px"
+                style={{ objectFit: "cover", borderRadius: 20 }}
+              />
+            </div>
           </div>
         </Reveal>
       </div>
@@ -895,22 +1067,35 @@ function ContactSection() {
   );
 }
 
-// ── Photo Placeholder ─────────────────────────────────────────
+// ── Gallery ───────────────────────────────────────────────────
+const GALLERY = [
+  { src: imgTileNigiri,      alt: "Hand-cut salmon and tuna nigiri from a private sushi catering event in Gainesville." },
+  { src: imgTileLineup,      alt: "A lineup of freshly cut sushi rolls plated for a dinner party." },
+  { src: imgTileEvent,       alt: "Sushi catering display at a private event in Gainesville, Florida." },
+  { src: imgTileBoard,       alt: "Assorted sushi arranged on a serving board at a home dinner party." },
+  { src: imgTilePlate,       alt: "A plated selection of nigiri and sushi rolls." },
+  { src: imgTileLong,        alt: "A long board of assorted sushi rolls at a private catering event." },
+  { src: imgTileSpread,      alt: "A full sushi spread across the kitchen counter at an in-home event." },
+  { src: imgTileBoardDetail, alt: "Close-up detail of sushi rolls on a wooden serving board." },
+];
+
 function PhotoSection() {
   return (
-    <section style={{ background: BG, backgroundImage: N(0.70, 0.03), position: "relative", overflow: "hidden", minHeight: 280, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      {/* "S" watermark */}
-      <div style={{
-        position: "absolute", inset: 0,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 300, fontWeight: 400,
-        color: GOLD, opacity: 0.05, lineHeight: 1,
-        pointerEvents: "none", userSelect: "none",
-      }}>S</div>
-      <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "80px 40px" }}>
-        <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: `rgba(245,240,232,0.3)`, fontStyle: "italic" }}>
-          Photography coming soon.
-        </p>
+    <section style={{ background: BG }}>
+      <div className="sk-gallery">
+        {GALLERY.map((g) => (
+          <div key={g.alt} className="sk-gallery-tile">
+            <Image
+              src={g.src}
+              alt={g.alt}
+              fill
+              placeholder="blur"
+              decoding="async"
+              sizes="(max-width: 768px) 50vw, 25vw"
+              style={{ objectFit: "cover" }}
+            />
+          </div>
+        ))}
       </div>
     </section>
   );
