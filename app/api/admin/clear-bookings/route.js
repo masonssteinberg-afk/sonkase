@@ -1,6 +1,8 @@
+import { isAdminRequest, adminUnauthorized } from "@/lib/adminAuth";
 import { createClient } from "@supabase/supabase-js";
 
-export async function DELETE() {
+export async function DELETE(req) {
+  if (!isAdminRequest(req)) return adminUnauthorized();
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,

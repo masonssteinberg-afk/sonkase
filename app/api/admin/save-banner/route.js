@@ -1,6 +1,8 @@
+import { isAdminRequest, adminUnauthorized } from "@/lib/adminAuth";
 import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req) {
+  if (!isAdminRequest(req)) return adminUnauthorized();
   try {
     const { enabled, text } = await req.json();
     const supabase = createClient(

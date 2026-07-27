@@ -1,3 +1,4 @@
+import { isAdminRequest, adminUnauthorized } from "@/lib/adminAuth";
 import { createClient } from "@supabase/supabase-js";
 
 function getSupabase() {
@@ -8,7 +9,8 @@ function getSupabase() {
 }
 
 // GET — returns the promo code currently designated as the site markdown promo
-export async function GET() {
+export async function GET(req) {
+  if (!isAdminRequest(req)) return adminUnauthorized();
   try {
     const { data, error } = await getSupabase()
       .from("site_settings")
@@ -25,6 +27,7 @@ export async function GET() {
 
 // POST { code } — designate a promo as the site markdown promo ("" clears it)
 export async function POST(req) {
+  if (!isAdminRequest(req)) return adminUnauthorized();
   try {
     const { code } = await req.json();
     const { error } = await getSupabase().from("site_settings").upsert(

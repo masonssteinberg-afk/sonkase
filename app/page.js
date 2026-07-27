@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 const ScrollRoll  = dynamic(() => import("./components/ScrollRoll"),  { ssr: false });
+const SignupModal = dynamic(() => import("./components/SignupModal"), { ssr: false });
 
 // Static imports so next/image knows dimensions (no layout shift) and
 // can generate blur placeholders at build time.
@@ -83,6 +84,7 @@ export default function Home() {
       <AboutChefSection />
       <ContactSection />
       <SiteFooter />
+      <SignupModal />
     </div>
   );
 }
@@ -359,22 +361,11 @@ function PageStyles() {
 // ── Nav ───────────────────────────────────────────────────────
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const { createClient } = await import("@supabase/supabase-js");
-      const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-      const { data: { session } } = await sb.auth.getSession();
-      setLoggedIn(!!session?.user);
-      sb.auth.onAuthStateChange((_, s) => setLoggedIn(!!s?.user));
-    })();
   }, []);
 
   return (
@@ -417,7 +408,7 @@ function Nav() {
             <a href="#about"   className="sk-nav-link">about</a>
             <a href="#contact" className="sk-nav-link">contact</a>
           </div>
-          <a href="/profile" className="sk-nav-link">{loggedIn ? "my bookings" : "login"}</a>
+          <a href="/lookup" className="sk-nav-link">find a booking</a>
         </div>
       </div>
     </nav>
@@ -1024,10 +1015,13 @@ function SiteFooter() {
               Reserve Your Experience <span className="sk-arrow">→</span>
             </a>
           </div>
-          <div style={{ borderTop: `1px solid rgba(232,201,126,0.12)`, paddingTop: 24 }}>
-            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: `rgba(245,240,232,0.3)`, letterSpacing: "0.05em" }}>
+          <div style={{ borderTop: `1px solid rgba(232,201,126,0.12)`, paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: `rgba(245,240,232,0.3)`, letterSpacing: "0.05em", margin: 0 }}>
               © 2026 Sonakase™ · All rights reserved.
             </p>
+            <a href="/lookup" style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: "rgba(232,201,126,0.55)", letterSpacing: "0.05em", textDecoration: "none" }}>
+              find your booking →
+            </a>
           </div>
         </div>
       </div>

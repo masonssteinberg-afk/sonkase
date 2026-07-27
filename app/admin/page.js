@@ -1,8 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const ADMIN_PW = "prettyyoungthing";
-const AUTH_KEY = "sk_admin_authed";
+const AUTH_KEY = "sk_admin_token";
+
+// All admin API calls carry the HMAC session token issued by /api/admin/login.
+// A 401 (expired/invalid token) locks the dashboard again.
+const adminFetch = (url, opts = {}) => {
+  const token = typeof window !== "undefined" ? localStorage.getItem(AUTH_KEY) : null;
+  return fetch(url, { ...opts, headers: { ...(opts.headers || {}), authorization: `Bearer ${token}` } }).then((res) => {
+    if (res.status === 401) { localStorage.removeItem(AUTH_KEY); window.location.reload(); }
+    return res;
+  });
+};
 
 // ── Site palette (matches the live site exactly) ──────────────────────────────
 const BG    = "#0d0d0d";
@@ -264,18 +273,18 @@ export default function AdminDashboard() {
   const [promoCodes, setPromoCodes] = useState([]);
 
   useEffect(() => {
-    if (localStorage.getItem(AUTH_KEY) === "1") setAuthed(true);
+    if (localStorage.getItem(AUTH_KEY)) setAuthed(true);
     setLoading(false);
   }, []);
 
   const fetchAllBookings = async () => {
-    const res  = await fetch("/api/admin/get-bookings");
+    const res  = await adminFetch("/api/admin/get-bookings");
     const data = await res.json();
     setBookings(data.bookings || []);
   };
 
   const fetchPromoCodes = async () => {
-    const res  = await fetch("/api/admin/promo-codes");
+    const res  = await adminFetch("/api/admin/promo-codes");
     const data = await res.json();
     setPromoCodes(data.promoCodes || []);
   };
@@ -284,7 +293,7 @@ export default function AdminDashboard() {
   useEffect(() => { if ((activeTab === "promo" || activeTab === "banner") && authed) fetchPromoCodes(); }, [activeTab, authed]);
 
   const updateStatus = async (id, status) => {
-    const res  = await fetch("/api/admin/update-booking", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) });
+    const res  = await adminFetch("/api/admin/update-booking", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) });
     const data = await res.json();
     if (data.success) setBookings((prev) => prev.map((b) => b.id === id ? { ...b, status } : b));
   };
@@ -298,7 +307,7 @@ export default function AdminDashboard() {
   };
 
   if (loading) return null;
-  if (!authed) return <PasswordScreen onAuth={() => { localStorage.setItem(AUTH_KEY, "1"); setAuthed(true); }} />;
+  if (!authed) return <PasswordScreen onAuth={(token) => { localStorage.setItem(AUTH_KEY, token); setAuthed(true); }} />;
 
   return (
     <div style={{ minHeight: "100vh", background: BG, color: CREAM, fontFamily: F, overflowX: "hidden" }}>
@@ -408,8 +417,10 @@ function PasswordScreen({ onAuth }) {
   const [value, setValue] = useState("");
   const [shake, setShake] = useState(false);
 
-  const attempt = () => {
-    if (value === ADMIN_PW) { onAuth(); }
+  const attempt = async () => {
+    const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: value }) });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.token) { onAuth(data.token); }
     else { setShake(true); setValue(""); setTimeout(() => setShake(false), 500); }
   };
 
@@ -445,7 +456,7 @@ function BookingsTab({ bookings, filtered, counts, filter, setFilter, onUpdateSt
 
   const clearAll = async () => {
     setClearing(true);
-    const res  = await fetch("/api/admin/clear-bookings", { method: "DELETE" });
+    const res  = await adminFetch("/api/admin/clear-bookings", { method: "DELETE" });
     const data = await res.json();
     setClearing(false);
     setConfirmClear(false);
@@ -1208,7 +1219,7 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    fetch("/api/admin/markdown-promo")
+    adminFetch("/api/admin/markdown-promo")
       .then((r) => r.json())
       .then((d) => setMarkdownCode(d.code || ""))
       .catch(() => {});
@@ -1217,7 +1228,7 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
   // Designate which promo is shown with marked-down prices on the site (click again to clear)
   const setMarkdown = async (pc) => {
     const next = markdownCode === pc.code ? "" : pc.code;
-    const res = await fetch("/api/admin/markdown-promo", {
+    const res = await adminFetch("/api/admin/markdown-promo", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code: next }),
@@ -1240,7 +1251,7 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
     const payload = { code: form.code.toUpperCase().trim(), discount_type: form.discount_type, discount_value: Number(form.discount_value), description: form.description.trim() || null, expires_at: form.expires_at || null, max_uses: form.max_uses !== "" ? Number(form.max_uses) : null };
     const method = editingId ? "PATCH" : "POST";
     const body   = editingId ? { id: editingId, ...payload } : payload;
-    const res    = await fetch("/api/admin/promo-codes", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res    = await adminFetch("/api/admin/promo-codes", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const data   = await res.json();
     setSaving(false);
     if (data.error) { setFormError(data.error); return; }
@@ -1248,12 +1259,12 @@ function PromoCodesTab({ promoCodes, onRefresh }) {
   };
 
   const toggleActive = async (pc) => {
-    await fetch("/api/admin/promo-codes", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: pc.id, active: !pc.active }) });
+    await adminFetch("/api/admin/promo-codes", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: pc.id, active: !pc.active }) });
     onRefresh();
   };
 
   const deleteCode = async (id) => {
-    await fetch("/api/admin/promo-codes", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    await adminFetch("/api/admin/promo-codes", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
     setDeleteConfirm(null); onRefresh();
   };
 
@@ -1398,7 +1409,7 @@ function BannerTab({ promoCodes }) {
   const save = async () => {
     setSaving(true); setSaved(false); setSaveError("");
     try {
-      const res  = await fetch("/api/admin/save-banner", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled, text }) });
+      const res  = await adminFetch("/api/admin/save-banner", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled, text }) });
       const data = await res.json();
       if (data.success) { setSaved(true); setTimeout(() => setSaved(false), 3000); }
       else setSaveError(data.error || "Save failed.");

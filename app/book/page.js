@@ -59,37 +59,15 @@ const fmtTime = (v) => {
 
 // ── Main App ──────────────────────────────────────────────────
 export default function App() {
-  const [sessionChecked, setSessionChecked] = useState(false);
-  const [user, setUser]                     = useState(null);
   const [guestInput, setGuestInput]         = useState("");
   const [eventDate, setEventDate]           = useState("");
   const [eventTime, setEventTime]           = useState("");
+  const [contactName, setContactName]       = useState("");
+  const [contactEmail, setContactEmail]     = useState("");
+  const [contactPhone, setContactPhone]     = useState("");
   const [eventAddress, setEventAddress]     = useState("");
   const [chefNotes, setChefNotes]           = useState("");
   const [confirmation, setConfirmation]     = useState(null);
-
-  useEffect(() => {
-    (async () => {
-      const { createClient } = await import("@supabase/supabase-js");
-      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
-      const searchParams = new URLSearchParams(window.location.search);
-      const code = searchParams.get("code");
-      if (code) {
-        const { data } = await supabase.auth.exchangeCodeForSession(code);
-        window.history.replaceState({}, "", "/book");
-        if (data?.user) {
-          setUser({ email: data.user.email });
-          setSessionChecked(true);
-          return;
-        }
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) setUser({ email: session.user.email });
-      setSessionChecked(true);
-    })();
-  }, []);
 
   // The quote is derived from the guest count on every render — no stored
   // tier state — so changing the count re-resolves tier, total, and deposit.
@@ -97,15 +75,20 @@ export default function App() {
   const quote     = Number.isFinite(guests) && guests >= 1 ? quoteForGuests(guests) : null;
   const tooMany   = Number.isFinite(guests) && guests > MAX_GUESTS;
 
+  const emailValid = contactEmail.includes("@") && contactEmail.trim().length >= 5;
+  const phoneValid = contactPhone.replace(/\D/g, "").length >= 7;
+  const contactValid = contactName.trim().length >= 2 && emailValid && phoneValid;
+
   const daysOut = eventDate ? (() => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     return Math.round((new Date(eventDate + "T00:00:00") - today) / 86400000);
   })() : 0;
   const dateValid    = eventDate && eventTime && daysOut >= 7;
-  const readyForPay  = !!quote && dateValid;
+  const readyForPay  = !!quote && dateValid && contactValid;
 
   const reset = () => {
     setGuestInput(""); setEventDate(""); setEventTime("");
+    setContactName(""); setContactEmail(""); setContactPhone("");
     setEventAddress(""); setChefNotes(""); setConfirmation(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -113,27 +96,14 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: NAVY, fontFamily: FONT_BODY, color: CREAM, overflowX: "hidden" }} className="book-page-wrapper">
       <BookStyles />
-      <BookHeader user={user} onSignOut={async () => {
-        const { createClient } = await import("@supabase/supabase-js");
-        const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-        await sb.auth.signOut();
-        window.location.href = "/";
-      }} />
+      <BookHeader />
 
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "32px 20px 120px", boxSizing: "border-box" }}>
-        {!sessionChecked && (
-          <div style={{ textAlign: "center", padding: "120px 0", fontFamily: FONT_DISPLAY, fontSize: 15, color: "rgba(245,240,232,0.25)", letterSpacing: "0.1em" }}>Loading…</div>
-        )}
-
-        {sessionChecked && !user && (
-          <LoginScreen onLogin={(email) => setUser({ email })} />
-        )}
-
-        {sessionChecked && user && confirmation && (
+        {confirmation && (
           <ConfirmationScreen confirmation={confirmation} onReset={reset} />
         )}
 
-        {sessionChecked && user && !confirmation && (
+        {!confirmation && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
             {/* Guest count → tier resolves automatically */}
@@ -208,13 +178,52 @@ export default function App() {
               </div>
             </div>
 
-            {/* Contact details & preferences */}
+            {/* Contact details & preferences — no account needed */}
             <div style={CS.card}>
-              <StepHeader kanji="宛" eyebrow="details" title="where, and anything we should know" />
-              <div style={{ marginBottom: 24 }}>
+              <StepHeader kanji="宛" eyebrow="your details" title="who's hosting, and where" subtitle="no account needed — your confirmation number arrives by email." />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }} className="book-contact-grid">
+                <div>
+                  <label style={CS.label}>name</label>
+                  <input
+                    type="text"
+                    autoComplete="name"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="Full name"
+                    style={CS.input}
+                  />
+                </div>
+                <div>
+                  <label style={CS.label}>phone</label>
+                  <input
+                    type="tel"
+                    autoComplete="tel"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="(352) 555-0100"
+                    style={CS.input}
+                  />
+                </div>
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={CS.label}>email</label>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  style={CS.input}
+                />
+                <div style={{ fontFamily: FONT_BODY, fontSize: 12, color: INK_FAINT, fontStyle: "italic", marginTop: 6 }}>
+                  Your receipt and confirmation number go here.
+                </div>
+              </div>
+              <div style={{ marginBottom: 20 }}>
                 <label style={CS.label}>event address</label>
                 <input
                   type="text"
+                  autoComplete="street-address"
                   value={eventAddress}
                   onChange={(e) => setEventAddress(e.target.value)}
                   placeholder="Street address in the Gainesville area"
@@ -231,22 +240,19 @@ export default function App() {
                   style={{ ...CS.input, resize: "vertical", lineHeight: 1.6, padding: "12px 14px" }}
                 />
               </div>
-              <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginTop: 14 }}>
-                Booking as <strong style={{ color: INK_SOFT }}>{user.email}</strong> — your receipt goes here.
-              </div>
             </div>
 
             {/* Payment — appears once guests + date + time are set */}
             {readyForPay ? (
               <PaymentSection
                 quote={quote}
-                user={user}
+                contact={{ name: contactName.trim(), email: contactEmail.trim().toLowerCase(), phone: contactPhone.trim() }}
                 eventDate={eventDate}
                 eventTime={eventTime}
                 eventAddress={eventAddress}
                 chefNotes={chefNotes}
                 onConfirm={(id, totals) => {
-                  setConfirmation({ id, quote, eventDate, eventTime, ...totals });
+                  setConfirmation({ id, quote, eventDate, eventTime, email: contactEmail.trim().toLowerCase(), ...totals });
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               />
@@ -254,7 +260,7 @@ export default function App() {
               <div style={{ ...CS.card, textAlign: "center", fontFamily: FONT_BODY, fontSize: 14, color: INK_FAINT, fontStyle: "italic" }}>
                 {tooMany
                   ? "Events over 50 guests are booked through the contact form above."
-                  : "Enter your guest count, date, and time to continue to payment."}
+                  : "Enter your guest count, date, time, and contact details to continue to payment."}
               </div>
             )}
           </div>
@@ -335,7 +341,7 @@ function Over50Panel() {
 }
 
 // ── Payment ───────────────────────────────────────────────────
-function PaymentSection({ quote, user, eventDate, eventTime, eventAddress, chefNotes, onConfirm }) {
+function PaymentSection({ quote, contact, eventDate, eventTime, eventAddress, chefNotes, onConfirm }) {
   const [clientSecret, setClientSecret] = useState(null);
   const [intentError, setIntentError]   = useState(null);
   const [promoInput, setPromoInput]     = useState("");
@@ -426,7 +432,7 @@ function PaymentSection({ quote, user, eventDate, eventTime, eventAddress, chefN
     <Elements key={clientSecret} stripe={stripePromise} options={{ clientSecret }}>
       <PaymentForm
         clientSecret={clientSecret}
-        quote={quote} user={user}
+        quote={quote} contact={contact}
         eventDate={eventDate} eventTime={eventTime}
         eventAddress={eventAddress} chefNotes={chefNotes}
         appliedPromo={appliedPromo}
@@ -446,7 +452,7 @@ function PaymentSection({ quote, user, eventDate, eventTime, eventAddress, chefN
   );
 }
 
-function PaymentForm({ clientSecret, quote, user, eventDate, eventTime, eventAddress, chefNotes, appliedPromo, promoSavings, effectiveTotal, effectiveDeposit, effectiveBalance, promoInput, setPromoInput, promoLoading, promoError, onApplyPromo, onRemovePromo, onConfirm }) {
+function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, eventAddress, chefNotes, appliedPromo, promoSavings, effectiveTotal, effectiveDeposit, effectiveBalance, promoInput, setPromoInput, promoLoading, promoError, onApplyPromo, onRemovePromo, onConfirm }) {
   const stripe    = useStripe();
   const elements  = useElements();
   const [processing, setProcessing]     = useState(false);
@@ -460,7 +466,7 @@ function PaymentForm({ clientSecret, quote, user, eventDate, eventTime, eventAdd
     setProcessing(true); setError("");
 
     const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card: elements.getElement(CardElement), billing_details: { email: user.email } },
+      payment_method: { card: elements.getElement(CardElement), billing_details: { name: contact.name, email: contact.email, phone: contact.phone } },
     });
 
     if (stripeError) { setError(stripeError.message); setProcessing(false); return; }
@@ -472,7 +478,9 @@ function PaymentForm({ clientSecret, quote, user, eventDate, eventTime, eventAdd
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        user_email: user.email,
+        user_email: contact.email,
+        contact_name: contact.name,
+        contact_phone: contact.phone,
         package: tier.name,
         service_type: "countertop",
         event_date: eventDate,
@@ -500,7 +508,8 @@ function PaymentForm({ clientSecret, quote, user, eventDate, eventTime, eventAdd
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: user.email,
+          email: contact.email,
+          guestName: contact.name,
           confirmationId,
           serviceType: "countertop",
           packageName: tier.name,
@@ -518,7 +527,9 @@ function PaymentForm({ clientSecret, quote, user, eventDate, eventTime, eventAdd
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "countertop",
-          clientEmail: user.email,
+          clientEmail: contact.email,
+          clientName: contact.name,
+          clientPhone: contact.phone,
           confirmationId,
           packageName: tier.name,
           eventDate, eventTime,
@@ -645,7 +656,7 @@ function PaymentForm({ clientSecret, quote, user, eventDate, eventTime, eventAdd
       </div>
 
       <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginBottom: 20 }}>
-        Receipt will be sent to <strong>{user.email}</strong>
+        Receipt will be sent to <strong>{contact.email}</strong>
       </div>
 
       <div style={{ fontFamily: FONT_BODY, fontSize: 12, color: INK_FAINT, lineHeight: 1.6, marginBottom: 24 }}>
@@ -668,7 +679,7 @@ function PaymentForm({ clientSecret, quote, user, eventDate, eventTime, eventAdd
 // ── Confirmation ──────────────────────────────────────────────
 function ConfirmationScreen({ confirmation, onReset }) {
   if (!confirmation) return null;
-  const { id, quote, eventDate, eventTime, total, deposit, balance } = confirmation;
+  const { id, quote, eventDate, eventTime, total, deposit, balance, email } = confirmation;
 
   return (
     <div style={{ ...CS.card, textAlign: "center" }}>
@@ -696,8 +707,14 @@ function ConfirmationScreen({ confirmation, onReset }) {
           <li>Check your email for your receipt</li>
         </ul>
       </div>
-      <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginBottom: 32, lineHeight: 1.6 }}>
+      <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", marginBottom: 16, lineHeight: 1.6 }}>
         Don&rsquo;t see the confirmation email? Check your spam — look for bookings@sonakase.com
+      </div>
+      <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, marginBottom: 32, lineHeight: 1.6 }}>
+        Save your confirmation number — you can view this booking anytime at{" "}
+        <a href={`/lookup?c=${encodeURIComponent(id)}${email ? `&e=${encodeURIComponent(email)}` : ""}`} style={{ color: GOLD, textDecoration: "underline" }}>
+          the booking lookup page
+        </a>.
       </div>
       <a href="/" style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK_SOFT, textDecoration: "underline" }}>
         ← Back to Sonakase™
@@ -706,98 +723,17 @@ function ConfirmationScreen({ confirmation, onReset }) {
   );
 }
 
-// ── Login Screen ──────────────────────────────────────────────
-function LoginScreen({ onLogin }) {
-  const [email, setEmail]   = useState("");
-  const [sent, setSent]     = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]   = useState("");
-
-  useEffect(() => {
-    let unsub = () => {};
-    (async () => {
-      const { createClient } = await import("@supabase/supabase-js");
-      const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-      const { data: { session } } = await sb.auth.getSession();
-      if (session?.user) { onLogin(session.user.email); return; }
-      const { data: { subscription } } = sb.auth.onAuthStateChange((_, s) => {
-        if (s?.user) onLogin(s.user.email);
-      });
-      unsub = () => subscription.unsubscribe();
-    })();
-    return () => unsub();
-  }, []);
-
-  const submit = async () => {
-    if (!email.includes("@") || email.length < 5) { setError("Enter a valid email"); return; }
-    setLoading(true);
-    const { createClient } = await import("@supabase/supabase-js");
-    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-    const { error: authError } = await sb.auth.signInWithOtp({
-      email, options: { emailRedirectTo: "https://www.sonakase.com/auth/callback?next=/book" },
-    });
-    setLoading(false);
-    if (authError) setError(authError.message || "Failed to send link. Try again.");
-    else setSent(true);
-  };
-
-  return (
-    <div style={CS.card}>
-      <div style={{ textAlign: "center", marginBottom: 36 }}>
-        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 48, color: PERSIMMON, opacity: 0.25, lineHeight: 1, marginBottom: 16 }}>寿司</div>
-        <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: CREAM, marginBottom: 8 }}>Sign in to book</h1>
-        <p style={{ fontFamily: FONT_BODY, fontSize: 15, color: INK_SOFT, fontStyle: "italic" }}>
-          We&rsquo;ll email you a secure link. No password needed.
-        </p>
-      </div>
-
-      {sent ? (
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontFamily: FONT_BODY, fontSize: 15, color: GOLD, fontStyle: "italic", lineHeight: 1.6, marginBottom: 10 }}>
-            Check your email for a sign-in link. Come back to this page after clicking it.
-          </div>
-          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_FAINT, fontStyle: "italic", lineHeight: 1.6 }}>
-            Don&rsquo;t see it? Check spam — look for bookings@sonakase.com
-          </div>
-        </div>
-      ) : (
-        <>
-          <div style={{ marginBottom: 16 }}>
-            <label style={CS.label}>email address</label>
-            <input
-              type="email" value={email} autoFocus
-              onChange={(e) => { setEmail(e.target.value); setError(""); }}
-              onKeyDown={(e) => e.key === "Enter" && submit()}
-              placeholder="you@example.com"
-              style={CS.input}
-            />
-            {error && <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: PERSIMMON, marginTop: 6 }}>{error}</div>}
-          </div>
-          <button onClick={submit} disabled={loading} className="book-cta" style={{ ...CS.cta, width: "100%" }}>
-            {loading ? "Sending…" : "Send Sign-In Link →"}
-          </button>
-        </>
-      )}
-    </div>
-  );
-}
-
 // ── Book Header ───────────────────────────────────────────────
-function BookHeader({ user, onSignOut }) {
+function BookHeader() {
   return (
     <header style={{ background: "rgba(13,13,13,0.72)", backdropFilter: "blur(20px) saturate(160%)", WebkitBackdropFilter: "blur(20px) saturate(160%)", position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, borderBottom: "1px solid rgba(232,201,126,0.15)" }}>
       <div className="book-header-inner" style={{ maxWidth: 760, margin: "0 auto", padding: "9px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" }}>
         <a href="/" style={{ textDecoration: "none" }}>
           <Image src="/sonakase-logo.svg" alt="Sonakase Private Dining" width={280} height={82} priority className="book-header-logo" />
         </a>
-        {user && (
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontFamily: FONT_BODY, fontSize: 12, color: "rgba(245,240,232,0.45)", fontStyle: "italic" }}>{user.email}</span>
-            <button onClick={onSignOut} className="book-signout" style={{ background: "rgba(232,201,126,0.05)", border: `1px solid rgba(232,201,126,0.4)`, borderRadius: 999, color: GOLD, padding: "7px 16px", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", fontFamily: FONT_UI }}>
-              Sign out
-            </button>
-          </div>
-        )}
+        <a href="/lookup" style={{ fontFamily: FONT_UI, fontSize: 12, color: "rgba(232,201,126,0.8)", textDecoration: "none", letterSpacing: "0.04em" }}>
+          find a booking
+        </a>
       </div>
     </header>
   );
@@ -890,6 +826,7 @@ function BookStyles() {
         .book-header-logo  { width: 200px !important; height: 58px !important; }
         .book-page-wrapper { padding-top: calc(72px + var(--banner-h, 0px)); }
         .book-card         { padding: 24px 16px !important; }
+        .book-contact-grid { grid-template-columns: 1fr !important; }
       }
     `}</style>
   );

@@ -1,3 +1,4 @@
+import { isAdminRequest, adminUnauthorized } from "@/lib/adminAuth";
 import { createClient } from "@supabase/supabase-js";
 
 function getSupabase() {
@@ -7,7 +8,8 @@ function getSupabase() {
   );
 }
 
-export async function GET() {
+export async function GET(req) {
+  if (!isAdminRequest(req)) return adminUnauthorized();
   try {
     const { data, error } = await getSupabase()
       .from("promo_codes")
@@ -21,6 +23,7 @@ export async function GET() {
 }
 
 export async function POST(req) {
+  if (!isAdminRequest(req)) return adminUnauthorized();
   try {
     const body = await req.json();
     const { data, error } = await getSupabase()
@@ -44,6 +47,7 @@ export async function POST(req) {
 }
 
 export async function PATCH(req) {
+  if (!isAdminRequest(req)) return adminUnauthorized();
   try {
     const { id, ...updates } = await req.json();
     if (!id) return Response.json({ error: "Missing id" }, { status: 400 });
@@ -62,6 +66,7 @@ export async function PATCH(req) {
 }
 
 export async function DELETE(req) {
+  if (!isAdminRequest(req)) return adminUnauthorized();
   try {
     const { id } = await req.json();
     if (!id) return Response.json({ error: "Missing id" }, { status: 400 });

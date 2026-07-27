@@ -8,6 +8,8 @@
 // alter table bookings add column if not exists event_time text;
 // alter table bookings add column if not exists appetizers_selected jsonb;
 // alter table bookings add column if not exists price_per_guest numeric;
+// alter table bookings add column if not exists contact_name text;
+// alter table bookings add column if not exists contact_phone text;
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -33,6 +35,17 @@ export async function POST(req) {
     if (error) {
       console.error("Booking save failed:", error.message, "payload keys:", Object.keys(booking).join(","));
       return Response.json({ error: error.message }, { status: 500 });
+    }
+
+    // Capture the booker on the marketing list (source: booking).
+    // Non-fatal: a subscriber hiccup never affects the booking.
+    if (booking.user_email) {
+      const { error: subError } = await supabase
+        .from("subscribers")
+        .insert({ email: String(booking.user_email).toLowerCase(), source: "booking" });
+      if (subError && subError.code !== "23505") {
+        console.error("subscriber capture failed:", subError.message);
+      }
     }
 
     return Response.json({ success: true, booking: data });

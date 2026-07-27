@@ -9,7 +9,7 @@ export async function POST(req) {
       guestCount, total, deposit, rolls, appetizers, specialRequests,
       plattersOrdered, deliveryAddress, upchargeTotal,
       bookingId, appetizerChoice, chefNotes, eventTime, appetizersSelected,
-      pricePerGuest,
+      pricePerGuest, clientName, clientPhone,
     } = body;
 
     // ── Cancellation request ─────────────────────────────────────
@@ -136,7 +136,9 @@ export async function POST(req) {
         `<div style="background:#fff;border:1px solid rgba(26,18,8,0.1);padding:20px 24px;margin-bottom:20px;">` +
         `<table style="width:100%;border-collapse:collapse;">` +
         row("Confirmation", confirmationId) +
+        (clientName ? row("Name", clientName) : "") +
         row("Client",       clientEmail) +
+        (clientPhone ? row("Phone", clientPhone) : "") +
         row("Tier",         packageName) +
         row("Date",         fmtDate(eventDate)) +
         row("Time",         fmtTimeCt(eventTime)) +

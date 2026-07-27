@@ -7,7 +7,7 @@ export async function POST(req) {
       email, confirmationId, packageName, eventDate, guestCount,
       total, deposit, appetizers, promoCode, discountAmount,
       serviceType, appetizerChoice, chefNotes, eventTime, appetizersSelected,
-      pricePerGuest,
+      pricePerGuest, guestName,
     } = await req.json();
 
     if (!email || !email.includes("@")) {
@@ -99,7 +99,7 @@ export async function POST(req) {
         `<div style="font-size:11px;color:#0c0c0c;letter-spacing:0.4em;text-transform:uppercase;font-weight:bold;">Event Confirmed</div>` +
         `</div>` +
         `<div style="padding:36px 32px;">` +
-        `<p style="font-size:16px;color:#1a1208;font-style:italic;margin:0 0 28px;line-height:1.65;">Your Sonakase event is confirmed. Here are your details.</p>` +
+        `<p style="font-size:16px;color:#1a1208;font-style:italic;margin:0 0 28px;line-height:1.65;">${guestName ? `${guestName}, your` : "Your"} Sonakase event is confirmed. Here are your details.</p>` +
         `<div style="background:#fff;border:1px solid rgba(184,137,42,0.25);padding:20px 24px;margin-bottom:24px;">` +
         row("Confirmation",    confirmationId) +
         row("Experience",      packageName) +
@@ -112,6 +112,9 @@ export async function POST(req) {
         row("Deposit Charged", fmt2(deposit)) +
         row("Balance Due",     `$${balance} — due at the event`) +
         `</div>` +
+        `<p style="font-size:13px;color:#5a4f3c;margin:0 0 24px;line-height:1.6;">View this booking anytime at ` +
+        `<a href="https://www.sonakase.com/lookup?c=${encodeURIComponent(confirmationId || "")}&e=${encodeURIComponent(email)}" style="color:#b8892a;">sonakase.com/lookup</a> ` +
+        `using your confirmation number and this email address.</p>` +
         (chefNotes
           ? `<div style="background:#fff;border:1px solid rgba(184,137,42,0.25);padding:16px 24px;margin-bottom:24px;">` +
             `<div style="font-size:10px;color:#b8892a;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:8px;">Your Notes to the Chef</div>` +
