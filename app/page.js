@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-const SushiSlice  = dynamic(() => import("./components/SushiSlice"),  { ssr: false });
 const ScrollRoll  = dynamic(() => import("./components/ScrollRoll"),  { ssr: false });
 
 // Static imports so next/image knows dimensions (no layout shift) and
@@ -66,7 +65,6 @@ const N = (f, o) =>
 // ── Main Page ─────────────────────────────────────────────────
 export default function Home() {
   const router = useRouter();
-  const [showAnim, setShowAnim] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -75,23 +73,19 @@ export default function Home() {
     }
   }, []);
 
+  // Photo-first flow: content and photography alternate all the way down.
   return (
     <div style={{ background: BG, color: CREAM, fontFamily: "'Shippori Mincho', Georgia, serif", overflowX: "hidden" }}>
-      {showAnim && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
-          <SushiSlice onEnter={() => { setShowAnim(false); router.push("/book"); }} />
-        </div>
-      )}
       <PageStyles />
       <ScrollRoll />
       <Nav />
-      <Hero onLetsRoll={() => router.push("/book")} onLogoClick={() => setShowAnim(true)} />
+      <Hero onLetsRoll={() => router.push("/book")} />
       <ExperiencesSection />
       <PhotoBand img={imgBandLong} alt="Sushi arranged in rows across a wooden serving board." />
-      <AboutChefSection />
-      <ContactSection />
-      <PhotoBand img={imgBandSpread} alt="A full sushi catering spread laid edge to edge for a private event." />
       <PhotoSection />
+      <AboutChefSection />
+      <PhotoBand img={imgBandSpread} alt="A full sushi catering spread laid edge to edge for a private event." />
+      <ContactSection />
       <SiteFooter />
     </div>
   );
@@ -107,13 +101,6 @@ function PageStyles() {
       @media (max-width: 1100px) { .sk-scroll-roll { transform: translateY(-50%) scale(0.65) !important; left: 2px !important; transform-origin: left center; } }
 
       .sk-hero { padding: calc(140px + var(--banner-h, 0px)) 40px 100px; }
-
-      @keyframes bob {
-        0%   { transform: translateY(0px); }
-        50%  { transform: translateY(16px); }
-        100% { transform: translateY(0px); }
-      }
-      .hero-icon { animation: bob 2.5s ease-in-out infinite; }
 
       .sk-nav-link {
         font-family: ${FONT_UI};
@@ -310,7 +297,6 @@ function PageStyles() {
           transition: none !important;
         }
         .sk-btn-fill::after { display: none; }
-        .hero-icon { animation: none !important; }
         .sk-btn-fill:hover, .sk-btn-ghost:hover, .sk-pkg-card:hover {
           transform: none;
         }
@@ -600,12 +586,12 @@ function ChiyogamiPattern({ id, opacity = 0.04 }) {
 }
 
 // ── Hero ──────────────────────────────────────────────────────
-function Hero({ onLetsRoll, onLogoClick }) {
+function Hero({ onLetsRoll }) {
   return (
     <section style={{
-      background: BG, backgroundImage: N(0.65, 0.022), minHeight: "100vh",
+      background: BG, minHeight: "100vh",
       display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
+      alignItems: "center", justifyContent: "flex-end",
       textAlign: "center", position: "relative",
     }}
       className="sk-hero"
@@ -635,10 +621,10 @@ function Hero({ onLetsRoll, onLogoClick }) {
             style={{ objectFit: "cover" }}
           />
         </div>
-        {/* Readability gradient — darker top and bottom, lighter through the middle */}
+        {/* Readability gradient — the sushi carries the middle; text zones darken */}
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(180deg, rgba(13,13,13,0.82) 0%, rgba(13,13,13,0.38) 32%, rgba(13,13,13,0.38) 68%, rgba(13,13,13,0.86) 100%)",
+          background: "linear-gradient(180deg, rgba(13,13,13,0.68) 0%, rgba(13,13,13,0.14) 34%, rgba(13,13,13,0.22) 60%, rgba(13,13,13,0.9) 100%)",
         }} />
       </div>
 
@@ -657,38 +643,8 @@ function Hero({ onLetsRoll, onLogoClick }) {
         zIndex: 2, pointerEvents: "none",
       }} />
 
-      {/* Content sits above the star layer */}
-      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
-
-        {/* Logo with radial glow behind the mark */}
-        <div style={{ position: "relative", marginBottom: 36 }}>
-          <div style={{
-            position: "absolute", top: "50%", left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400, height: 400,
-            background: "radial-gradient(circle, rgba(232,201,126,0.06) 0%, transparent 70%)",
-            pointerEvents: "none", zIndex: 0,
-          }} />
-          <a href="/" onClick={(e) => { e.preventDefault(); onLogoClick?.(); }} style={{ textDecoration: "none", display: "block", position: "relative", zIndex: 1, cursor: "pointer" }} className="hero-icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="18 14 78 100"
-              width={160}
-              role="img"
-              aria-label="Sonakase"
-              style={{ display: "block" }}
-            >
-              <g transform="translate(18, 10) scale(0.9)">
-                <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="2.2" strokeLinecap="round"/>
-                <line x1="55" y1="12" x2="48" y2="108" stroke="#e6dac8" strokeWidth="2.2" strokeLinecap="round"/>
-                <circle cx="45" cy="19" r="4" fill="#b8892a"/>
-                <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke="#b8892a" strokeWidth="2.8" strokeLinecap="round" fill="none"/>
-                <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke="#b8892a" strokeWidth="1.9" strokeLinecap="round" fill="none" opacity="0.5"/>
-                <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke="#b8892a" strokeWidth="1.1" strokeLinecap="round" fill="none" opacity="0.25"/>
-              </g>
-            </svg>
-          </a>
-        </div>
+      {/* Content sits low so the sushi owns the frame */}
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", width: "100%", marginTop: "auto" }}>
 
         {/* Gold line */}
         <div style={{ width: 120, height: 1, background: GOLD, opacity: 0.6, margin: "0 auto 32px" }} />
@@ -707,7 +663,7 @@ function Hero({ onLetsRoll, onLogoClick }) {
         <div style={{
           fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(14px, 2vw, 18px)",
           color: GOLD, letterSpacing: "0.15em", fontStyle: "italic",
-          marginBottom: 56,
+          marginBottom: 40,
         }}>
           American Omakase Where You Are
         </div>
