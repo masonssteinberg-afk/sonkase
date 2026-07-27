@@ -202,7 +202,7 @@ export default function App() {
                 </select>
                 {eventTime && (
                   <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, marginTop: 10, fontStyle: "italic" }}>
-                    Chef arrives about 30 minutes early to set up — service begins at {fmtTime(eventTime)} and runs roughly ninety minutes.
+                    Chef arrives about 30 minutes early to set up — service begins at {fmtTime(eventTime)} and runs about two hours.
                   </div>
                 )}
               </div>

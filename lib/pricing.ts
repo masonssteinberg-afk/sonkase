@@ -30,7 +30,7 @@ export const TIERS: readonly Tier[] = [
     perGuest: 135,
     eventMinimum: 1300,
     deposit: 400,
-    tagline: "Live countertop build — nigiri sliced in front of you, laid over banana leaves in waves.",
+    tagline: "A dinner party. One chef, everything set out on your kitchen counter.",
   },
   {
     id: "longtable",
@@ -40,7 +40,7 @@ export const TIERS: readonly Tier[] = [
     perGuest: 115,
     eventMinimum: 2160, // 16 × $135 — top of Countertop band
     deposit: 750,
-    tagline: "The same live build, scaled down the length of your table.",
+    tagline: "A bigger crowd. Two chefs and a longer spread.",
   },
   {
     id: "fullspread",
@@ -50,7 +50,7 @@ export const TIERS: readonly Tier[] = [
     perGuest: 95,
     eventMinimum: 3450, // 30 × $115 — top of Long Table band
     deposit: 1100,
-    tagline: "A full-counter spread for big rooms, served in two to three waves.",
+    tagline: "Large events. Three chefs and a full display.",
   },
 ] as const;
 
