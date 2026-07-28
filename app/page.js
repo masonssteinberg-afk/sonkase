@@ -269,14 +269,14 @@ function PageStyles() {
       .sk-pkg-card__media { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
       .sk-pkg-card__media img {
         object-fit: cover;
-        /* Blur low enough that sushi colour survives; parallax via --imgY */
+        /* Blur low enough that sushi colour + shapes read clearly; parallax via --imgY */
         transform: translate3d(0, var(--imgY, 0%), 0) scale(1.25);
-        filter: blur(18px) saturate(1.5) contrast(1.08);
+        filter: blur(10px) saturate(1.5) contrast(1.08);
       }
       .sk-pkg-card__scrim {
         position: absolute; inset: 0; z-index: 1;
-        /* Darken only where text sits — colour stays alive in the top half */
-        background: linear-gradient(180deg, transparent 0%, rgba(8,10,8,0.35) 45%, rgba(8,10,8,0.78) 100%);
+        /* Darken where text sits; colour stays alive up top */
+        background: linear-gradient(180deg, transparent 0%, rgba(8,10,8,0.42) 40%, rgba(8,10,8,0.82) 100%);
       }
       .sk-pkg-card__body {
         position: relative;
@@ -287,6 +287,8 @@ function PageStyles() {
         flex-direction: column;
         padding: 40px 36px 36px;
         box-sizing: border-box;
+        /* Soft dark halo keeps text legible over the sharper photo */
+        text-shadow: 0 1px 10px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.5);
       }
       .sk-pkg-card:hover { box-shadow: 0 22px 60px rgba(0,0,0,0.55); }
 
@@ -303,7 +305,7 @@ function PageStyles() {
         to   { opacity: 1; transform: perspective(1200px) translate3d(0, 0, 0) scale(1); }
       }
       @media (max-width: 768px) {
-        .sk-pkg-card__media img { filter: blur(12px) saturate(1.5) contrast(1.08); }
+        .sk-pkg-card__media img { filter: blur(7px) saturate(1.5) contrast(1.08); }
       }
 
       .sk-reserve-link {
