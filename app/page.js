@@ -22,11 +22,11 @@ import imgTileSpread      from "@/public/images/tile-spread.jpg";
 import imgTileBoardDetail from "@/public/images/tile-board-detail.jpg";
 import imgChefPortrait    from "@/public/chef-portrait.jpg";
 
-// ── Design Tokens ──────────────────────────────────────────────
-const BG    = "#0d0d0d";
-const BG2   = "#141414";
-const GOLD  = "#E8C97E";
-const CREAM = "#F5F0E8";
+// ── Design Tokens — theme-driven (see globals.css :root / [data-theme]) ──
+const BG    = "var(--bg)";
+const BG2   = "var(--bg2)";
+const GOLD  = "var(--gold)";
+const CREAM = "var(--text)";
 const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif";
 // iOS-style spring for transforms; standard ease-out for everything else
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
@@ -125,7 +125,7 @@ function PageStyles() {
       }
       .sk-nav-link:hover {
         color: #fff;
-        background: rgba(245,240,232,0.08);
+        background: rgba(var(--text-rgb),0.08);
       }
       .sk-nav-link:active { transform: scale(0.96); }
 
@@ -154,7 +154,7 @@ function PageStyles() {
         padding: 0 32px;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(232,201,126,0.12);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(var(--gold-rgb),0.12);
         transition: transform 0.3s ${SPRING}, box-shadow 0.3s ${SPRING};
       }
       .sk-btn-fill::after {
@@ -168,19 +168,19 @@ function PageStyles() {
       }
       .sk-btn-fill:hover {
         transform: translateY(-2px) scale(1.015);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 10px 32px rgba(232,201,126,0.3);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 10px 32px rgba(var(--gold-rgb),0.3);
       }
       .sk-btn-fill:hover::after { transform: translateX(120%); }
       .sk-btn-fill:hover .sk-arrow { transform: translateX(4px); }
       .sk-btn-fill:active {
         transform: scale(0.97);
-        box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 3px 12px rgba(232,201,126,0.15);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 3px 12px rgba(var(--gold-rgb),0.15);
       }
 
       .sk-btn-ghost {
-        background: rgba(232,201,126,0.06);
+        background: rgba(var(--gold-rgb),0.06);
         color: ${GOLD};
-        border: 1px solid rgba(232,201,126,0.35);
+        border: 1px solid rgba(var(--gold-rgb),0.35);
         border-radius: 999px;
         font-family: ${FONT_UI};
         font-size: 13px;
@@ -215,7 +215,7 @@ function PageStyles() {
       .sk-btn-ghost:hover {
         color: ${BG};
         transform: translateY(-2px) scale(1.015);
-        box-shadow: 0 8px 28px rgba(232,201,126,0.18);
+        box-shadow: 0 8px 28px rgba(var(--gold-rgb),0.18);
       }
       .sk-btn-ghost:hover::before { transform: scaleY(1); }
       .sk-btn-ghost:hover .sk-arrow { transform: translateX(4px); }
@@ -230,8 +230,8 @@ function PageStyles() {
       }
 
       .sk-contact-field {
-        background: rgba(245,240,232,0.045);
-        border: 1px solid rgba(232,201,126,0.16);
+        background: rgba(var(--text-rgb),0.045);
+        border: 1px solid rgba(var(--gold-rgb),0.16);
         border-radius: 14px;
         color: ${CREAM};
         font-family: ${FONT_UI};
@@ -241,11 +241,11 @@ function PageStyles() {
         outline: none;
         transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
       }
-      .sk-contact-field::placeholder { color: rgba(245,240,232,0.35); }
+      .sk-contact-field::placeholder { color: rgba(var(--text-rgb),0.35); }
       .sk-contact-field:focus {
-        border-color: rgba(232,201,126,0.6);
-        background: rgba(245,240,232,0.06);
-        box-shadow: 0 0 0 3px rgba(232,201,126,0.12);
+        border-color: rgba(var(--gold-rgb),0.6);
+        background: rgba(var(--text-rgb),0.06);
+        box-shadow: 0 0 0 3px rgba(var(--gold-rgb),0.12);
       }
 
       /* Tier card = blurred sushi photo + dark scrim + glass body on top */
@@ -305,15 +305,15 @@ function PageStyles() {
         min-height: 44px;
         padding: 0 24px;
         border-radius: 999px;
-        border: 1px solid rgba(232,201,126,0.25);
-        background: rgba(232,201,126,0.05);
+        border: 1px solid rgba(var(--gold-rgb),0.25);
+        background: rgba(var(--gold-rgb),0.05);
         align-self: flex-start;
         transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.25s ${SPRING};
       }
       .sk-reserve-link:hover {
         color: #fff8ec;
-        background: rgba(232,201,126,0.12);
-        border-color: rgba(232,201,126,0.5);
+        background: rgba(var(--gold-rgb),0.12);
+        border-color: rgba(var(--gold-rgb),0.5);
       }
       .sk-reserve-link:hover .sk-arrow { transform: translateX(5px); }
       .sk-reserve-link:active { transform: scale(0.96); }
@@ -333,15 +333,15 @@ function PageStyles() {
         min-height: 44px;
         padding: 0 24px;
         border-radius: 999px;
-        border: 1px solid rgba(232,201,126,0.25);
-        background: rgba(232,201,126,0.05);
+        border: 1px solid rgba(var(--gold-rgb),0.25);
+        background: rgba(var(--gold-rgb),0.05);
         align-self: flex-start;
         transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.25s ${SPRING};
       }
       .sk-reserve-link:hover {
         color: #fff8ec;
-        background: rgba(232,201,126,0.12);
-        border-color: rgba(232,201,126,0.5);
+        background: rgba(var(--gold-rgb),0.12);
+        border-color: rgba(var(--gold-rgb),0.5);
       }
       .sk-reserve-link:hover .sk-arrow { transform: translateX(5px); }
       .sk-reserve-link:active { transform: scale(0.96); }
@@ -429,10 +429,10 @@ function Nav() {
   return (
     <nav style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-      background: scrolled ? "rgba(13,13,13,0.55)" : "transparent",
+      background: scrolled ? "var(--header-bg)" : "transparent",
       backdropFilter: scrolled ? "blur(22px) saturate(180%)" : "none",
       WebkitBackdropFilter: scrolled ? "blur(22px) saturate(180%)" : "none",
-      borderBottom: `1px solid ${scrolled ? "rgba(255,255,255,0.12)" : "transparent"}`,
+      borderBottom: `1px solid ${scrolled ? "var(--header-border)" : "transparent"}`,
       transition: "border-color 0.3s, background 0.3s, backdrop-filter 0.3s",
     }}>
       <div className="sk-nav-inner" style={{
@@ -621,7 +621,7 @@ function Hero({ onLetsRoll }) {
       alignItems: "center", justifyContent: "flex-end",
       textAlign: "center", position: "relative",
     }}
-      className="sk-hero"
+      className="sk-hero on-dark"
       id="top"
     >
       {/* Hero photo — wide crop above 700px, tall crop below */}
@@ -660,13 +660,13 @@ function Hero({ onLetsRoll }) {
         position: "absolute",
         top: "calc(var(--header-h, 100px) + var(--banner-h, 0px) + 18px)",
         left: 0, right: 0, height: 1,
-        background: "rgba(232,201,126,0.30)",
+        background: "rgba(var(--gold-rgb),0.30)",
         zIndex: 2, pointerEvents: "none",
       }} />
       <div style={{
         position: "absolute", bottom: 24,
         left: 0, right: 0, height: 1,
-        background: "rgba(232,201,126,0.30)",
+        background: "rgba(var(--gold-rgb),0.30)",
         zIndex: 2, pointerEvents: "none",
       }} />
 
@@ -726,7 +726,7 @@ function ExperiencesSection() {
 
           {/* Body + how-it-works photo */}
           <div className="sk-how-grid" style={{ maxWidth: 960, margin: "0 auto 80px" }}>
-            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(245,240,232,0.6)`, margin: 0, lineHeight: 1.8 }}>
+            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(var(--text-rgb),0.6)`, margin: 0, lineHeight: 1.8 }}>
               A live countertop build in your home. Sushi made in front of your guests and laid out over banana leaves in waves — two hours of dinner service, start to finish.
             </p>
             <div className="sk-how-photo">
@@ -754,7 +754,7 @@ function ExperiencesSection() {
               <div className="sk-pkg-card__scrim" aria-hidden="true" />
 
               {/* Glass panel body */}
-              <div className="glass-panel sk-pkg-card__body">
+              <div className="glass-panel sk-pkg-card__body on-dark">
               {/* Name */}
               <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
                 {t.name.toLowerCase()}
@@ -767,13 +767,13 @@ function ExperiencesSection() {
 
               {/* Event price (starting at the floored low quote), per-guest rate below */}
               <div style={{ marginBottom: 28 }}>
-                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(245,240,232,0.8)", fontStyle: "italic", marginBottom: 6 }}>
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(var(--text-rgb),0.8)", fontStyle: "italic", marginBottom: 6 }}>
                   starting at
                 </div>
                 <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 34, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
                   {formatUSD(tierTotalRange(t).low)}
                 </div>
-                <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(232,201,126,0.9)", letterSpacing: "0.06em", marginTop: 10 }}>
+                <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--gold-rgb),0.9)", letterSpacing: "0.06em", marginTop: 10 }}>
                   ${t.perGuest} per guest
                 </div>
               </div>
@@ -782,10 +782,10 @@ function ExperiencesSection() {
               <div style={{ height: 1, background: "rgba(255,255,255,0.18)", marginBottom: 20 }} />
 
               {/* Format line */}
-              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(245,240,232,0.85)", lineHeight: 1.7, margin: "0 0 10px" }}>
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(var(--text-rgb),0.85)", lineHeight: 1.7, margin: "0 0 10px" }}>
                 {t.tagline}
               </p>
-              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(232,201,126,0.9)", fontStyle: "italic", marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(var(--gold-rgb),0.9)", fontStyle: "italic", marginBottom: 28 }}>
                 {MENU_LINE}
               </div>
               <div style={{ flex: 1 }} />
@@ -802,9 +802,9 @@ function ExperiencesSection() {
 
         {/* Small-group note — quoted case by case, not a published tier */}
         <Reveal delay={0.1}>
-          <p style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(245,240,232,0.5)", letterSpacing: "0.04em", textAlign: "center", margin: "0 0 8px" }}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--text-rgb),0.5)", letterSpacing: "0.04em", textAlign: "center", margin: "0 0 8px" }}>
             Smaller gatherings under 8 guests are available by request.{" "}
-            <a href={`/?subject=${encodeURIComponent("Small gathering inquiry (under 8 guests)")}#contact`} style={{ color: "rgba(232,201,126,0.85)", textDecoration: "none", borderBottom: "1px solid rgba(232,201,126,0.4)" }}>
+            <a href={`/?subject=${encodeURIComponent("Small gathering inquiry (under 8 guests)")}#contact`} style={{ color: "rgba(var(--gold-rgb),0.85)", textDecoration: "none", borderBottom: "1px solid rgba(var(--gold-rgb),0.4)" }}>
               Get in touch
             </a>.
           </p>
@@ -858,13 +858,13 @@ function AboutChefSection() {
 
               {/* Bio */}
               <div style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 0 }}>
-                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
+                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(var(--text-rgb),0.75)", lineHeight: 1.8, margin: 0 }}>
                   Mason grew up sitting at the sushi bar as a kid, watching the chef work. He started practicing at home, rolling on his own with grocery store fish and YouTube. By 15 he had his first kitchen job as a dishwasher.
                 </p>
-                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
+                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(var(--text-rgb),0.75)", lineHeight: 1.8, margin: 0 }}>
                   The week he turned 16 and got his license, he drove back to the place he grew up sitting in front of the bar — now working behind it. Over the next few years he worked his way through some of Gainesville&rsquo;s most notable sushi spots, moving from prep to rolling, learning the craft the right way across multiple kitchens.
                 </p>
-                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: 0 }}>
+                <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: "rgba(var(--text-rgb),0.75)", lineHeight: 1.8, margin: 0 }}>
                   Along the way he started doing sushi nights for his family. Rolling for the people he grew up with, at home, around the table. It was always his favorite part. At 20 he decided other people deserved that too. That is Sonakase&trade;.
                 </p>
               </div>
@@ -882,10 +882,10 @@ function AboutChefSection() {
               <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 20, color: CREAM, marginBottom: 16 }}>
                 The Sourcing
               </div>
-              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 15, color: "rgba(245,240,232,0.75)", lineHeight: 1.8, margin: "0 0 16px" }}>
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 15, color: "rgba(var(--text-rgb),0.75)", lineHeight: 1.8, margin: "0 0 16px" }}>
                 Every protein is sourced fresh from trusted local and regional seafood markets. Rice is seasoned the day of your event. Nothing is prepared days in advance.
               </p>
-              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(232,201,126,0.70)", fontStyle: "italic" }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(var(--gold-rgb),0.70)", fontStyle: "italic" }}>
                 ServSafe Food Manager Certified
               </div>
             </div>
@@ -951,7 +951,7 @@ function ContactSection() {
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
           {/* Eyebrow */}
-          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "#b8892a", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 10, color: "var(--eyebrow)", letterSpacing: "0.5em", textTransform: "uppercase", textAlign: "center", marginBottom: 32 }}>
             get in touch
           </div>
 
@@ -1086,7 +1086,7 @@ function SiteFooter() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 40px 36px", boxSizing: "border-box" }}>
           <div className="sk-footer-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 32, marginBottom: 48, flexWrap: "wrap" }}>
             <a href="/" style={{ textDecoration: "none" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="160" height="45" role="img" aria-label="Sonakase Private Dining">
+              <svg className="sk-footer-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="160" height="45" role="img" aria-label="Sonakase Private Dining">
                 <defs><style>{"@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Cormorant+Garamond:wght@300&display=swap');"}</style></defs>
                 <g transform="translate(18, 10) scale(0.9)">
                   <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
@@ -1104,11 +1104,11 @@ function SiteFooter() {
               Reserve Your Experience <span className="sk-arrow">→</span>
             </a>
           </div>
-          <div style={{ borderTop: `1px solid rgba(232,201,126,0.12)`, paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: `rgba(245,240,232,0.3)`, letterSpacing: "0.05em", margin: 0 }}>
+          <div style={{ borderTop: `1px solid rgba(var(--gold-rgb),0.12)`, paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: `rgba(var(--text-rgb),0.3)`, letterSpacing: "0.05em", margin: 0 }}>
               © 2026 Sonakase™ · All rights reserved.
             </p>
-            <a href="/lookup" style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: "rgba(232,201,126,0.55)", letterSpacing: "0.05em", textDecoration: "none" }}>
+            <a href="/lookup" style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: "rgba(var(--gold-rgb),0.55)", letterSpacing: "0.05em", textDecoration: "none" }}>
               find your booking →
             </a>
           </div>

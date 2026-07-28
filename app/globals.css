@@ -4,18 +4,61 @@
   padding: 0;
 }
 
+/* ═══ Theme tokens ═════════════════════════════════════════════════
+   Everything keys off html[data-theme]. A no-flash script in the layout
+   sets it from localStorage or the phone's prefers-color-scheme at first
+   paint; a toggle can override it. Dark = ink background; light = brand
+   gold background with near-black text. Surfaces that must stay dark in
+   both modes (photo cards, hero, modal) carry .on-dark to pin the dark
+   tokens locally. */
+:root, [data-theme="dark"] {
+  --bg: #0d0d0d;
+  --bg2: #141414;
+  --text: #F5F0E8;
+  --text-rgb: 245, 240, 232;
+  --gold: #E8C97E;
+  --gold-rgb: 232, 201, 126;
+  --eyebrow: #b8892a;
+  --accent: #C4562F;
+  --header-bg: rgba(13, 13, 13, 0.55);
+  --header-border: rgba(255, 255, 255, 0.12);
+  color-scheme: dark;
+}
+[data-theme="light"] {
+  --bg: #E8C97E;          /* brand gold as the page background */
+  --bg2: #E1BE68;
+  --text: #1A1A18;
+  --text-rgb: 26, 26, 24;
+  --gold: #7a5410;        /* darker gold that reads on the gold page */
+  --gold-rgb: 122, 84, 16;
+  --eyebrow: #7a5410;
+  --accent: #C4562F;
+  --header-bg: rgba(90, 64, 12, 0.55);
+  --header-border: rgba(0, 0, 0, 0.12);
+  color-scheme: light;
+}
+/* Always-dark surfaces (photo cards, hero content, modal) keep light text */
+.on-dark {
+  --text: #F5F0E8;
+  --text-rgb: 245, 240, 232;
+  --gold: #E8C97E;
+  --gold-rgb: 232, 201, 126;
+  --eyebrow: #b8892a;
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: #0d0d0d;
-  color: #F5F0E8;
+  background: var(--bg);
+  color: var(--text);
   font-family: "Shippori Mincho", Georgia, "Times New Roman", serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 ::selection {
@@ -165,3 +208,38 @@ input, textarea, select {
   .glass-panel { -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%); }
   .glass-btn, .glass-btn-sec { -webkit-backdrop-filter: blur(10px) saturate(160%); backdrop-filter: blur(10px) saturate(160%); }
 }
+
+/* Light mode — primary buttons on the gold page invert to white glass with
+   accent text (the .on-light values). Buttons over photography (.on-photo)
+   and inside always-dark surfaces (.on-dark: cards, modal) stay dark glass. */
+[data-theme="light"] .glass-btn:not(.on-photo) {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  color: #C4562F;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.80);
+}
+[data-theme="light"] .glass-btn:not(.on-photo):hover {
+  background: rgba(255, 255, 255, 0.70);
+  border-color: rgba(0, 0, 0, 0.16);
+}
+[data-theme="light"] .glass-btn-sec:not(.on-photo) {
+  background: rgba(255, 255, 255, 0.40);
+  border-color: rgba(0, 0, 0, 0.10);
+  color: #1A1A18;
+}
+/* Restore dark glass buttons inside always-dark surfaces even in light mode */
+[data-theme="light"] .on-dark .glass-btn {
+  background:
+    linear-gradient(rgba(196, 86, 47, 0.16), rgba(196, 86, 47, 0.16)),
+    linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16));
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.40);
+}
+[data-theme="light"] .on-dark .glass-btn-sec {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+/* Footer wordmark is light-on-dark art; render it as dark ink on the gold page */
+[data-theme="light"] .sk-footer-logo { filter: brightness(0) opacity(0.78); }

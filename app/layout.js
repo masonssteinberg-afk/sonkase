@@ -1,5 +1,10 @@
 import "./globals.css";
 import Banner from "./components/Banner";
+import ThemeToggle from "./components/ThemeToggle";
+
+// Sets html[data-theme] before first paint — from a saved choice, else the
+// phone's system preference — so there is no flash of the wrong theme.
+const themeScript = `(function(){try{var t=localStorage.getItem('sk_theme');if(!t){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`;
 
 export const metadata = {
   metadataBase: new URL("https://sonakase.com"),
@@ -33,6 +38,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -40,6 +46,7 @@ export default function RootLayout({ children }) {
       <body>
         <Banner />
         {children}
+        <ThemeToggle />
       </body>
     </html>
   );
