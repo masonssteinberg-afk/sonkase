@@ -36,21 +36,23 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
 // ── Tiers — all pricing comes from lib/pricing, no literals here ──
-import { TIERS, MENU_LINE, tierTotalRange, formatUSD } from "@/lib/pricing";
+import { TIERS, tierTotalRange, quoteForGuests, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS } from "@/lib/pricing";
 
 // Fixed blurred-photo background per tier card. Assigned as a constant
 // (never Math.random during render) so server and client first paint agree.
 const CARD_IMG = {
-  countertop: imgCardCountertop,  // tuna rolls, cucumber ribbons
-  longtable:  imgBandLong,        // rows of cut rolls
-  fullspread: imgCardFullspread,  // full event catering spread
+  kitchentable: imgTileNigiri,      // intimate nigiri close-up
+  countertop:   imgCardCountertop,  // tuna rolls, cucumber ribbons
+  longtable:    imgBandLong,        // rows of cut rolls
+  fullspread:   imgCardFullspread,  // full event catering spread
 };
 
-// Banner crop anchor per card (this shot has the sushi low in frame)
+// Banner crop anchor per card (the countertop shot has the sushi low in frame)
 const CARD_POS = {
-  countertop: "center 74%",
-  longtable:  "center",
-  fullspread: "center",
+  kitchentable: "center",
+  countertop:   "center 74%",
+  longtable:    "center",
+  fullspread:   "center",
 };
 
 const N = (f, o) =>
@@ -260,6 +262,53 @@ function PageStyles() {
         box-shadow: 0 0 0 3px rgba(var(--gold-rgb),0.12);
       }
 
+      /* Four tier cards: 4-across on wide desktop, 2×2 on tablet, 1 on mobile */
+      .sk-pkg-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(4, 1fr);
+      }
+      @media (max-width: 1120px) { .sk-pkg-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 600px)  { .sk-pkg-grid { grid-template-columns: 1fr; } }
+
+      /* Quote finder */
+      .sk-quote-input {
+        width: 84px;
+        text-align: center;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 12px;
+        color: #F5F0E8;
+        font-family: 'Shippori Mincho', Georgia, serif;
+        font-size: 26px;
+        padding: 8px 6px;
+        outline: none;
+        -moz-appearance: textfield;
+      }
+      .sk-quote-input::-webkit-outer-spin-button,
+      .sk-quote-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .sk-quote-input:focus { border-color: rgba(232,201,126,0.6); box-shadow: 0 0 0 3px rgba(232,201,126,0.12); }
+      .sk-stepper {
+        width: 44px; height: 44px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.22);
+        background: rgba(255,255,255,0.08);
+        color: #F5F0E8;
+        font-size: 22px; line-height: 1;
+        cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: background 0.2s, border-color 0.2s, transform 0.15s ${SPRING};
+      }
+      .sk-stepper:hover:not(:disabled) { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); }
+      .sk-stepper:active:not(:disabled) { transform: scale(0.94); }
+      .sk-stepper:disabled { opacity: 0.35; cursor: not-allowed; }
+      @media (max-width: 560px) {
+        .sk-quote-inner { flex-direction: column; align-items: flex-start !important; gap: 20px !important; }
+        .sk-quote-inner > div:last-child { text-align: left !important; }
+        .sk-quote-foot { flex-direction: column; align-items: flex-start !important; }
+        .sk-quote-foot .glass-btn { width: 100%; }
+      }
+
       /* Tier card = clean sushi photo banner on top, readable dark text panel
          below. Motion (parallax/tilt/entry) via CSS vars from one rAF loop. */
       .sk-pkg-card {
@@ -432,7 +481,6 @@ function PageStyles() {
 
       @media (max-width: 768px) {
         .sk-nav-links { display: none !important; }
-        .sk-pkg-grid  { grid-template-columns: 1fr !important; }
         .sk-how-grid  { grid-template-columns: 1fr !important; }
         .sk-hero-logo { width: 220px !important; }
         .sk-section   { padding: 60px 20px !important; }
@@ -738,9 +786,14 @@ function Hero({ onLetsRoll }) {
         <div style={{
           fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(14px, 2vw, 18px)",
           color: GOLD, letterSpacing: "0.15em", fontStyle: "italic",
-          marginBottom: 40,
+          marginBottom: 12,
         }}>
           American Omakase Where You Are
+        </div>
+
+        {/* From-price — derived from the lowest tier minimum */}
+        <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(245,240,232,0.7)", letterSpacing: "0.06em", marginBottom: 36 }}>
+          Private sushi catering from {formatUSD(FROM_PRICE)}
         </div>
 
         {/* CTAs */}
@@ -758,9 +811,91 @@ function Hero({ onLetsRoll }) {
   );
 }
 
+// ── Count-up hook — eases a number to its target over ~300ms ──
+function useCountUp(target) {
+  const [val, setVal] = useState(target);
+  const fromRef = useRef(target);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVal(target); fromRef.current = target; return;
+    }
+    const from = fromRef.current, to = target, dur = 300, t0 = performance.now();
+    let raf;
+    const tick = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(from + (to - from) * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else fromRef.current = to;
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+  return val;
+}
+
+// ── Quote finder — enter a guest count, see tier/total/deposit live ──
+function QuoteFinder() {
+  const [guests, setGuests] = useState(8);
+  const quote = quoteForGuests(guests);          // always valid: input is clamped to [MIN,MAX]
+  const animatedTotal = useCountUp(quote ? quote.total : 0);
+
+  const setClamped = (n) => {
+    if (Number.isNaN(n)) return;
+    setGuests(Math.max(MIN_GUESTS, Math.min(MAX_GUESTS, Math.floor(n))));
+  };
+
+  return (
+    <div className="glass-panel on-dark sk-quote" style={{ maxWidth: 620, margin: "0 auto 40px", padding: "28px 32px" }}>
+      <div className="sk-quote-inner" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 28, flexWrap: "wrap" }}>
+
+        {/* Guest count with steppers */}
+        <div>
+          <label htmlFor="sk-guest-input" style={{ display: "block", fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.9)", marginBottom: 12 }}>
+            How many guests?
+          </label>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button type="button" aria-label="Fewer guests" onClick={() => setClamped(guests - 1)} disabled={guests <= MIN_GUESTS} className="sk-stepper">−</button>
+            <input
+              id="sk-guest-input"
+              type="number" inputMode="numeric" min={MIN_GUESTS} max={MAX_GUESTS}
+              value={guests}
+              onChange={(e) => setClamped(parseInt(e.target.value, 10))}
+              className="sk-quote-input"
+            />
+            <button type="button" aria-label="More guests" onClick={() => setClamped(guests + 1)} disabled={guests >= MAX_GUESTS} className="sk-stepper">+</button>
+          </div>
+        </div>
+
+        {/* Live tier / total / deposit */}
+        <div style={{ textAlign: "right", minWidth: 200 }}>
+          <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.9)", marginBottom: 6 }}>
+            {quote.tier.name}
+          </div>
+          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 40, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
+            {formatUSD(animatedTotal)}
+          </div>
+          <div style={{ fontFamily: FONT_UI, fontSize: 12, color: "rgba(var(--text-rgb),0.6)", marginTop: 6 }}>
+            {formatUSD(quote.deposit)} deposit
+          </div>
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: "rgba(255,255,255,0.14)", margin: "22px 0 18px" }} />
+
+      <div className="sk-quote-foot" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
+        <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(var(--text-rgb),0.75)", lineHeight: 1.5 }}>
+          Reserve with a {formatUSD(quote.deposit)} deposit. The balance is charged 48 hours before your event.
+        </div>
+        <a href={`/book?guests=${guests}`} className="glass-btn" style={{ minHeight: 46, padding: "0 28px", whiteSpace: "nowrap" }}>
+          Reserve <span className="sk-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // ── Experiences Section ───────────────────────────────────────
-// Tier cards show name, guest range, per-head price, and one format line.
-// No promo display here — promos apply in the booking flow only.
 function ExperiencesSection() {
   return (
     <section id="experiences" style={{ background: BG2, backgroundImage: N(0.55, 0.04) }}>
@@ -790,8 +925,13 @@ function ExperiencesSection() {
           </div>
         </Reveal>
 
+        {/* Quote finder — the friendly front door to pricing */}
+        <Reveal>
+          <QuoteFinder />
+        </Reveal>
+
         {/* Tier cards */}
-        <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
+        <div className="sk-pkg-grid" style={{ marginBottom: 20 }}>
           {TIERS.map((t, idx) => (
               <div className="sk-pkg-card" key={t.id} style={{ "--i": idx }}>
               {/* Sushi photo banner */}
@@ -802,42 +942,44 @@ function ExperiencesSection() {
               {/* Readable dark text panel */}
               <div className="sk-pkg-card__body on-dark">
               {/* Name */}
-              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 21, color: CREAM, letterSpacing: "0.08em", marginBottom: 8 }}>
                 {t.name.toLowerCase()}
               </div>
 
               {/* Guest range */}
-              <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, color: GOLD, letterSpacing: "0.22em", textTransform: "uppercase", marginBottom: 24 }}>
+              <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 20 }}>
                 {t.minGuests}–{t.maxGuests} guests
               </div>
 
-              {/* Event price (starting at the floored low quote), per-guest rate below */}
-              <div style={{ marginBottom: 28 }}>
+              {/* Starting-at price + per-guest rate */}
+              <div style={{ marginBottom: 16 }}>
                 <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(var(--text-rgb),0.8)", fontStyle: "italic", marginBottom: 6 }}>
                   starting at
                 </div>
-                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 34, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 32, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
                   {formatUSD(tierTotalRange(t).low)}
                 </div>
-                <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--gold-rgb),0.9)", letterSpacing: "0.06em", marginTop: 10 }}>
-                  ${t.perGuest} per guest
+                <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--gold-rgb),0.9)", letterSpacing: "0.06em", marginTop: 8 }}>
+                  {formatUSD(t.perGuest)} per guest
                 </div>
+              </div>
+
+              {/* Deposit line */}
+              <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--text-rgb),0.6)", marginBottom: 18 }}>
+                {formatUSD(t.deposit)} deposit to reserve
               </div>
 
               {/* Divider */}
-              <div style={{ height: 1, background: "rgba(255,255,255,0.18)", marginBottom: 20 }} />
+              <div style={{ height: 1, background: "rgba(255,255,255,0.16)", marginBottom: 18 }} />
 
-              {/* Format line */}
-              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(var(--text-rgb),0.85)", lineHeight: 1.7, margin: "0 0 10px" }}>
+              {/* Description */}
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(var(--text-rgb),0.85)", lineHeight: 1.7, margin: "0 0 24px" }}>
                 {t.tagline}
               </p>
-              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(var(--gold-rgb),0.9)", fontStyle: "italic", marginBottom: 28 }}>
-                {MENU_LINE}
-              </div>
               <div style={{ flex: 1 }} />
 
               {/* CTA */}
-              <a href="/book" className="glass-btn" style={{ alignSelf: "flex-start", padding: "0 26px", minHeight: 46 }}>
+              <a href={`/book?guests=${t.minGuests}`} className="glass-btn" style={{ alignSelf: "flex-start", padding: "0 26px", minHeight: 46 }}>
                 Reserve <span className="sk-arrow">→</span>
               </a>
               </div>
@@ -845,13 +987,10 @@ function ExperiencesSection() {
           ))}
         </div>
 
-        {/* Small-group note — quoted case by case, not a published tier */}
+        {/* One clarifying line about minimums */}
         <Reveal delay={0.1}>
-          <p style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--text-rgb),0.5)", letterSpacing: "0.04em", textAlign: "center", margin: "0 0 8px" }}>
-            Smaller gatherings under 8 guests are available by request.{" "}
-            <a href={`/?subject=${encodeURIComponent("Small gathering inquiry (under 8 guests)")}#contact`} style={{ color: "rgba(var(--gold-rgb),0.85)", textDecoration: "none", borderBottom: "1px solid rgba(var(--gold-rgb),0.4)" }}>
-              Get in touch
-            </a>.
+          <p style={{ fontFamily: FONT_UI, fontSize: 12.5, fontWeight: 500, color: "rgba(var(--text-rgb),0.55)", letterSpacing: "0.02em", textAlign: "center", margin: 0, lineHeight: 1.6 }}>
+            Every event has a minimum, so smaller groups pay a set price rather than a per-guest rate.
           </p>
         </Reveal>
 

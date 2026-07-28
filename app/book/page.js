@@ -69,10 +69,15 @@ export default function App() {
   const [chefNotes, setChefNotes]           = useState("");
   const [confirmation, setConfirmation]     = useState(null);
 
+  // Prefill the guest count from ?guests= (quote finder / tier-card Reserve).
+  useEffect(() => {
+    const g = new URLSearchParams(window.location.search).get("guests");
+    if (g && /^\d+$/.test(g)) setGuestInput(g);
+  }, []);
+
   // The quote is derived from the guest count on every render — no stored
   // tier state — so changing the count re-resolves tier, total, and deposit.
-  // Under MIN_GUESTS there is no quote and no payment path: those groups
-  // are quoted individually through the contact form.
+  // Every count from MIN_GUESTS to MAX_GUESTS books directly.
   const guests    = parseInt(guestInput, 10);
   const tooFew    = Number.isFinite(guests) && guests >= 1 && guests < MIN_GUESTS;
   const tooMany   = Number.isFinite(guests) && guests > MAX_GUESTS;
@@ -116,14 +121,18 @@ export default function App() {
               <input
                 type="number"
                 inputMode="numeric"
-                min={1} max={MAX_GUESTS + 1}
+                min={MIN_GUESTS} max={MAX_GUESTS + 1}
                 value={guestInput}
                 onChange={(e) => setGuestInput(e.target.value)}
                 placeholder="Enter number of guests"
                 style={{ ...CS.input, maxWidth: 260 }}
               />
 
-              {tooFew && <UnderMinPanel />}
+              {tooFew && (
+                <div style={{ marginTop: 12, fontFamily: FONT_BODY, fontSize: 13, color: PERSIMMON, fontStyle: "italic" }}>
+                  Please enter at least {MIN_GUESTS} guests.
+                </div>
+              )}
               {tooMany && <Over50Panel />}
               {quote && <TierPanel quote={quote} />}
             </div>
@@ -264,9 +273,7 @@ export default function App() {
               <div style={{ ...CS.card, textAlign: "center", fontFamily: FONT_BODY, fontSize: 14, color: INK_FAINT, fontStyle: "italic" }}>
                 {tooMany
                   ? "Events over 50 guests are booked through the contact form."
-                  : tooFew
-                    ? `Groups under ${MIN_GUESTS} are quoted individually through the contact form — no deposit is taken here.`
-                    : "Enter your guest count, date, time, and contact details to continue to payment."}
+                  : "Enter your guest count, date, time, and contact details to continue to payment."}
               </div>
             )}
           </div>
@@ -316,27 +323,6 @@ function TierPanel({ quote }) {
           ))}
         </div>
       </div>
-    </div>
-  );
-}
-
-// ── Under-8 panel — quoted individually, no price shown ───────
-function UnderMinPanel() {
-  return (
-    <div style={{ marginTop: 24, background: "rgba(232,201,126,0.04)", border: "1px solid rgba(232,201,126,0.25)", borderLeft: `2px solid ${GOLD}`, borderRadius: 14, padding: "18px 20px" }}>
-      <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>
-        under {MIN_GUESTS} guests
-      </div>
-      <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK_SOFT, lineHeight: 1.7, marginBottom: 14 }}>
-        Groups under {MIN_GUESTS} are quoted individually. Send your date and guest count and you&rsquo;ll get a reply within 24 hours.
-      </div>
-      <a
-        href={`/?subject=${encodeURIComponent(`Small gathering inquiry (under ${MIN_GUESTS} guests)`)}#contact`}
-        className="book-cta"
-        style={{ ...CS.cta, display: "inline-block", width: "auto", padding: "14px 32px", textDecoration: "none", boxSizing: "border-box" }}
-      >
-        Get in Touch →
-      </a>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 // Every price on every surface (pages, emails, payment intents) must come
 // from this module. No dollar literals anywhere else.
 
-export type TierId = "countertop" | "longtable" | "fullspread";
+export type TierId = "kitchentable" | "countertop" | "longtable" | "fullspread";
 
 export interface Tier {
   id: TierId;
@@ -23,40 +23,53 @@ export interface Tier {
 
 export const TIERS: readonly Tier[] = [
   {
+    id: "kitchentable",
+    name: "Kitchen Table",
+    minGuests: 2,
+    maxGuests: 5,
+    perGuest: 215,
+    eventMinimum: 650,
+    deposit: 250,
+    tagline: "An intimate dinner. One chef at your kitchen table.",
+  },
+  {
     id: "countertop",
     name: "Countertop",
-    minGuests: 8,
-    maxGuests: 16,
-    perGuest: 135,
-    eventMinimum: 1300,
+    minGuests: 6,
+    maxGuests: 12,
+    perGuest: 185,
+    eventMinimum: 1110, // 6 × $185 — floor for the band
     deposit: 400,
-    tagline: "A dinner party. One chef, everything set out on your kitchen counter.",
+    tagline: "A dinner party around the counter. One chef, cutting in front of your guests.",
   },
   {
     id: "longtable",
     name: "Long Table",
-    minGuests: 17,
-    maxGuests: 30,
-    perGuest: 115,
-    eventMinimum: 2160, // 16 × $135 — top of Countertop band
-    deposit: 750,
-    tagline: "A bigger crowd. Two chefs and a longer spread.",
+    minGuests: 13,
+    maxGuests: 24,
+    perGuest: 145,
+    eventMinimum: 2220, // 12 × $185 — top of Countertop band, keeps totals monotonic
+    deposit: 700,
+    tagline: "A larger crowd. A full spread laid out down the table.",
   },
   {
     id: "fullspread",
     name: "Full Spread",
-    minGuests: 31,
+    minGuests: 25,
     maxGuests: 50,
-    perGuest: 95,
-    eventMinimum: 3450, // 30 × $115 — top of Long Table band
+    perGuest: 110,
+    eventMinimum: 3480, // 24 × $145 — top of Long Table band
     deposit: 1100,
-    tagline: "Large events. Three chefs and a full display.",
+    tagline: "Large events. Multiple chefs and a full display.",
   },
 ] as const;
 
-/** Bookable range. Below MIN_GUESTS books at the Countertop minimum; above MAX_GUESTS goes to the contact form. */
-export const MIN_GUESTS = 8;
+/** Bookable range. Below MIN_GUESTS is invalid; above MAX_GUESTS goes to the contact form. */
+export const MIN_GUESTS = 2;
 export const MAX_GUESTS = 50;
+
+/** Lowest published event price across all tiers (for "from $X" copy). */
+export const FROM_PRICE = Math.min(...TIERS.map((t) => t.eventMinimum));
 
 // The menu itself is never itemized — it is the chef's choice at every
 // tier. Only the categories, quantity, and extras below are promised.
@@ -77,13 +90,13 @@ export interface Quote {
 }
 
 /**
- * Tier for a guest count. Counts under MIN_GUESTS resolve to Countertop
- * (still bookable — the event minimum covers them). Over MAX_GUESTS
- * returns null: route to the contact form.
+ * Tier for a guest count. Below MIN_GUESTS is invalid (null); above
+ * MAX_GUESTS returns null too (route to the contact form). Every count
+ * from MIN_GUESTS to MAX_GUESTS maps to a tier and books directly.
  */
 export function tierForGuests(guests: number): Tier | null {
   const g = Math.floor(guests);
-  if (!Number.isFinite(g) || g < 1) return null;
+  if (!Number.isFinite(g) || g < MIN_GUESTS) return null;
   if (g > MAX_GUESTS) return null;
   return TIERS.find((t) => g <= t.maxGuests) ?? null;
 }
@@ -107,8 +120,8 @@ export function quoteForGuests(guests: number): Quote | null {
 
 /**
  * Low and high event totals for a tier — the quoted totals at the band
- * edges. Because Countertop's low edge is floored by the event minimum,
- * the range communicates the minimum without a separate line.
+ * edges. Each tier's low edge is floored by its event minimum, so the low
+ * equals the tier's "starting at" price.
  */
 export function tierTotalRange(tier: Tier): { low: number; high: number } {
   const low  = quoteForGuests(tier.minGuests);
