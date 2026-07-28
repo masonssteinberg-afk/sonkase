@@ -109,7 +109,7 @@ export default function SignupModal() {
         role="dialog"
         aria-modal="true"
         aria-label="Email signup"
-        className="glass-panel"
+        className="glass-panel on-dark"
         style={{
           padding: "40px 32px 32px",
           maxWidth: 420, width: "100%",
