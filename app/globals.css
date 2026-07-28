@@ -25,16 +25,16 @@
   color-scheme: dark;
 }
 [data-theme="light"] {
-  --bg: #E8C97E;          /* brand gold as the page background */
-  --bg2: #E1BE68;
-  --text: #1A1A18;
-  --text-rgb: 26, 26, 24;
-  --gold: #7a5410;        /* darker gold that reads on the gold page */
-  --gold-rgb: 122, 84, 16;
-  --eyebrow: #7a5410;
+  --bg: #FAF6EC;          /* warm paper — gold is the accent, not the whole wall */
+  --bg2: #F2EAD7;         /* slightly deeper cream for alternating sections */
+  --text: #23201A;        /* warm near-black */
+  --text-rgb: 35, 32, 26;
+  --gold: #9a6a12;        /* deep gold that reads on cream */
+  --gold-rgb: 154, 106, 18;
+  --eyebrow: #9a6a12;
   --accent: #C4562F;
-  --header-bg: rgba(90, 64, 12, 0.55);
-  --header-border: rgba(0, 0, 0, 0.12);
+  --header-bg: rgba(250, 246, 236, 0.72);
+  --header-border: rgba(0, 0, 0, 0.10);
   color-scheme: light;
 }
 /* Always-dark surfaces (photo cards, hero content, modal) keep light text */
@@ -95,20 +95,39 @@ input, textarea, select {
 
 .glass-panel {
   position: relative;
-  background: rgba(255, 255, 255, 0.08);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.14);
+  /* Saturation + brightness are what make it glass instead of fog. */
+  -webkit-backdrop-filter: blur(16px) saturate(240%) brightness(1.22) contrast(1.05);
+  backdrop-filter: blur(16px) saturate(240%) brightness(1.22) contrast(1.05);
   border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.12);
   overflow: hidden;
 }
-.glass-panel::before {           /* soft specular highlight across the top third */
+/* Gradient rim — 1px lit edge, brightest at the top-left as if lit from above */
+.glass-panel::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 33%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent);
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.12) 45%, rgba(255, 255, 255, 0.35));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 4;
+}
+/* Specular sweep — soft elliptical highlight; position driven by JS (--spec-x/y) */
+.glass-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 45% at var(--spec-x, 20%) var(--spec-y, 6%), rgba(255, 255, 255, 0.20), transparent 70%);
+  mix-blend-mode: overlay;
   pointer-events: none;
   z-index: 3;
 }
@@ -118,6 +137,7 @@ input, textarea, select {
 
 /* ── Buttons — one glass language, two variants ─────────────────── */
 .glass-btn, .glass-btn-sec {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -132,8 +152,23 @@ input, textarea, select {
   color: #ffffff;
   text-decoration: none;
   cursor: pointer;
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  backdrop-filter: blur(18px) saturate(180%);
+  /* Smaller blur than panels, but the same saturation/brightness push */
+  -webkit-backdrop-filter: blur(18px) saturate(240%) brightness(1.22) contrast(1.05);
+  backdrop-filter: blur(18px) saturate(240%) brightness(1.22) contrast(1.05);
+}
+/* Gradient rim scaled to the pill radius */
+.glass-btn::after, .glass-btn-sec::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.3));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
 }
 @media (prefers-reduced-motion: no-preference) {
   .glass-btn, .glass-btn-sec {
@@ -241,5 +276,31 @@ input, textarea, select {
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #ffffff;
 }
-/* Footer wordmark is light-on-dark art; render it as dark ink on the gold page */
-[data-theme="light"] .sk-footer-logo { filter: brightness(0) opacity(0.78); }
+/* Footer wordmark is light-on-dark art; render it as dark ink on the cream page */
+[data-theme="light"] .sk-footer-logo { filter: brightness(0) opacity(0.8); }
+
+/* Light mode: over the hero the header is transparent (light nav art is fine);
+   once scrolled the header is frosted cream, so nav art flips to dark ink. */
+[data-theme="light"] .sk-glass-nav.is-scrolled .sk-nav-link { color: #23201A; }
+[data-theme="light"] .sk-glass-nav.is-scrolled .sk-nav-link:hover { color: #000; background: rgba(0, 0, 0, 0.05); }
+[data-theme="light"] .sk-glass-nav.is-scrolled .sk-nav-logo { filter: brightness(0) opacity(0.82); }
+
+/* Light mode: readable contact fields on cream */
+[data-theme="light"] .sk-contact-field { background: rgba(255, 255, 255, 0.72); border-color: rgba(0, 0, 0, 0.12); }
+[data-theme="light"] .sk-contact-field::placeholder { color: rgba(35, 32, 26, 0.45); }
+
+/* Header fixed-light — subtle specular that drifts with scroll (low intensity) */
+.sk-glass-nav::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(55% 160% at var(--hspec, 20%) -20%, rgba(255, 255, 255, 0.10), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.sk-glass-nav.is-scrolled::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .sk-glass-nav::after { display: none; }
+}

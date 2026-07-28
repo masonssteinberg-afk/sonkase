@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 const ScrollRoll  = dynamic(() => import("./components/ScrollRoll"),  { ssr: false });
 const SignupModal = dynamic(() => import("./components/SignupModal"), { ssr: false });
+const GlassMotion = dynamic(() => import("./components/GlassMotion"), { ssr: false });
 
 // Static imports so next/image knows dimensions (no layout shift) and
 // can generate blur placeholders at build time.
@@ -93,6 +94,7 @@ export default function Home() {
       <ContactSection />
       <SiteFooter />
       <SignupModal />
+      <GlassMotion />
     </div>
   );
 }
@@ -248,7 +250,8 @@ function PageStyles() {
         box-shadow: 0 0 0 3px rgba(var(--gold-rgb),0.12);
       }
 
-      /* Tier card = blurred sushi photo + dark scrim + glass body on top */
+      /* Tier card = drifting sushi photo + text-only scrim + glass body.
+         Motion is driven by CSS vars set from one rAF loop (see GlassMotion). */
       .sk-pkg-card {
         position: relative;
         overflow: hidden;
@@ -256,20 +259,24 @@ function PageStyles() {
         display: flex;
         height: 100%;
         box-sizing: border-box;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.38);
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+        transform: perspective(1200px)
+                   translate3d(0, var(--lift, 0px), 0)
+                   rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+        transform-style: preserve-3d;
+        transition: box-shadow 0.25s ease;
       }
-      .sk-pkg-card__media { position: absolute; inset: 0; z-index: 0; }
+      .sk-pkg-card__media { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
       .sk-pkg-card__media img {
         object-fit: cover;
-        transform: scale(1.12);          /* hide soft edges the blur would reveal */
-        filter: blur(44px) saturate(1.15) brightness(0.55);
+        /* Blur low enough that sushi colour survives; parallax via --imgY */
+        transform: translate3d(0, var(--imgY, 0%), 0) scale(1.25);
+        filter: blur(18px) saturate(1.5) contrast(1.08);
       }
       .sk-pkg-card__scrim {
         position: absolute; inset: 0; z-index: 1;
-        background:
-          linear-gradient(180deg, rgba(10,12,10,0.30), rgba(10,12,10,0.66)),
-          linear-gradient(rgba(12,14,12,0.62), rgba(12,14,12,0.62));
+        /* Darken only where text sits — colour stays alive in the top half */
+        background: linear-gradient(180deg, transparent 0%, rgba(8,10,8,0.35) 45%, rgba(8,10,8,0.78) 100%);
       }
       .sk-pkg-card__body {
         position: relative;
@@ -281,13 +288,22 @@ function PageStyles() {
         padding: 40px 36px 36px;
         box-sizing: border-box;
       }
+      .sk-pkg-card:hover { box-shadow: 0 22px 60px rgba(0,0,0,0.55); }
+
       @media (prefers-reduced-motion: no-preference) {
-        .sk-pkg-card:hover { transform: translateY(-3px); }
+        .sk-pkg-card.pre-enter { opacity: 0; }
+        .sk-pkg-card.is-in {
+          animation: skCardIn 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+          animation-delay: calc(var(--i, 0) * 80ms);
+        }
+        .sk-pkg-card.entered { opacity: 1; }
       }
-      .sk-pkg-card:hover { box-shadow: 0 14px 40px rgba(0,0,0,0.46); }
-      .sk-pkg-card:hover .sk-pkg-card__body { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.24); }
+      @keyframes skCardIn {
+        from { opacity: 0; transform: perspective(1200px) translate3d(0, 24px, 0) scale(0.985); }
+        to   { opacity: 1; transform: perspective(1200px) translate3d(0, 0, 0) scale(1); }
+      }
       @media (max-width: 768px) {
-        .sk-pkg-card__media img { filter: blur(26px) saturate(1.15) brightness(0.55); }
+        .sk-pkg-card__media img { filter: blur(12px) saturate(1.5) contrast(1.08); }
       }
 
       .sk-reserve-link {
@@ -419,19 +435,31 @@ function PageStyles() {
 // ── Nav ───────────────────────────────────────────────────────
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const navRef = useRef(null);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 10);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const fn = () => {
+      const y = window.scrollY;
+      setScrolled(y > 10);
+      // Fixed-light: header specular drifts as the page scrolls (low intensity)
+      if (!reduce && navRef.current) {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const p = max > 0 ? Math.min(1, y / max) : 0;
+        navRef.current.style.setProperty("--hspec", (10 + p * 80).toFixed(1) + "%");
+      }
+    };
+    fn();
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
   return (
-    <nav style={{
+    <nav ref={navRef} className={`sk-glass-nav${scrolled ? " is-scrolled" : ""}`} style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
       background: scrolled ? "var(--header-bg)" : "transparent",
-      backdropFilter: scrolled ? "blur(22px) saturate(180%)" : "none",
-      WebkitBackdropFilter: scrolled ? "blur(22px) saturate(180%)" : "none",
+      backdropFilter: scrolled ? "blur(22px) saturate(200%) brightness(1.15)" : "none",
+      WebkitBackdropFilter: scrolled ? "blur(22px) saturate(200%) brightness(1.15)" : "none",
       borderBottom: `1px solid ${scrolled ? "var(--header-border)" : "transparent"}`,
       transition: "border-color 0.3s, background 0.3s, backdrop-filter 0.3s",
     }}>
@@ -745,8 +773,7 @@ function ExperiencesSection() {
         {/* Tier cards */}
         <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
           {TIERS.map((t, idx) => (
-            <Reveal key={t.id} delay={idx * 0.09}>
-              <div className="sk-pkg-card">
+              <div className="sk-pkg-card" key={t.id} style={{ "--i": idx }}>
               {/* Blurred photo background */}
               <div className="sk-pkg-card__media" aria-hidden="true">
                 <Image src={CARD_IMG[t.id]} alt="" fill placeholder="blur" sizes="(max-width: 768px) 100vw, 380px" />
@@ -796,7 +823,6 @@ function ExperiencesSection() {
               </a>
               </div>
               </div>
-            </Reveal>
           ))}
         </div>
 
