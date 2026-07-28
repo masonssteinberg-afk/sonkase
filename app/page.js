@@ -271,7 +271,9 @@ function PageStyles() {
       @media (max-width: 1120px) { .sk-pkg-grid { grid-template-columns: repeat(2, 1fr); } }
       @media (max-width: 600px)  { .sk-pkg-grid { grid-template-columns: 1fr; } }
 
-      /* Quote finder */
+      /* Quote finder — drop the specular sweep (reads as a smudge over the
+         flat section, unlike over a photo) and keep just the lit rim */
+      .sk-quote::after { display: none; }
       .sk-quote-input {
         width: 84px;
         text-align: center;
@@ -836,7 +838,7 @@ function useCountUp(target) {
 
 // ── Quote finder — enter a guest count, see tier/total/deposit live ──
 function QuoteFinder() {
-  const [guests, setGuests] = useState(8);
+  const [guests, setGuests] = useState(4);
   const quote = quoteForGuests(guests);          // always valid: input is clamped to [MIN,MAX]
   const animatedTotal = useCountUp(quote ? quote.total : 0);
 
@@ -878,6 +880,11 @@ function QuoteFinder() {
           <div style={{ fontFamily: FONT_UI, fontSize: 12, color: "rgba(var(--text-rgb),0.6)", marginTop: 6 }}>
             {formatUSD(quote.deposit)} deposit
           </div>
+          {quote.minimumApplied && (
+            <div style={{ fontFamily: FONT_UI, fontSize: 11, color: "rgba(var(--gold-rgb),0.85)", fontStyle: "italic", marginTop: 5 }}>
+              {quote.tier.name.toLowerCase()} minimum applies
+            </div>
+          )}
         </div>
       </div>
 
