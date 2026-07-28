@@ -21,6 +21,9 @@ import imgTileLineup      from "@/public/images/tile-lineup.jpg";
 import imgTilePlate       from "@/public/images/tile-plate.jpg";
 import imgTileSpread      from "@/public/images/tile-spread.jpg";
 import imgTileBoardDetail from "@/public/images/tile-board-detail.jpg";
+import imgBandLong        from "@/public/images/band-long.jpg";
+import imgBandSpread      from "@/public/images/band-spread.jpg";
+import imgStandards       from "@/public/images/standards.jpg";
 import imgChefPortrait    from "@/public/chef-portrait.jpg";
 
 // ── Design Tokens — theme-driven (see globals.css :root / [data-theme]) ──
@@ -38,9 +41,9 @@ import { TIERS, MENU_LINE, tierTotalRange, formatUSD } from "@/lib/pricing";
 // Fixed blurred-photo background per tier card. Assigned as a constant
 // (never Math.random during render) so server and client first paint agree.
 const CARD_IMG = {
-  countertop: imgTileBoardDetail,
-  longtable:  imgTileLong,
-  fullspread: imgTileSpread,
+  countertop: imgStandards,   // salmon sashimi
+  longtable:  imgBandLong,    // rows of cut rolls
+  fullspread: imgBandSpread,  // full sashimi board
 };
 
 const N = (f, o) =>
