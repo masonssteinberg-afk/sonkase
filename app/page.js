@@ -104,22 +104,22 @@ export default function Home() {
 function PageStyles() {
   return (
     <style>{`
-      :root { --header-h: 100px; }
-      @media (max-width: 768px)  { :root { --header-h: 72px; } .sk-scroll-roll { display: none !important; } }
+      :root { --header-h: 118px; }
+      @media (max-width: 768px)  { :root { --header-h: 78px; } .sk-scroll-roll { display: none !important; } }
       @media (max-width: 1100px) { .sk-scroll-roll { transform: translateY(-50%) scale(0.65) !important; left: 2px !important; transform-origin: left center; } }
 
       .sk-hero { padding: calc(140px + var(--banner-h, 0px)) 40px 100px; }
 
       .sk-nav-link {
         font-family: ${FONT_UI};
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 500;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.01em;
         color: #e6dac8;
         text-decoration: none;
         transition: color 0.2s, background 0.2s, transform 0.2s ${SPRING};
-        padding: 0 16px;
-        min-height: 38px;
+        padding: 0 18px;
+        min-height: 44px;
         display: inline-flex;
         align-items: center;
         position: relative;
@@ -127,7 +127,7 @@ function PageStyles() {
       }
       .sk-nav-link:hover {
         color: #fff;
-        background: rgba(var(--text-rgb),0.08);
+        background: rgba(255,255,255,0.10);
       }
       .sk-nav-link:active { transform: scale(0.96); }
 
@@ -257,6 +257,9 @@ function PageStyles() {
         overflow: hidden;
         border-radius: 24px;
         display: flex;
+        flex-direction: column;
+        justify-content: flex-end;   /* caption sits at the bottom, sushi fills above */
+        min-height: 440px;
         height: 100%;
         box-sizing: border-box;
         box-shadow: 0 16px 48px rgba(0,0,0,0.5);
@@ -269,26 +272,25 @@ function PageStyles() {
       .sk-pkg-card__media { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
       .sk-pkg-card__media img {
         object-fit: cover;
-        /* Blur low enough that sushi colour + shapes read clearly; parallax via --imgY */
+        /* Nearly sharp + vivid so the sushi is the hero, not a backdrop */
         transform: translate3d(0, var(--imgY, 0%), 0) scale(1.25);
-        filter: blur(10px) saturate(1.5) contrast(1.08);
+        filter: blur(2px) saturate(1.6) contrast(1.12);
       }
       .sk-pkg-card__scrim {
         position: absolute; inset: 0; z-index: 1;
-        /* Darken where text sits; colour stays alive up top */
-        background: linear-gradient(180deg, transparent 0%, rgba(8,10,8,0.42) 40%, rgba(8,10,8,0.82) 100%);
+        /* Top stays clear so the sushi reads; darken only under the caption */
+        background: linear-gradient(180deg, transparent 0%, transparent 44%, rgba(8,10,8,0.5) 68%, rgba(8,10,8,0.82) 100%);
       }
-      .sk-pkg-card__body {
+      .sk-pkg-card__body {           /* frosted caption floating over the photo */
         position: relative;
         z-index: 2;
-        flex: 1;
-        width: 100%;
+        margin: 14px;
+        padding: 22px 24px 24px;
         display: flex;
         flex-direction: column;
-        padding: 40px 36px 36px;
+        border-radius: 20px;
         box-sizing: border-box;
-        /* Soft dark halo keeps text legible over the sharper photo */
-        text-shadow: 0 1px 10px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.5);
+        text-shadow: 0 1px 8px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.5);
       }
       .sk-pkg-card:hover { box-shadow: 0 22px 60px rgba(0,0,0,0.55); }
 
@@ -305,7 +307,7 @@ function PageStyles() {
         to   { opacity: 1; transform: perspective(1200px) translate3d(0, 0, 0) scale(1); }
       }
       @media (max-width: 768px) {
-        .sk-pkg-card__media img { filter: blur(7px) saturate(1.5) contrast(1.08); }
+        .sk-pkg-card__media img { filter: blur(2px) saturate(1.6) contrast(1.12); }
       }
 
       .sk-reserve-link {
@@ -416,15 +418,16 @@ function PageStyles() {
       }
 
       @media (max-width: 768px) {
-        .sk-nav-links .sk-nav-link, .sk-nav-links + .sk-nav-link { font-size: 12px; padding: 0 9px; }
+        .sk-nav-links { display: none !important; }
         .sk-pkg-grid  { grid-template-columns: 1fr !important; }
         .sk-how-grid  { grid-template-columns: 1fr !important; }
         .sk-hero-logo { width: 220px !important; }
         .sk-section   { padding: 60px 20px !important; }
         .sk-hero      { padding: calc(110px + var(--banner-h, 0px)) 20px 60px !important; }
         .sk-footer-inner { flex-direction: column !important; gap: 32px !important; align-items: flex-start !important; }
-        .sk-nav-inner { height: 72px !important; padding: 0 12px !important; }
-        .sk-nav-logo  { width: 128px !important; height: 40px !important; }
+        .sk-nav-inner { height: 78px !important; padding: 0 18px !important; }
+        .sk-nav-logo  { width: 150px !important; height: 44px !important; }
+        .sk-nav-cta   { min-height: 42px !important; padding: 0 22px !important; }
         .sk-pkg-card__body { padding: 28px 20px 24px !important; }
         .sk-about-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
         .sk-sourcing-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
@@ -466,14 +469,14 @@ function Nav() {
       transition: "border-color 0.3s, background 0.3s, backdrop-filter 0.3s",
     }}>
       <div className="sk-nav-inner" style={{
-        maxWidth: 1200, margin: "0 auto",
-        padding: "0 40px", height: scrolled ? 76 : 100,
+        maxWidth: 1240, margin: "0 auto",
+        padding: "0 44px", height: scrolled ? 90 : 118,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         boxSizing: "border-box",
         transition: "height 0.35s cubic-bezier(0.16,1,0.3,1)",
       }}>
-        <a href="/" style={{ textDecoration: "none" }}>
-          <svg className="sk-nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="320" height="90" role="img" aria-label="Sonakase Private Dining">
+        <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+          <svg className="sk-nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="360" height="100" role="img" aria-label="Sonakase Private Dining">
             <defs>
               <style>{"@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Cormorant+Garamond:wght@300&display=swap');"}</style>
             </defs>
@@ -490,13 +493,15 @@ function Nav() {
           </svg>
         </a>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <div className="sk-nav-links" style={{ display: "flex", alignItems: "center" }}>
-            <a href="/book"    className="sk-nav-link">book</a>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div className="sk-nav-links" style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <a href="#about"   className="sk-nav-link">about</a>
             <a href="#contact" className="sk-nav-link">contact</a>
+            <a href="/lookup"  className="sk-nav-link">find a booking</a>
           </div>
-          <a href="/lookup" className="sk-nav-link">find a booking</a>
+          <a href="/book" className="glass-btn sk-nav-cta" style={{ minHeight: 46, padding: "0 30px", fontSize: 13 }}>
+            Reserve
+          </a>
         </div>
       </div>
     </nav>
