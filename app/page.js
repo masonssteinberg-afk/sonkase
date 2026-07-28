@@ -250,49 +250,52 @@ function PageStyles() {
         box-shadow: 0 0 0 3px rgba(var(--gold-rgb),0.12);
       }
 
-      /* Tier card = drifting sushi photo + text-only scrim + glass body.
-         Motion is driven by CSS vars set from one rAF loop (see GlassMotion). */
+      /* Tier card = clean sushi photo banner on top, readable dark text panel
+         below. Motion (parallax/tilt/entry) via CSS vars from one rAF loop. */
       .sk-pkg-card {
         position: relative;
         overflow: hidden;
-        border-radius: 24px;
+        border-radius: 22px;
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;   /* caption sits at the bottom, sushi fills above */
-        min-height: 440px;
         height: 100%;
         box-sizing: border-box;
-        box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+        background: linear-gradient(180deg, #1a1712 0%, #131009 100%);
+        border: 1px solid rgba(255,255,255,0.10);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.45);
         transform: perspective(1200px)
                    translate3d(0, var(--lift, 0px), 0)
                    rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
         transform-style: preserve-3d;
-        transition: box-shadow 0.25s ease;
+        transition: box-shadow 0.25s ease, border-color 0.25s ease;
       }
-      .sk-pkg-card__media { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
-      .sk-pkg-card__media img {
-        object-fit: cover;
-        /* Nearly sharp + vivid so the sushi is the hero, not a backdrop */
-        transform: translate3d(0, var(--imgY, 0%), 0) scale(1.25);
-        filter: blur(2px) saturate(1.6) contrast(1.12);
-      }
-      .sk-pkg-card__scrim {
-        position: absolute; inset: 0; z-index: 1;
-        /* Top stays clear so the sushi reads; darken only under the caption */
-        background: linear-gradient(180deg, transparent 0%, transparent 44%, rgba(8,10,8,0.5) 68%, rgba(8,10,8,0.82) 100%);
-      }
-      .sk-pkg-card__body {           /* frosted caption floating over the photo */
+      .sk-pkg-card:hover { box-shadow: 0 24px 56px rgba(0,0,0,0.55); border-color: rgba(255,255,255,0.20); }
+      .sk-pkg-card__photo {
         position: relative;
-        z-index: 2;
-        margin: 14px;
-        padding: 22px 24px 24px;
+        height: 190px;
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+      .sk-pkg-card__photo img {
+        object-fit: cover;
+        transform: translate3d(0, var(--imgY, 0%), 0) scale(1.2);
+        filter: saturate(1.15) contrast(1.04);   /* sharp, natural — the sushi is the visual */
+      }
+      .sk-pkg-card__photo::after {   /* blend the photo into the panel below */
+        content: "";
+        position: absolute; inset: 0;
+        background: linear-gradient(180deg, transparent 58%, rgba(19,16,9,0.9) 100%);
+        pointer-events: none;
+      }
+      .sk-pkg-card__body {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        border-radius: 20px;
+        padding: 26px 28px 28px;
         box-sizing: border-box;
-        text-shadow: 0 1px 8px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.5);
+        position: relative;
+        z-index: 1;
       }
-      .sk-pkg-card:hover { box-shadow: 0 22px 60px rgba(0,0,0,0.55); }
 
       @media (prefers-reduced-motion: no-preference) {
         .sk-pkg-card.pre-enter { opacity: 0; }
@@ -307,7 +310,7 @@ function PageStyles() {
         to   { opacity: 1; transform: perspective(1200px) translate3d(0, 0, 0) scale(1); }
       }
       @media (max-width: 768px) {
-        .sk-pkg-card__media img { filter: blur(2px) saturate(1.6) contrast(1.12); }
+        .sk-pkg-card__photo { height: 200px; }
       }
 
       .sk-reserve-link {
@@ -781,14 +784,13 @@ function ExperiencesSection() {
         <div className="sk-pkg-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
           {TIERS.map((t, idx) => (
               <div className="sk-pkg-card" key={t.id} style={{ "--i": idx }}>
-              {/* Blurred photo background */}
-              <div className="sk-pkg-card__media" aria-hidden="true">
-                <Image src={CARD_IMG[t.id]} alt="" fill placeholder="blur" sizes="(max-width: 768px) 100vw, 380px" />
+              {/* Sushi photo banner */}
+              <div className="sk-pkg-card__photo" aria-hidden="true">
+                <Image src={CARD_IMG[t.id]} alt="" fill placeholder="blur" sizes="(max-width: 768px) 100vw, 400px" />
               </div>
-              <div className="sk-pkg-card__scrim" aria-hidden="true" />
 
-              {/* Glass panel body */}
-              <div className="glass-panel sk-pkg-card__body on-dark">
+              {/* Readable dark text panel */}
+              <div className="sk-pkg-card__body on-dark">
               {/* Name */}
               <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 22, color: CREAM, letterSpacing: "0.1em", marginBottom: 10 }}>
                 {t.name.toLowerCase()}

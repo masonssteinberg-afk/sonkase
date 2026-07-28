@@ -101,7 +101,7 @@ export default function GlassMotion() {
         const s = st.get(e.target);
         if (!s) continue;
         s.vis = e.isIntersecting;
-        const media = e.target.querySelector(".sk-pkg-card__media img") || e.target.querySelector(".sk-pkg-card__media");
+        const media = e.target.querySelector(".sk-pkg-card__photo img") || e.target.querySelector(".sk-pkg-card__photo");
         if (e.isIntersecting) {
           if (e.target.classList.contains("pre-enter")) {
             e.target.classList.remove("pre-enter");
