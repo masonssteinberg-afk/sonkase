@@ -12,7 +12,6 @@ const GlassMotion = dynamic(() => import("./components/GlassMotion"), { ssr: fal
 import imgHeroWide        from "@/public/images/hero-wide.jpg";
 import imgHeroMobile      from "@/public/images/hero-mobile.jpg";
 import imgHowCutout       from "@/public/images/how-it-works-cutout.png";
-import imgTileLong        from "@/public/images/tile-long.jpg";
 import imgTileEvent       from "@/public/images/tile-event.jpg";
 import imgTileTray        from "@/public/images/tile-tray.jpg";
 import imgSourcing        from "@/public/images/sourcing.jpg";
@@ -24,6 +23,7 @@ import imgTileBoardDetail from "@/public/images/tile-board-detail.jpg";
 import imgBandLong        from "@/public/images/band-long.jpg";
 import imgStandards       from "@/public/images/standards.jpg";
 import imgCardFullspread  from "@/public/images/card-fullspread.jpg";
+import imgCardCountertop  from "@/public/images/card-countertop.jpg";
 import imgChefPortrait    from "@/public/chef-portrait.jpg";
 
 // ── Design Tokens — theme-driven (see globals.css :root / [data-theme]) ──
@@ -41,9 +41,16 @@ import { TIERS, MENU_LINE, tierTotalRange, formatUSD } from "@/lib/pricing";
 // Fixed blurred-photo background per tier card. Assigned as a constant
 // (never Math.random during render) so server and client first paint agree.
 const CARD_IMG = {
-  countertop: imgStandards,       // salmon sashimi
+  countertop: imgCardCountertop,  // tuna rolls, cucumber ribbons
   longtable:  imgBandLong,        // rows of cut rolls
   fullspread: imgCardFullspread,  // full event catering spread
+};
+
+// Banner crop anchor per card (this shot has the sushi low in frame)
+const CARD_POS = {
+  countertop: "center 74%",
+  longtable:  "center",
+  fullspread: "center",
 };
 
 const N = (f, o) =>
@@ -789,7 +796,7 @@ function ExperiencesSection() {
               <div className="sk-pkg-card" key={t.id} style={{ "--i": idx }}>
               {/* Sushi photo banner */}
               <div className="sk-pkg-card__photo" aria-hidden="true">
-                <Image src={CARD_IMG[t.id]} alt="" fill placeholder="blur" sizes="(max-width: 768px) 100vw, 400px" />
+                <Image src={CARD_IMG[t.id]} alt="" fill placeholder="blur" sizes="(max-width: 768px) 100vw, 400px" style={{ objectPosition: CARD_POS[t.id] }} />
               </div>
 
               {/* Readable dark text panel */}
@@ -929,8 +936,8 @@ function AboutChefSection() {
             </div>
             <div className="sk-sourcing-photo">
               <Image
-                src={imgTileLong}
-                alt="A long board of assorted sushi rolls for a private party."
+                src={imgStandards}
+                alt="Fresh salmon sashimi cut and plated on a wooden board."
                 fill
                 placeholder="blur"
                 decoding="async"
