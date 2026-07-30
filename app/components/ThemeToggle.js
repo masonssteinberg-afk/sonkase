@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 
-// Floating light/dark toggle. Initial theme is set before paint by the
-// inline script in the layout (system preference unless a choice is saved);
-// this only reads/updates it. If the visitor hasn't chosen, it also tracks
-// live system changes.
+// Light/dark toggle. The icon is CSS-driven off html[data-theme] (set before
+// paint by the layout script), so it reflects the real theme in the server
+// HTML with no flash — sun in dark mode, moon in light mode. aria-label /
+// aria-pressed are corrected after mount (suppressHydrationWarning covers the
+// pre-hydration default).
 export default function ThemeToggle() {
   const [theme, setTheme] = useState("dark");
 
@@ -22,24 +23,29 @@ export default function ThemeToggle() {
   }, []);
 
   const toggle = () => {
-    const next = theme === "dark" ? "light" : "dark";
+    const cur = document.documentElement.getAttribute("data-theme") || "dark";
+    const next = cur === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     try { localStorage.setItem("sk_theme", next); } catch {}
     setTheme(next);
   };
 
+  const isLight = theme === "light";
   return (
     <button
       onClick={toggle}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      className="glass-btn-sec"
+      suppressHydrationWarning
+      className="glass-btn-sec sk-toggle"
+      aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
+      aria-pressed={isLight}
       style={{
         position: "fixed", bottom: 20, right: 20, zIndex: 900,
         width: 48, height: 48, minHeight: 48, padding: 0, borderRadius: 999,
         fontSize: 18, lineHeight: 1,
       }}
     >
-      {theme === "dark" ? "☀" : "☾"}
+      <span className="sk-sun" aria-hidden="true">☀</span>
+      <span className="sk-moon" aria-hidden="true">☾</span>
     </button>
   );
 }

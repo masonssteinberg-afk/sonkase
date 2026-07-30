@@ -20,6 +20,8 @@
   --gold-rgb: 232, 201, 126;
   --eyebrow: #b8892a;
   --accent: #C4562F;
+  --accent-text: #F5F0E8;  /* accent isn't used as small text on dark; white body text */
+  --placeholder: rgba(245, 240, 232, 0.55);
   --header-bg: rgba(13, 13, 13, 0.55);
   --header-border: rgba(255, 255, 255, 0.12);
   color-scheme: dark;
@@ -27,12 +29,14 @@
 [data-theme="light"] {
   --bg: #FAF6EC;          /* warm paper — gold is the accent, not the whole wall */
   --bg2: #F2EAD7;         /* slightly deeper cream for alternating sections */
-  --text: #23201A;        /* warm near-black */
-  --text-rgb: 35, 32, 26;
-  --gold: #9a6a12;        /* deep gold that reads on cream */
-  --gold-rgb: 154, 106, 18;
-  --eyebrow: #9a6a12;
-  --accent: #C4562F;
+  --text: #1A1712;        /* warm near-black — darkened so muted opacities clear AA */
+  --text-rgb: 26, 23, 18;
+  --gold: #8a5f10;        /* deep gold, 5.2:1 on cream (was #9a6a12 = 4.38, failed) */
+  --gold-rgb: 138, 95, 16;
+  --eyebrow: #8a5f10;
+  --accent: #C4562F;      /* brand persimmon (UI/large) */
+  --accent-text: #B14A26; /* darker persimmon for small text on cream, 5.0:1 */
+  --placeholder: rgba(26, 23, 18, 0.62);
   --header-bg: rgba(250, 246, 236, 0.72);
   --header-border: rgba(0, 0, 0, 0.10);
   color-scheme: light;
@@ -44,7 +48,20 @@
   --gold: #E8C97E;
   --gold-rgb: 232, 201, 126;
   --eyebrow: #b8892a;
+  --accent-text: #F5F0E8;
+  --placeholder: rgba(245, 240, 232, 0.55);
 }
+
+/* Theme toggle icon — CSS-driven off the pre-paint attribute, no flash */
+.sk-toggle .sk-moon { display: none; }
+[data-theme="light"] .sk-toggle .sk-sun { display: none; }
+[data-theme="light"] .sk-toggle .sk-moon { display: inline; }
+
+/* Dark mode: tone down bright photography so it doesn't glare on near-black */
+[data-theme="dark"] .sk-gallery-tile img,
+[data-theme="dark"] .sk-sourcing-photo img { filter: brightness(0.9); transition: filter 0.3s ease; }
+.sk-how-photo img { filter: drop-shadow(0 24px 48px rgba(0,0,0,0.55)); }
+[data-theme="dark"] .sk-how-photo img { filter: brightness(0.94) drop-shadow(0 24px 48px rgba(0,0,0,0.55)); }
 
 html {
   scroll-behavior: smooth;
@@ -220,7 +237,7 @@ input, textarea, select {
 .glass-btn.on-light {
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(0, 0, 0, 0.10);
-  color: #C4562F;
+  color: var(--accent-text);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.80);
 }
 .glass-btn-sec.on-light { background: rgba(255, 255, 255, 0.40); border-color: rgba(0, 0, 0, 0.10); color: #1A1A18; }
@@ -235,7 +252,7 @@ input, textarea, select {
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass-btn, .glass-btn.on-photo { background: #C4562F; border-color: rgba(255, 255, 255, 0.30); }
   .glass-btn-sec { background: rgba(30, 32, 30, 0.95); }
-  .glass-btn.on-light { background: #ffffff; color: #C4562F; }
+  .glass-btn.on-light { background: #ffffff; color: var(--accent-text); }
 }
 
 /* Mobile — cap the blur so backdrop compositing stays smooth while scrolling */
@@ -250,7 +267,7 @@ input, textarea, select {
 [data-theme="light"] .glass-btn:not(.on-photo) {
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(0, 0, 0, 0.10);
-  color: #C4562F;
+  color: var(--accent-text);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.80);
 }
 [data-theme="light"] .glass-btn:not(.on-photo):hover {
@@ -285,9 +302,8 @@ input, textarea, select {
 [data-theme="light"] .sk-glass-nav.is-scrolled .sk-nav-link:hover { color: #000; background: rgba(0, 0, 0, 0.05); }
 [data-theme="light"] .sk-glass-nav.is-scrolled .sk-nav-logo { filter: brightness(0) opacity(0.82); }
 
-/* Light mode: readable contact fields on cream */
-[data-theme="light"] .sk-contact-field { background: rgba(255, 255, 255, 0.72); border-color: rgba(0, 0, 0, 0.12); }
-[data-theme="light"] .sk-contact-field::placeholder { color: rgba(35, 32, 26, 0.45); }
+/* Light mode: readable contact fields on cream (placeholder uses --placeholder) */
+[data-theme="light"] .sk-contact-field { background: rgba(255, 255, 255, 0.85); border-color: rgba(0, 0, 0, 0.28); color: var(--text); }
 
 /* Header fixed-light — subtle specular that drifts with scroll (low intensity) */
 .sk-glass-nav::after {

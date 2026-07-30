@@ -244,8 +244,8 @@ function PageStyles() {
       }
 
       .sk-contact-field {
-        background: rgba(var(--text-rgb),0.045);
-        border: 1px solid rgba(var(--gold-rgb),0.16);
+        background: rgba(var(--text-rgb),0.05);
+        border: 1px solid rgba(var(--gold-rgb),0.45);
         border-radius: 14px;
         color: ${CREAM};
         font-family: ${FONT_UI};
@@ -255,7 +255,7 @@ function PageStyles() {
         outline: none;
         transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
       }
-      .sk-contact-field::placeholder { color: rgba(var(--text-rgb),0.35); }
+      .sk-contact-field::placeholder { color: var(--placeholder); }
       .sk-contact-field:focus {
         border-color: rgba(var(--gold-rgb),0.6);
         background: rgba(var(--text-rgb),0.06);
@@ -926,7 +926,7 @@ function ExperiencesSection() {
                 placeholder="blur"
                 decoding="async"
                 sizes="(max-width: 768px) 90vw, 420px"
-                style={{ width: "100%", height: "auto", display: "block", filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.55))" }}
+                style={{ width: "100%", height: "auto", display: "block" }}
               />
             </div>
           </div>
@@ -1006,7 +1006,7 @@ function ExperiencesSection() {
 
         {/* One clarifying line about minimums */}
         <Reveal delay={0.1}>
-          <p style={{ fontFamily: FONT_UI, fontSize: 12.5, fontWeight: 500, color: "rgba(var(--text-rgb),0.55)", letterSpacing: "0.02em", textAlign: "center", margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 12.5, fontWeight: 500, color: "rgba(var(--text-rgb),0.72)", letterSpacing: "0.02em", textAlign: "center", margin: 0, lineHeight: 1.6 }}>
             Every event has a minimum, so smaller groups pay a set price rather than a per-guest rate.
           </p>
         </Reveal>
@@ -1222,7 +1222,7 @@ function ContactSection() {
             </div>
 
             {status === "error" && (
-              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "#c5552d", fontStyle: "italic" }}>
+              <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "var(--accent-text)", fontStyle: "italic" }}>
                 Something went wrong. Please try again.
               </div>
             )}
@@ -1306,7 +1306,7 @@ function SiteFooter() {
             </a>
           </div>
           <div style={{ borderTop: `1px solid rgba(var(--gold-rgb),0.12)`, paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: `rgba(var(--text-rgb),0.3)`, letterSpacing: "0.05em", margin: 0 }}>
+            <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: `rgba(var(--text-rgb),0.55)`, letterSpacing: "0.05em", margin: 0 }}>
               © 2026 Sonakase™ · All rights reserved.
             </p>
             <a href="/lookup" style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 11, color: "rgba(var(--gold-rgb),0.55)", letterSpacing: "0.05em", textDecoration: "none" }}>
