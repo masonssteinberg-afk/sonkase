@@ -364,8 +364,9 @@ function PaymentSection({ quote, contact, eventDate, eventTime, eventAddress, ch
   const effectiveDeposit = quote.deposit;
   const effectiveBalance = Math.round((effectiveTotal - effectiveDeposit) * 100) / 100;
 
-  // Recreate the payment intent whenever the amount changes (tier change or promo)
-  useEffect(() => {
+  // Create/recreate the payment intent for the current deposit. Callable so
+  // the error state can offer a Retry.
+  const requestIntent = () => {
     if (!effectiveDeposit) return;
     setClientSecret(null);
     setIntentError(null);
@@ -380,7 +381,8 @@ function PaymentSection({ quote, contact, eventDate, eventTime, eventAddress, ch
         else setIntentError(data.error || "Could not initialize payment");
       })
       .catch(() => setIntentError("Could not connect to payment service"));
-  }, [effectiveDeposit]);
+  };
+  useEffect(() => { requestIntent(); }, [effectiveDeposit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // If the guest count (and so the total) changes with a promo applied,
   // re-validate so percent discounts track the new subtotal.
@@ -421,8 +423,24 @@ function PaymentSection({ quote, contact, eventDate, eventTime, eventAddress, ch
 
   if (intentError) return (
     <div style={CS.card}>
-      <div style={{ padding: "40px 0", fontFamily: FONT_BODY, fontSize: 15, color: PERSIMMON, fontStyle: "italic" }}>
-        {intentError} — please try again or use the contact form.
+      <div style={{ textAlign: "center", padding: "24px 0 8px" }}>
+        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 20, color: CREAM, marginBottom: 10 }}>
+          We couldn&rsquo;t start the payment
+        </div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK_SOFT, lineHeight: 1.6, maxWidth: 380, margin: "0 auto 22px" }}>
+          Your card was not charged. This is usually momentary — try again, or reserve by message and you&rsquo;ll get a reply the same day.
+        </div>
+        <button onClick={requestIntent} className="book-cta" style={{ ...CS.cta, display: "inline-block", width: "auto", padding: "13px 34px" }}>
+          Try again
+        </button>
+        <div style={{ marginTop: 16 }}>
+          <a
+            href={`/?subject=${encodeURIComponent(`Booking request — ${quote.guests} guests, ${quote.tier.name}`)}#contact`}
+            style={{ fontFamily: FONT_BODY, fontSize: 13, color: GOLD, letterSpacing: "0.04em", textDecoration: "none" }}
+          >
+            Reserve by message →
+          </a>
+        </div>
       </div>
     </div>
   );

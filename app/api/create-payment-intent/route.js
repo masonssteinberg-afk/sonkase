@@ -15,23 +15,31 @@ export async function POST(req) {
       );
     }
 
-    const { amount } = await req.json();
+    const body = await req.json();
+    const { amount } = body;
+    const cents = Math.round(Number(amount) * 100); // dollars → cents, once
+    console.log("[create-payment-intent] body=%o dollars=%s cents=%s keyMode=%s",
+      body, amount, cents, process.env.STRIPE_SECRET_KEY?.slice(0, 7));
 
-    if (!amount || amount <= 0) {
+    if (!amount || amount <= 0 || Number.isNaN(cents)) {
       return Response.json({ error: "Invalid amount" }, { status: 400 });
+    }
+    if (cents < 50) {
+      return Response.json({ error: "Amount below the $0.50 minimum" }, { status: 400 });
     }
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // cents
+      amount: cents,
       currency: "usd",
       automatic_payment_methods: { enabled: true, allow_redirects: "never" },
     });
 
+    console.log("[create-payment-intent] created id=%s amount=%s", paymentIntent.id, paymentIntent.amount);
     return Response.json({ clientSecret: paymentIntent.client_secret });
   } catch (err) {
-    console.error("create-payment-intent error:", err.message);
+    console.error("[create-payment-intent] error:", err?.message, err?.type || "");
     return Response.json({ error: err.message }, { status: 500 });
   }
 }
