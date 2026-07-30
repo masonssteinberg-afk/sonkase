@@ -4,7 +4,7 @@ import Image from "next/image";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import {
-  quoteForGuests, totalAfterDiscount, EVENT_INCLUDES, MENU_LINE, PIECES_PER_GUEST, MIN_GUESTS, MAX_GUESTS, formatUSD,
+  quoteForGuests, totalAfterDiscount, effectiveRates, EVENT_INCLUDES, MENU_LINE, PIECES_PER_GUEST, MIN_GUESTS, MAX_GUESTS, formatUSD,
 } from "@/lib/pricing";
 
 // ── Design Tokens (Sonakase™ palette) ──────────────────────────
@@ -293,7 +293,7 @@ function TierPanel({ quote }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 4 }}>
           <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: GOLD }}>{tier.name}</div>
           <div style={{ fontFamily: FONT_UI, fontSize: 11, color: "rgba(232,201,126,0.7)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
-            {tier.minGuests}–{tier.maxGuests} guests · {formatUSD(tier.perGuest)} per guest
+            {tier.minGuests}–{tier.maxGuests} guests · {formatUSD(effectiveRates(tier).perGuest)} per guest
           </div>
         </div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", marginBottom: 16 }}>{tier.tagline}</div>
@@ -304,7 +304,7 @@ function TierPanel({ quote }) {
 
         {minimumApplied && (
           <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: "rgba(232,201,126,0.75)", fontStyle: "italic", marginTop: 12 }}>
-            {formatUSD(tier.eventMinimum)} event minimum applies at this guest count.
+            {formatUSD(effectiveRates(tier).minimum)} event minimum applies at this guest count.
           </div>
         )}
 
@@ -493,7 +493,7 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
         event_date: eventDate,
         event_time: eventTime,
         guest_count: guests,
-        price_per_guest: tier.perGuest,
+        price_per_guest: effectiveRates(tier).perGuest,
         total_price: effectiveTotal,
         deposit_amount: effectiveDeposit,
         delivery_address: eventAddress || null,
@@ -522,7 +522,7 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
           packageName: tier.name,
           eventDate, eventTime,
           guestCount: guests,
-          pricePerGuest: tier.perGuest,
+          pricePerGuest: effectiveRates(tier).perGuest,
           total: effectiveTotal,
           deposit: effectiveDeposit,
           chefNotes,
@@ -541,7 +541,7 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
           packageName: tier.name,
           eventDate, eventTime,
           guestCount: guests,
-          pricePerGuest: tier.perGuest,
+          pricePerGuest: effectiveRates(tier).perGuest,
           total: effectiveTotal,
           deposit: effectiveDeposit,
           deliveryAddress: eventAddress || null,
@@ -574,7 +574,7 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
         )}
         {appliedPromo && promoSavings === 0 && (
           <div style={{ fontFamily: FONT_BODY, fontSize: 12, color: INK_FAINT, fontStyle: "italic", padding: "9px 0" }}>
-            {appliedPromo.code} applied — the {formatUSD(quote.tier.eventMinimum)} event minimum still sets this total.
+            {appliedPromo.code} applied — the {formatUSD(effectiveRates(quote.tier).minimum)} event minimum still sets this total.
           </div>
         )}
         <div style={{ marginTop: 18 }}>

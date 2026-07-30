@@ -36,7 +36,7 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
 // ── Tiers — all pricing comes from lib/pricing, no literals here ──
-import { TIERS, tierTotalRange, quoteForGuests, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS } from "@/lib/pricing";
+import { TIERS, tierTotalRange, quoteForGuests, effectiveRates, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS, LAUNCH_ACTIVE } from "@/lib/pricing";
 
 // Fixed blurred-photo background per tier card. Assigned as a constant
 // (never Math.random during render) so server and client first paint agree.
@@ -958,7 +958,7 @@ function ExperiencesSection() {
                 {t.minGuests}–{t.maxGuests} guests
               </div>
 
-              {/* Starting-at price + per-guest rate */}
+              {/* Starting-at price + per-guest rate (standard struck through while launch is active) */}
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13, color: "rgba(var(--text-rgb),0.8)", fontStyle: "italic", marginBottom: 6 }}>
                   starting at
@@ -967,13 +967,23 @@ function ExperiencesSection() {
                   {formatUSD(tierTotalRange(t).low)}
                 </div>
                 <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--gold-rgb),0.9)", letterSpacing: "0.06em", marginTop: 8 }}>
-                  {formatUSD(t.perGuest)} per guest
+                  {LAUNCH_ACTIVE && (
+                    <span style={{ color: "rgba(var(--text-rgb),0.45)", textDecoration: "line-through", marginRight: 8, fontWeight: 400 }}>
+                      {formatUSD(t.standard.perGuest)}
+                    </span>
+                  )}
+                  {formatUSD(effectiveRates(t).perGuest)} per guest
                 </div>
+                {LAUNCH_ACTIVE && (
+                  <div style={{ fontFamily: FONT_UI, fontSize: 10.5, fontWeight: 600, color: "rgba(var(--gold-rgb),0.95)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 8 }}>
+                    founding rate, first 10 events, through October 31
+                  </div>
+                )}
               </div>
 
               {/* Deposit line */}
               <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--text-rgb),0.6)", marginBottom: 18 }}>
-                {formatUSD(t.deposit)} deposit to reserve
+                {formatUSD(effectiveRates(t).deposit)} deposit to reserve
               </div>
 
               {/* Divider */}

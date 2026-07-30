@@ -4,22 +4,33 @@
 
 export type TierId = "kitchentable" | "countertop" | "longtable" | "fullspread";
 
+/** One set of rates for a tier. Every tier carries a `standard` and a `launch` set. */
+export interface TierRates {
+  perGuest: number;   // dollars per head
+  minimum: number;    // event floor: total = max(perGuest × guests, minimum)
+  deposit: number;    // flat deposit charged at booking
+}
+
 export interface Tier {
   id: TierId;
   name: string;
   minGuests: number;
   maxGuests: number;
-  perGuest: number;          // dollars per head
-  /**
-   * Hard floor for the event total, applied per EVENT (not per guest).
-   * Set to the top-of-band total of the tier below, so crossing a tier
-   * boundary never lowers the price (total is monotonic in guest count).
-   */
-  eventMinimum: number;
-  deposit: number;           // flat deposit in dollars, charged at booking
+  /** Displayed struck-through rate. */
+  standard: TierRates;
+  /** Founding rate — what is actually charged while LAUNCH_ACTIVE. */
+  launch: TierRates;
   /** One-line format description shown on tier cards. */
   tagline: string;
 }
+
+// ── Founding-rate launch ──────────────────────────────────────────────
+// While LAUNCH_ACTIVE, every total/minimum/deposit calculates from each
+// tier's `launch` rates and the standard rate shows struck through.
+// Flip LAUNCH_ACTIVE to false to restore standard pricing everywhere with
+// no other edits and no strike-through.
+export const LAUNCH_ACTIVE = true;
+export const LAUNCH_ENDS = "2026-10-31";
 
 export const TIERS: readonly Tier[] = [
   {
@@ -27,9 +38,8 @@ export const TIERS: readonly Tier[] = [
     name: "Kitchen Table",
     minGuests: 2,
     maxGuests: 5,
-    perGuest: 215,
-    eventMinimum: 650,
-    deposit: 250,
+    standard: { perGuest: 135, minimum: 450, deposit: 150 },
+    launch:   { perGuest: 85,  minimum: 275, deposit: 75 },
     tagline: "An intimate dinner. One chef at your kitchen table.",
   },
   {
@@ -37,9 +47,8 @@ export const TIERS: readonly Tier[] = [
     name: "Countertop",
     minGuests: 6,
     maxGuests: 12,
-    perGuest: 185,
-    eventMinimum: 1110, // 6 × $185 — floor for the band
-    deposit: 400,
+    standard: { perGuest: 115, minimum: 690, deposit: 200 },
+    launch:   { perGuest: 75,  minimum: 450, deposit: 125 },
     tagline: "A dinner party around the counter. One chef, cutting in front of your guests.",
   },
   {
@@ -47,9 +56,8 @@ export const TIERS: readonly Tier[] = [
     name: "Long Table",
     minGuests: 13,
     maxGuests: 24,
-    perGuest: 145,
-    eventMinimum: 2220, // 12 × $185 — top of Countertop band, keeps totals monotonic
-    deposit: 700,
+    standard: { perGuest: 95, minimum: 1235, deposit: 350 },
+    launch:   { perGuest: 65, minimum: 845,  deposit: 250 },
     tagline: "A larger crowd. A full spread laid out down the table.",
   },
   {
@@ -57,19 +65,23 @@ export const TIERS: readonly Tier[] = [
     name: "Full Spread",
     minGuests: 25,
     maxGuests: 50,
-    perGuest: 110,
-    eventMinimum: 3480, // 24 × $145 — top of Long Table band
-    deposit: 1100,
+    standard: { perGuest: 80, minimum: 2000, deposit: 500 },
+    launch:   { perGuest: 55, minimum: 1375, deposit: 350 },
     tagline: "Large events. Multiple chefs and a full display.",
   },
 ] as const;
+
+/** Effective rates for a tier — launch while active, otherwise standard. Every consumer reads through this. */
+export function effectiveRates(tier: Tier): TierRates {
+  return LAUNCH_ACTIVE ? tier.launch : tier.standard;
+}
 
 /** Bookable range. Below MIN_GUESTS is invalid; above MAX_GUESTS goes to the contact form. */
 export const MIN_GUESTS = 2;
 export const MAX_GUESTS = 50;
 
 /** Lowest published event price across all tiers (for "from $X" copy). */
-export const FROM_PRICE = Math.min(...TIERS.map((t) => t.eventMinimum));
+export const FROM_PRICE = Math.min(...TIERS.map((t) => effectiveRates(t).minimum));
 
 // The menu itself is never itemized — it is the chef's choice at every
 // tier. Only the categories, quantity, and extras below are promised.
@@ -83,10 +95,10 @@ export const EVENT_INCLUDES: readonly string[] = [
 export interface Quote {
   tier: Tier;
   guests: number;
-  total: number;            // max(guests × perGuest, eventMinimum) — minimum applied once per event
-  deposit: number;
+  total: number;            // max(guests × effective perGuest, effective minimum)
+  deposit: number;          // effective deposit
   balance: number;          // due at the event
-  minimumApplied: boolean;  // true when the event minimum set the total
+  minimumApplied: boolean;  // true when the minimum set the total
 }
 
 /**
@@ -106,14 +118,15 @@ export function quoteForGuests(guests: number): Quote | null {
   const tier = tierForGuests(guests);
   if (!tier) return null;
   const g = Math.floor(guests);
-  const raw = g * tier.perGuest;
-  const total = Math.max(raw, tier.eventMinimum);
+  const r = effectiveRates(tier);
+  const raw = g * r.perGuest;
+  const total = Math.max(raw, r.minimum);
   return {
     tier,
     guests: g,
     total,
-    deposit: tier.deposit,
-    balance: total - tier.deposit,
+    deposit: r.deposit,
+    balance: total - r.deposit,
     minimumApplied: total > raw,
   };
 }
@@ -131,13 +144,12 @@ export function tierTotalRange(tier: Tier): { low: number; high: number } {
 }
 
 /**
- * Total after a promo discount. The event minimum is applied LAST — after
- * every discount — so no booking ever settles below its tier floor.
- * e.g. 10-guest Countertop with 20% off: max(1350 − 270, 1300) = 1300.
+ * Total after a promo discount. The effective minimum is applied LAST —
+ * after every discount — so no booking ever settles below its tier floor.
  */
 export function totalAfterDiscount(quote: Quote, discountAmount: number): number {
   const d = Math.max(0, Number(discountAmount) || 0);
-  return Math.max(quote.total - d, quote.tier.eventMinimum);
+  return Math.max(quote.total - d, effectiveRates(quote.tier).minimum);
 }
 
 export function formatUSD(amount: number): string {

@@ -20,9 +20,10 @@ export const metadata = {
     type: "website",
     images: [
       {
-        url: "/images/og-image.jpg",
+        url: "/images/og-image-v2.jpg",
         width: 1200,
         height: 630,
+        alt: "Hand-cut salmon and tuna nigiri at a private sushi event in Gainesville",
       },
     ],
   },
@@ -30,7 +31,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "The Sonakase Experience",
     description: "In-home personal sushi chef for gatherings in Gainesville, FL.",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image-v2.jpg"],
   },
 };
 
