@@ -32,7 +32,11 @@ export interface Tier {
 export const LAUNCH_ACTIVE = true;
 export const LAUNCH_ENDS = "2026-10-31";
 
-export const TIERS: readonly Tier[] = [
+// Authored tiers. Per-guest rates and deposits are final. The `minimum` on
+// every tier below Kitchen Table is re-derived from the tier below at module
+// load (see TIERS) — the authored values here are only the Kitchen Table
+// floor; the rest are placeholders the ladder overrides.
+const AUTHORED_TIERS: readonly Tier[] = [
   {
     id: "kitchentable",
     name: "Kitchen Table",
@@ -70,6 +74,23 @@ export const TIERS: readonly Tier[] = [
     tagline: "Large events. Multiple chefs and a full display.",
   },
 ] as const;
+
+/** Top total of a tier's band, at its full per-guest rate: perGuest × maxGuests. */
+const tierTop = (r: TierRates, tier: Tier): number => r.perGuest * tier.maxGuests;
+
+// Ladder the minimums so the total never decreases across a tier boundary:
+// each tier's minimum = the top total of the tier below (prev.perGuest ×
+// prev.maxGuests). Kitchen Table has no tier below, so it keeps its authored
+// minimum. Derived at load, so any future rate change re-ladders on its own.
+export const TIERS: readonly Tier[] = AUTHORED_TIERS.map((t, i) => {
+  if (i === 0) return t;
+  const below = AUTHORED_TIERS[i - 1];
+  return {
+    ...t,
+    standard: { ...t.standard, minimum: tierTop(below.standard, below) },
+    launch:   { ...t.launch,   minimum: tierTop(below.launch, below) },
+  };
+});
 
 /** Effective rates for a tier — launch while active, otherwise standard. Every consumer reads through this. */
 export function effectiveRates(tier: Tier): TierRates {
