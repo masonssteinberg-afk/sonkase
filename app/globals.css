@@ -5,12 +5,10 @@
 }
 
 /* ═══ Theme tokens ═════════════════════════════════════════════════
-   Everything keys off html[data-theme]. A no-flash script in the layout
-   sets it from localStorage or the phone's prefers-color-scheme at first
-   paint; a toggle can override it. Dark = ink background; light = brand
-   gold background with near-black text. Surfaces that must stay dark in
-   both modes (photo cards, hero, modal) carry .on-dark to pin the dark
-   tokens locally. */
+   The site is dark-only. Tokens live on :root; the layout pins
+   html[data-theme="dark"] so the dark-qualified rules below still match.
+   Surfaces that carry .on-dark re-pin the dark tokens locally (a no-op
+   now, kept so the markup stays self-describing). */
 :root, [data-theme="dark"] {
   --bg: #0d0d0d;
   --bg2: #141414;
@@ -26,21 +24,6 @@
   --header-border: rgba(255, 255, 255, 0.12);
   color-scheme: dark;
 }
-[data-theme="light"] {
-  --bg: #FAF6EC;          /* warm paper — gold is the accent, not the whole wall */
-  --bg2: #F2EAD7;         /* slightly deeper cream for alternating sections */
-  --text: #1A1712;        /* warm near-black — darkened so muted opacities clear AA */
-  --text-rgb: 26, 23, 18;
-  --gold: #8a5f10;        /* deep gold, 5.2:1 on cream (was #9a6a12 = 4.38, failed) */
-  --gold-rgb: 138, 95, 16;
-  --eyebrow: #8a5f10;
-  --accent: #C4562F;      /* brand persimmon (UI/large) */
-  --accent-text: #B14A26; /* darker persimmon for small text on cream, 5.0:1 */
-  --placeholder: rgba(26, 23, 18, 0.62);
-  --header-bg: rgba(250, 246, 236, 0.72);
-  --header-border: rgba(0, 0, 0, 0.10);
-  color-scheme: light;
-}
 /* Always-dark surfaces (photo cards, hero content, modal) keep light text */
 .on-dark {
   --text: #F5F0E8;
@@ -52,12 +35,7 @@
   --placeholder: rgba(245, 240, 232, 0.55);
 }
 
-/* Theme toggle icon — CSS-driven off the pre-paint attribute, no flash */
-.sk-toggle .sk-moon { display: none; }
-[data-theme="light"] .sk-toggle .sk-sun { display: none; }
-[data-theme="light"] .sk-toggle .sk-moon { display: inline; }
-
-/* Dark mode: tone down bright photography so it doesn't glare on near-black */
+/* Tone down bright photography so it doesn't glare on the near-black page */
 [data-theme="dark"] .sk-gallery-tile img,
 [data-theme="dark"] .sk-sourcing-photo img { filter: brightness(0.9); transition: filter 0.3s ease; }
 .sk-how-photo img { filter: drop-shadow(0 24px 48px rgba(0,0,0,0.55)); }
@@ -233,15 +211,6 @@ input, textarea, select {
 }
 .glass-btn-sec:hover { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.30); }
 
-/* Light-background variants — inverted; accent carried by the text */
-.glass-btn.on-light {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  color: var(--accent-text);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.80);
-}
-.glass-btn-sec.on-light { background: rgba(255, 255, 255, 0.40); border-color: rgba(0, 0, 0, 0.10); color: #1A1A18; }
-
 /* Focus — solid outline, never a shadow ring, so it shows over glass */
 .glass-btn:focus-visible, .glass-btn-sec:focus-visible {
   outline: 2px solid #C4562F;
@@ -252,7 +221,6 @@ input, textarea, select {
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass-btn, .glass-btn.on-photo { background: #C4562F; border-color: rgba(255, 255, 255, 0.30); }
   .glass-btn-sec { background: rgba(30, 32, 30, 0.95); }
-  .glass-btn.on-light { background: #ffffff; color: var(--accent-text); }
 }
 
 /* Mobile — cap the blur so backdrop compositing stays smooth while scrolling */
@@ -260,50 +228,6 @@ input, textarea, select {
   .glass-panel { -webkit-backdrop-filter: blur(12px) saturate(160%); backdrop-filter: blur(12px) saturate(160%); }
   .glass-btn, .glass-btn-sec { -webkit-backdrop-filter: blur(10px) saturate(160%); backdrop-filter: blur(10px) saturate(160%); }
 }
-
-/* Light mode — primary buttons on the gold page invert to white glass with
-   accent text (the .on-light values). Buttons over photography (.on-photo)
-   and inside always-dark surfaces (.on-dark: cards, modal) stay dark glass. */
-[data-theme="light"] .glass-btn:not(.on-photo) {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  color: var(--accent-text);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.80);
-}
-[data-theme="light"] .glass-btn:not(.on-photo):hover {
-  background: rgba(255, 255, 255, 0.70);
-  border-color: rgba(0, 0, 0, 0.16);
-}
-[data-theme="light"] .glass-btn-sec:not(.on-photo) {
-  background: rgba(255, 255, 255, 0.40);
-  border-color: rgba(0, 0, 0, 0.10);
-  color: #1A1A18;
-}
-/* Restore dark glass buttons inside always-dark surfaces even in light mode */
-[data-theme="light"] .on-dark .glass-btn {
-  background:
-    linear-gradient(rgba(196, 86, 47, 0.16), rgba(196, 86, 47, 0.16)),
-    linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16));
-  border: 1px solid rgba(255, 255, 255, 0.30);
-  color: #ffffff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.40);
-}
-[data-theme="light"] .on-dark .glass-btn-sec {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-}
-/* Footer wordmark is light-on-dark art; render it as dark ink on the cream page */
-[data-theme="light"] .sk-footer-logo { filter: brightness(0) opacity(0.8); }
-
-/* Light mode: over the hero the header is transparent (light nav art is fine);
-   once scrolled the header is frosted cream, so nav art flips to dark ink. */
-[data-theme="light"] .sk-glass-nav.is-scrolled .sk-nav-link { color: #23201A; }
-[data-theme="light"] .sk-glass-nav.is-scrolled .sk-nav-link:hover { color: #000; background: rgba(0, 0, 0, 0.05); }
-[data-theme="light"] .sk-glass-nav.is-scrolled .sk-nav-logo { filter: brightness(0) opacity(0.82); }
-
-/* Light mode: readable contact fields on cream (placeholder uses --placeholder) */
-[data-theme="light"] .sk-contact-field { background: rgba(255, 255, 255, 0.85); border-color: rgba(0, 0, 0, 0.28); color: var(--text); }
 
 /* Header fixed-light — subtle specular that drifts with scroll (low intensity) */
 .sk-glass-nav::after {

@@ -4,7 +4,8 @@ import Image from "next/image";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import {
-  quoteForGuests, totalAfterDiscount, effectiveRates, EVENT_INCLUDES, MENU_LINE, PIECES_PER_GUEST, MIN_GUESTS, MAX_GUESTS, formatUSD,
+  quoteForBoard, quotesForGuests, totalAfterDiscount, effectiveRates, EVENT_INCLUDES,
+  BOARDS, boardById, MIN_GUESTS, MAX_GUESTS, SECOND_CHEF_THRESHOLD, SECOND_CHEF_FEE, formatUSD,
 } from "@/lib/pricing";
 
 // ── Design Tokens (Sonakase™ palette) ──────────────────────────
@@ -60,6 +61,7 @@ const fmtTime = (v) => {
 // ── Main App ──────────────────────────────────────────────────
 export default function App() {
   const [guestInput, setGuestInput]         = useState("");
+  const [boardId, setBoardId]               = useState(BOARDS[0].id);
   const [eventDate, setEventDate]           = useState("");
   const [eventTime, setEventTime]           = useState("");
   const [contactName, setContactName]       = useState("");
@@ -69,19 +71,25 @@ export default function App() {
   const [chefNotes, setChefNotes]           = useState("");
   const [confirmation, setConfirmation]     = useState(null);
 
-  // Prefill the guest count from ?guests= (quote finder / tier-card Reserve).
+  // Prefill guest count from ?guests= and board from ?board= (quote finder
+  // / board-card Reserve links).
   useEffect(() => {
-    const g = new URLSearchParams(window.location.search).get("guests");
+    const params = new URLSearchParams(window.location.search);
+    const g = params.get("guests");
     if (g && /^\d+$/.test(g)) setGuestInput(g);
+    const b = params.get("board");
+    if (b && boardById(b)) setBoardId(b);
   }, []);
 
-  // The quote is derived from the guest count on every render — no stored
-  // tier state — so changing the count re-resolves tier, total, and deposit.
-  // Every count from MIN_GUESTS to MAX_GUESTS books directly.
+  // The quote is derived from the guest count and the chosen board on every
+  // render — no stored total — so changing either re-resolves the total,
+  // deposit, and balance. Every count from MIN_GUESTS to MAX_GUESTS books.
   const guests    = parseInt(guestInput, 10);
+  const inRange   = Number.isFinite(guests) && guests >= MIN_GUESTS && guests <= MAX_GUESTS;
   const tooFew    = Number.isFinite(guests) && guests >= 1 && guests < MIN_GUESTS;
   const tooMany   = Number.isFinite(guests) && guests > MAX_GUESTS;
-  const quote     = Number.isFinite(guests) && guests >= MIN_GUESTS ? quoteForGuests(guests) : null;
+  const boardQuotes = inRange ? quotesForGuests(guests) : null;  // both boards, for the chooser
+  const quote     = inRange ? quoteForBoard(boardId, guests) : null;
 
   const emailValid = contactEmail.includes("@") && contactEmail.trim().length >= 5;
   const phoneValid = contactPhone.replace(/\D/g, "").length >= 7;
@@ -114,9 +122,9 @@ export default function App() {
         {!confirmation && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-            {/* Guest count → tier resolves automatically */}
+            {/* Guest count → board totals resolve automatically */}
             <div style={CS.card}>
-              <StepHeader kanji="客" eyebrow="your event" title="how many guests?" subtitle={`${MIN_GUESTS} to ${MAX_GUESTS} guests. the tier and total resolve automatically.`} />
+              <StepHeader kanji="客" eyebrow="your event" title="how many guests?" subtitle={`${MIN_GUESTS} to ${MAX_GUESTS} guests. choose a board and the total resolves automatically.`} />
               <label style={CS.label}>guest count</label>
               <input
                 type="number"
@@ -134,7 +142,10 @@ export default function App() {
                 </div>
               )}
               {tooMany && <Over50Panel />}
-              {quote && <TierPanel quote={quote} />}
+              {boardQuotes && (
+                <BoardChooser boardQuotes={boardQuotes} boardId={boardId} onSelect={setBoardId} />
+              )}
+              {quote && <BoardPanel quote={quote} />}
             </div>
 
             {/* Date & time */}
@@ -283,34 +294,84 @@ export default function App() {
   );
 }
 
-// ── Tier panel — live quote under the guest input ─────────────
-function TierPanel({ quote }) {
-  const { tier, guests, total, deposit, balance, minimumApplied } = quote;
-
+// ── Board chooser — pick Full or Short, each priced live for the count ─
+function BoardChooser({ boardQuotes, boardId, onSelect }) {
   return (
     <div style={{ marginTop: 24 }}>
+      <label style={CS.label}>choose your board</label>
+      <div style={{ display: "grid", gap: 12 }} className="book-board-grid">
+        {boardQuotes.map((q) => {
+          const selected = q.board.id === boardId;
+          return (
+            <button
+              key={q.board.id}
+              type="button"
+              onClick={() => onSelect(q.board.id)}
+              style={{
+                textAlign: "left", cursor: "pointer", width: "100%",
+                background: selected ? "rgba(232,201,126,0.08)" : "rgba(245,240,232,0.03)",
+                border: `1px solid ${selected ? "rgba(232,201,126,0.55)" : "rgba(232,201,126,0.18)"}`,
+                borderRadius: 16, padding: "16px 18px",
+                display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 14,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: FONT_DISPLAY, fontSize: 18, color: selected ? GOLD : CREAM, marginBottom: 4 }}>{q.board.name}</div>
+                <div style={{ fontFamily: FONT_BODY, fontSize: 12.5, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.45 }}>{q.board.menu}</div>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: CREAM, lineHeight: 1, whiteSpace: "nowrap" }}>{formatUSD(q.total)}</div>
+                <div style={{ fontFamily: FONT_UI, fontSize: 10.5, color: "rgba(232,201,126,0.7)", letterSpacing: "0.06em", marginTop: 5 }}>
+                  {q.minimumApplied ? "event minimum" : `${formatUSD(q.perGuest)}/guest`}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Board panel — selected board's full quote under the chooser ───────
+function BoardPanel({ quote }) {
+  const { board, total, baseTotal, secondChefFee, deposit, balance, minimumApplied, secondChefApplied } = quote;
+
+  return (
+    <div style={{ marginTop: 20 }}>
       <div style={{ background: "rgba(232,201,126,0.05)", border: "1px solid rgba(232,201,126,0.3)", borderRadius: 16, padding: "22px 24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 4 }}>
-          <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: GOLD }}>{tier.name}</div>
+          <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: GOLD }}>{board.name}</div>
           <div style={{ fontFamily: FONT_UI, fontSize: 11, color: "rgba(232,201,126,0.7)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
-            {tier.minGuests}–{tier.maxGuests} guests · {formatUSD(effectiveRates(tier).perGuest)} per guest
+            {formatUSD(quote.perGuest)} per guest
           </div>
         </div>
-        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", marginBottom: 16 }}>{tier.tagline}</div>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", marginBottom: 16 }}>{board.tagline}</div>
 
+        {secondChefApplied && (
+          <>
+            <SummaryRow label="Sushi & service"  value={formatUSD(baseTotal)} />
+            <SummaryRow label="Second chef"      value={`+${formatUSD(secondChefFee)}`} />
+          </>
+        )}
         <SummaryRow label="Total"                value={formatUSD(total)} highlight />
         <SummaryRow label="Deposit due today"    value={formatUSD(deposit)} />
         <SummaryRow label="Balance due at event" value={formatUSD(balance)} />
 
         {minimumApplied && (
           <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: "rgba(232,201,126,0.75)", fontStyle: "italic", marginTop: 12 }}>
-            {formatUSD(effectiveRates(tier).minimum)} event minimum applies at this guest count.
+            {formatUSD(effectiveRates(board).minimum)} event minimum applies at this guest count.
+          </div>
+        )}
+        {secondChefApplied && (
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: "rgba(232,201,126,0.75)", fontStyle: "italic", marginTop: 12 }}>
+            Parties over {SECOND_CHEF_THRESHOLD} guests bring a second chef ({formatUSD(SECOND_CHEF_FEE)}).
           </div>
         )}
 
         <div style={{ height: 1, background: "rgba(232,201,126,0.15)", margin: "18px 0 14px" }} />
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.65, marginBottom: 14 }}>
-          {MENU_LINE.charAt(0).toUpperCase() + MENU_LINE.slice(1)} — the menu is the chef&rsquo;s choice that day, about {PIECES_PER_GUEST} pieces per guest, built around the freshest catch.
+          {board.menu} — your {board.nigiri.options ? "rolls and nigiri are" : "roll styles are"} set to the preferences you note below and shared with you after booking. Around the freshest catch, served at any hour.
         </div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 10 }}>
           also included
@@ -356,9 +417,10 @@ function PaymentSection({ quote, contact, eventDate, eventTime, eventAddress, ch
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError]     = useState("");
 
-  // Discounts apply first; the event minimum is applied LAST (in
-  // totalAfterDiscount), so no booking settles below its tier floor.
-  // The deposit stays fixed by tier regardless of promos.
+  // Discounts apply to the per-guest base first; the event minimum is
+  // applied LAST (in totalAfterDiscount) and the second-chef fee is added
+  // back untouched, so no booking settles below its board floor. The flat
+  // deposit never changes with promos.
   const effectiveTotal   = appliedPromo ? totalAfterDiscount(quote, appliedPromo.discount_amount) : quote.total;
   const promoSavings     = quote.total - effectiveTotal; // actual reduction after the floor
   const effectiveDeposit = quote.deposit;
@@ -435,7 +497,7 @@ function PaymentSection({ quote, contact, eventDate, eventTime, eventAddress, ch
         </button>
         <div style={{ marginTop: 16 }}>
           <a
-            href={`/?subject=${encodeURIComponent(`Booking request — ${quote.guests} guests, ${quote.tier.name}`)}#contact`}
+            href={`/?subject=${encodeURIComponent(`Booking request — ${quote.guests} guests, ${quote.board.name}`)}#contact`}
             style={{ fontFamily: FONT_BODY, fontSize: 13, color: GOLD, letterSpacing: "0.04em", textDecoration: "none" }}
           >
             Reserve by message →
@@ -484,7 +546,7 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
   const [error, setError]               = useState("");
   const [cardComplete, setCardComplete] = useState(false);
 
-  const { tier, guests } = quote;
+  const { board, guests } = quote;
 
   const submit = async () => {
     if (!stripe || !elements || !cardComplete) return;
@@ -506,12 +568,12 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
         user_email: contact.email,
         contact_name: contact.name,
         contact_phone: contact.phone,
-        package: tier.name,
+        package: board.name,
         service_type: "countertop",
         event_date: eventDate,
         event_time: eventTime,
         guest_count: guests,
-        price_per_guest: effectiveRates(tier).perGuest,
+        price_per_guest: quote.perGuest,
         total_price: effectiveTotal,
         deposit_amount: effectiveDeposit,
         delivery_address: eventAddress || null,
@@ -537,10 +599,10 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
           guestName: contact.name,
           confirmationId,
           serviceType: "countertop",
-          packageName: tier.name,
+          packageName: board.name,
           eventDate, eventTime,
           guestCount: guests,
-          pricePerGuest: effectiveRates(tier).perGuest,
+          pricePerGuest: quote.perGuest,
           total: effectiveTotal,
           deposit: effectiveDeposit,
           chefNotes,
@@ -556,10 +618,10 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
           clientName: contact.name,
           clientPhone: contact.phone,
           confirmationId,
-          packageName: tier.name,
+          packageName: board.name,
           eventDate, eventTime,
           guestCount: guests,
-          pricePerGuest: effectiveRates(tier).perGuest,
+          pricePerGuest: quote.perGuest,
           total: effectiveTotal,
           deposit: effectiveDeposit,
           deliveryAddress: eventAddress || null,
@@ -583,7 +645,7 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
 
       {/* Review + deposit panel */}
       <div style={{ background: "rgba(13,13,13,0.6)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, color: CREAM, padding: "22px 26px", marginBottom: 28 }}>
-        <SummaryRow label="Experience" value={`${tier.name} · ${guests} guests`} />
+        <SummaryRow label="Experience" value={`${board.name} · ${guests} guests`} />
         <SummaryRow label="Date"       value={fmtDate(eventDate)} />
         <SummaryRow label="Time"       value={fmtTime(eventTime)} />
         <SummaryRow label="Total"      value={formatUSD(effectiveTotal)} />
@@ -592,7 +654,7 @@ function PaymentForm({ clientSecret, quote, contact, eventDate, eventTime, event
         )}
         {appliedPromo && promoSavings === 0 && (
           <div style={{ fontFamily: FONT_BODY, fontSize: 12, color: INK_FAINT, fontStyle: "italic", padding: "9px 0" }}>
-            {appliedPromo.code} applied — the {formatUSD(effectiveRates(quote.tier).minimum)} event minimum still sets this total.
+            {appliedPromo.code} applied — the {formatUSD(effectiveRates(quote.board).minimum)} event minimum still sets this total.
           </div>
         )}
         <div style={{ marginTop: 18 }}>
@@ -716,7 +778,7 @@ function ConfirmationScreen({ confirmation, onReset }) {
       </p>
       <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: PERSIMMON, letterSpacing: "0.1em", marginBottom: 32 }}>#{id}</div>
       <div style={{ background: "rgba(13,13,13,0.5)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, padding: "20px 24px", marginBottom: 28, textAlign: "left" }}>
-        <SummaryRow label="Experience"   value={`${quote.tier.name} · ${quote.guests} guests`} />
+        <SummaryRow label="Experience"   value={`${quote.board.name} · ${quote.guests} guests`} />
         <SummaryRow label="Date"         value={fmtDate(eventDate)} />
         <SummaryRow label="Time"         value={fmtTime(eventTime)} />
         <SummaryRow label="Total"        value={formatUSD(total)} />
@@ -852,6 +914,7 @@ function BookStyles() {
         .book-page-wrapper { padding-top: calc(72px + var(--banner-h, 0px)); }
         .book-card         { padding: 24px 16px !important; }
         .book-contact-grid { grid-template-columns: 1fr !important; }
+        .book-board-grid   { grid-template-columns: 1fr !important; }
       }
     `}</style>
   );

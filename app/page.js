@@ -20,10 +20,9 @@ import imgTileLineup      from "@/public/images/tile-lineup.jpg";
 import imgTilePlate       from "@/public/images/tile-plate.jpg";
 import imgTileSpread      from "@/public/images/tile-spread.jpg";
 import imgTileBoardDetail from "@/public/images/tile-board-detail.jpg";
-import imgBandLong        from "@/public/images/band-long.jpg";
 import imgStandards       from "@/public/images/standards.jpg";
-import imgCardFullspread  from "@/public/images/card-fullspread.jpg";
-import imgCardCountertop  from "@/public/images/card-countertop.jpg";
+import imgCardFullBoard   from "@/public/images/card-full-board.jpg";   // tile-event, rotated to landscape
+import imgCardShortBoard  from "@/public/images/card-short-board.jpg";  // tile-lineup, rotated to landscape
 import imgChefPortrait    from "@/public/chef-portrait.jpg";
 
 // ── Design Tokens — theme-driven (see globals.css :root / [data-theme]) ──
@@ -35,25 +34,130 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 // iOS-style spring for transforms; standard ease-out for everything else
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
-// ── Tiers — all pricing comes from lib/pricing, no literals here ──
-import { TIERS, tierTotalRange, quoteForGuests, effectiveRates, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS, LAUNCH_ACTIVE } from "@/lib/pricing";
+// ── Boards — all pricing comes from lib/pricing, no literals here ──
+import { BOARDS, boardTotalRange, quotesForGuests, effectiveRates, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS, LAUNCH_ACTIVE, DEPOSIT, SECOND_CHEF_THRESHOLD, SECOND_CHEF_FEE } from "@/lib/pricing";
 
-// Fixed blurred-photo background per tier card. Assigned as a constant
+// Fixed blurred-photo background per board card. Assigned as a constant
 // (never Math.random during render) so server and client first paint agree.
 const CARD_IMG = {
-  kitchentable: imgTileNigiri,      // intimate nigiri close-up
-  countertop:   imgCardCountertop,  // tuna rolls, cucumber ribbons
-  longtable:    imgBandLong,        // rows of cut rolls
-  fullspread:   imgCardFullspread,  // full event catering spread
+  full:  imgCardFullBoard,   // abundant wooden board — rolls, nigiri, garnish
+  short: imgCardShortBoard,  // clean rows of rolls on a wooden board
 };
 
-// Banner crop anchor per card (the countertop shot has the sushi low in frame)
+// Banner crop anchor per card
 const CARD_POS = {
-  kitchentable: "center",
-  countertop:   "center 74%",
-  longtable:    "center",
-  fullspread:   "center",
+  full:  "center",
+  short: "center",
 };
+
+// ── Sushi icons — roll variety shown as maki cross-sections ────
+// Distinct fillings so a row of them reads as "different rolls," not a
+// repeated stamp. Salmon, tuna, cucumber/avocado, tamago, eel, shrimp.
+const ROLL_FILLS   = ["#E8794A", "#D64B3F", "#6FA84B", "#D2A23F", "#7E6BA8", "#E4A6B0"];
+const NIGIRI_FILLS = ["#E8794A", "#D64B3F", "#D2A23F", "#E4A6B0"];
+
+// Nigiri icons are colored by their fish so the row reads as real cuts.
+const FISH_COLOR = {
+  Salmon:        "#E8794A",
+  Tuna:          "#C0392B",
+  Yellowtail:    "#E8CE96",
+  Eel:           "#6E4A2E",
+  "Spicy tuna":  "#D6452F",
+  Shrimp:        "#E4A6B0",
+};
+const fishColor = (name, i) => FISH_COLOR[name] ?? NIGIRI_FILLS[i % NIGIRI_FILLS.length];
+
+// Small number words read more premium than digits at this scale.
+const NUM_WORD = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+const wordFor  = (n) => NUM_WORD[n] ?? String(n);
+const cap      = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Maki cross-section — nori rim, rice ring, filling, and a soft top-left
+// sheen so a row of them reads as glossy cut rolls rather than flat dots.
+function MakiIcon({ fill }) {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" style={{ display: "block", flexShrink: 0 }}>
+      <circle cx="12" cy="12" r="11.2" fill="#0f1a0a" />
+      <circle cx="12" cy="12" r="11.2" fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="0.6" />
+      <circle cx="12" cy="12" r="8.3"  fill="#EFE6D2" />
+      <circle cx="12" cy="12" r="8.3"  fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="0.6" />
+      <circle cx="12" cy="12" r="4.4"  fill={fill} />
+      <ellipse cx="9.7" cy="9.4" rx="2.5" ry="1.5" fill="rgba(255,255,255,0.20)" transform="rotate(-35 9.7 9.4)" />
+    </svg>
+  );
+}
+
+// Nigiri — rice bed with a draped slice and a highlight sweep on the fish.
+function NigiriIcon({ fill }) {
+  return (
+    <svg width="26" height="17" viewBox="0 0 34 22" aria-hidden="true" style={{ display: "block", flexShrink: 0 }}>
+      <rect x="1.5" y="10" width="31" height="11" rx="5.5" fill="#EFE6D2" />
+      <rect x="1.5" y="10" width="31" height="11" rx="5.5" fill="none" stroke="rgba(0,0,0,0.10)" strokeWidth="0.6" />
+      <path d="M4 11.6 C11 4.6, 23 4.6, 30 11.6 C30 13.9, 4 13.9, 4 11.6 Z" fill={fill} />
+      <path d="M5.5 10.5 C12 6.2, 22 6.2, 28.5 10.5" fill="none" stroke="rgba(255,255,255,0.30)" strokeWidth="0.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// One line of the board's menu spec: a gold small-cap label + serif value on
+// the left, the icon cluster on the right, and optional fine print beneath.
+function MenuSpecRow({ label, value, icons, fine }) {
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: FONT_UI, fontSize: 9.5, fontWeight: 600, letterSpacing: "0.26em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.8)" }}>
+            {label}
+          </div>
+          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 15, color: CREAM, marginTop: 4, lineHeight: 1.25 }}>
+            {value}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))" }}>
+          {icons}
+        </div>
+      </div>
+      {fine && (
+        <div style={{ fontFamily: FONT_UI, fontSize: 10.5, fontWeight: 500, letterSpacing: "0.02em", color: "rgba(var(--text-rgb),0.5)", marginTop: 7, lineHeight: 1.5 }}>
+          {fine}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// The board's menu, as a refined two-row spec. Rolls are always the chef's
+// selection; nigiri is either fixed (Short) or the guest's choice (Full).
+// The icons preview the variety — the actual cuts are set to booking
+// preferences and disclosed afterward, which the closing line makes clear.
+function BoardMenuIcons({ board }) {
+  const { nigiri } = board;
+  const isChoice   = !!nigiri.options;
+  const nigiriFish = nigiri.fixed ?? nigiri.options.slice(0, nigiri.count);
+  const hair = { height: 1, background: "linear-gradient(90deg, rgba(232,201,126,0.28), rgba(232,201,126,0.04) 85%)", margin: "15px 0" };
+
+  return (
+    <div style={{ margin: "2px 0 22px" }} aria-label={board.menu}>
+      <MenuSpecRow
+        label="Rolls"
+        value={`${cap(wordFor(board.rolls))} styles`}
+        icons={Array.from({ length: board.rolls }).map((_, i) => (
+          <MakiIcon key={i} fill={ROLL_FILLS[i % ROLL_FILLS.length]} />
+        ))}
+      />
+      <div style={hair} />
+      <MenuSpecRow
+        label="Nigiri"
+        value={isChoice ? `Your choice of ${wordFor(nigiri.count)}` : nigiri.fixed.join(" & ")}
+        icons={nigiriFish.map((f, i) => <NigiriIcon key={i} fill={fishColor(f, i)} />)}
+        fine={isChoice ? nigiri.options.join(" · ").toLowerCase() : "Set pairing"}
+      />
+      <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontStyle: "italic", fontSize: 12, color: "rgba(var(--text-rgb),0.5)", marginTop: 15, lineHeight: 1.55 }}>
+        {isChoice ? "Rolls and nigiri are" : "Rolls are"} set to your booking preferences and shared with you after you book.
+      </div>
+    </div>
+  );
+}
 
 const N = (f, o) =>
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${f}' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='${o}'/%3E%3C/svg%3E")`;
@@ -262,13 +366,15 @@ function PageStyles() {
         box-shadow: 0 0 0 3px rgba(var(--gold-rgb),0.12);
       }
 
-      /* Four tier cards: 4-across on wide desktop, 2×2 on tablet, 1 on mobile */
+      /* Two board cards: side-by-side on desktop, stacked on mobile */
       .sk-pkg-grid {
         display: grid;
         gap: 20px;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 760px;
+        margin-left: auto;
+        margin-right: auto;
       }
-      @media (max-width: 1120px) { .sk-pkg-grid { grid-template-columns: repeat(2, 1fr); } }
       @media (max-width: 600px)  { .sk-pkg-grid { grid-template-columns: 1fr; } }
 
       /* Quote finder — drop the specular sweep (reads as a smudge over the
@@ -836,11 +942,40 @@ function useCountUp(target) {
   return val;
 }
 
-// ── Quote finder — enter a guest count, see tier/total/deposit live ──
+// ── One board's live quote row inside the finder ──────────────
+function BoardQuoteRow({ quote, guests }) {
+  const animatedTotal = useCountUp(quote.total);
+  const { board } = quote;
+  return (
+    <div className="sk-quote-board" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 18, padding: "16px 18px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, background: "rgba(255,255,255,0.03)" }}>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.9)", marginBottom: 4 }}>
+          {board.name}
+        </div>
+        <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12.5, color: "rgba(var(--text-rgb),0.62)", fontStyle: "italic", lineHeight: 1.4 }}>
+          {quote.minimumApplied
+            ? "event minimum"
+            : `${formatUSD(quote.perGuest)} per guest`}
+          {quote.secondChefApplied && ` · +${formatUSD(SECOND_CHEF_FEE)} second chef`}
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
+        <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 30, color: CREAM, fontWeight: 400, lineHeight: 1, whiteSpace: "nowrap" }}>
+          {formatUSD(animatedTotal)}
+        </div>
+        <a href={`/book?guests=${guests}&board=${board.id}`} className="glass-btn" style={{ minHeight: 42, padding: "0 20px", whiteSpace: "nowrap" }}>
+          Reserve <span className="sk-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ── Quote finder — enter a guest count, compare both boards live ──
 function QuoteFinder() {
   const [guests, setGuests] = useState(4);
-  const quote = quoteForGuests(guests);          // always valid: input is clamped to [MIN,MAX]
-  const animatedTotal = useCountUp(quote ? quote.total : 0);
+  const quotes = quotesForGuests(guests);        // always valid: input is clamped to [MIN,MAX]
+  const overThreshold = guests > SECOND_CHEF_THRESHOLD;
 
   const setClamped = (n) => {
     if (Number.isNaN(n)) return;
@@ -849,54 +984,36 @@ function QuoteFinder() {
 
   return (
     <div className="glass-panel on-dark sk-quote" style={{ maxWidth: 620, margin: "0 auto 40px", padding: "28px 32px" }}>
-      <div className="sk-quote-inner" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 28, flexWrap: "wrap" }}>
-
-        {/* Guest count with steppers */}
-        <div>
-          <label htmlFor="sk-guest-input" style={{ display: "block", fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.9)", marginBottom: 12 }}>
-            How many guests?
-          </label>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button type="button" aria-label="Fewer guests" onClick={() => setClamped(guests - 1)} disabled={guests <= MIN_GUESTS} className="sk-stepper">−</button>
-            <input
-              id="sk-guest-input"
-              type="number" inputMode="numeric" min={MIN_GUESTS} max={MAX_GUESTS}
-              value={guests}
-              onChange={(e) => setClamped(parseInt(e.target.value, 10))}
-              className="sk-quote-input"
-            />
-            <button type="button" aria-label="More guests" onClick={() => setClamped(guests + 1)} disabled={guests >= MAX_GUESTS} className="sk-stepper">+</button>
-          </div>
-        </div>
-
-        {/* Live tier / total / deposit */}
-        <div style={{ textAlign: "right", minWidth: 200 }}>
-          <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.9)", marginBottom: 6 }}>
-            {quote.tier.name}
-          </div>
-          <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 40, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
-            {formatUSD(animatedTotal)}
-          </div>
-          <div style={{ fontFamily: FONT_UI, fontSize: 12, color: "rgba(var(--text-rgb),0.6)", marginTop: 6 }}>
-            {formatUSD(quote.deposit)} deposit
-          </div>
-          {quote.minimumApplied && (
-            <div style={{ fontFamily: FONT_UI, fontSize: 11, color: "rgba(var(--gold-rgb),0.85)", fontStyle: "italic", marginTop: 5 }}>
-              {quote.tier.name.toLowerCase()} minimum applies
-            </div>
-          )}
+      {/* Guest count with steppers */}
+      <div>
+        <label htmlFor="sk-guest-input" style={{ display: "block", fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.9)", marginBottom: 12 }}>
+          How many guests?
+        </label>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button type="button" aria-label="Fewer guests" onClick={() => setClamped(guests - 1)} disabled={guests <= MIN_GUESTS} className="sk-stepper">−</button>
+          <input
+            id="sk-guest-input"
+            type="number" inputMode="numeric" min={MIN_GUESTS} max={MAX_GUESTS}
+            value={guests}
+            onChange={(e) => setClamped(parseInt(e.target.value, 10))}
+            className="sk-quote-input"
+          />
+          <button type="button" aria-label="More guests" onClick={() => setClamped(guests + 1)} disabled={guests >= MAX_GUESTS} className="sk-stepper">+</button>
         </div>
       </div>
 
       <div style={{ height: 1, background: "rgba(255,255,255,0.14)", margin: "22px 0 18px" }} />
 
-      <div className="sk-quote-foot" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
-        <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(var(--text-rgb),0.75)", lineHeight: 1.5 }}>
-          Reserve with a {formatUSD(quote.deposit)} deposit. The balance is charged 48 hours before your event.
-        </div>
-        <a href={`/book?guests=${guests}`} className="glass-btn" style={{ minHeight: 46, padding: "0 28px", whiteSpace: "nowrap" }}>
-          Reserve <span className="sk-arrow">→</span>
-        </a>
+      {/* Both boards, live, for this guest count */}
+      <div style={{ display: "grid", gap: 12 }}>
+        {quotes.map((q) => (
+          <BoardQuoteRow key={q.board.id} quote={q} guests={guests} />
+        ))}
+      </div>
+
+      <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 13.5, color: "rgba(var(--text-rgb),0.7)", lineHeight: 1.5, marginTop: 18 }}>
+        Reserve with a {formatUSD(quotes[0].deposit)} deposit on either board — the balance is due the day of service.
+        {overThreshold && ` Parties over ${SECOND_CHEF_THRESHOLD} bring a second chef.`}
       </div>
     </div>
   );
@@ -937,26 +1054,24 @@ function ExperiencesSection() {
           <QuoteFinder />
         </Reveal>
 
-        {/* Tier cards */}
+        {/* Board cards */}
         <div className="sk-pkg-grid" style={{ marginBottom: 20 }}>
-          {TIERS.map((t, idx) => (
-              <div className="sk-pkg-card" key={t.id} style={{ "--i": idx }}>
+          {BOARDS.map((b, idx) => (
+              <div className="sk-pkg-card" key={b.id} style={{ "--i": idx }}>
               {/* Sushi photo banner */}
               <div className="sk-pkg-card__photo" aria-hidden="true">
-                <Image src={CARD_IMG[t.id]} alt="" fill placeholder="blur" sizes="(max-width: 768px) 100vw, 400px" style={{ objectPosition: CARD_POS[t.id] }} />
+                <Image src={CARD_IMG[b.id]} alt="" fill placeholder="blur" sizes="(max-width: 768px) 100vw, 400px" style={{ objectPosition: CARD_POS[b.id] }} />
               </div>
 
               {/* Readable dark text panel */}
               <div className="sk-pkg-card__body on-dark">
               {/* Name */}
               <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 21, color: CREAM, letterSpacing: "0.08em", marginBottom: 8 }}>
-                {t.name.toLowerCase()}
+                {b.name.toLowerCase()}
               </div>
 
-              {/* Guest range */}
-              <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 20 }}>
-                {t.minGuests}–{t.maxGuests} guests
-              </div>
+              {/* Roll & nigiri variety, shown as icons */}
+              <BoardMenuIcons board={b} />
 
               {/* Starting-at price + per-guest rate (standard struck through while launch is active) */}
               <div style={{ marginBottom: 16 }}>
@@ -964,39 +1079,32 @@ function ExperiencesSection() {
                   starting at
                 </div>
                 <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 32, color: CREAM, fontWeight: 400, lineHeight: 1 }}>
-                  {formatUSD(tierTotalRange(t).low)}
+                  {formatUSD(boardTotalRange(b).low)}
                 </div>
                 <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--gold-rgb),0.9)", letterSpacing: "0.06em", marginTop: 8 }}>
                   {LAUNCH_ACTIVE && (
                     <span style={{ color: "rgba(var(--text-rgb),0.45)", textDecoration: "line-through", marginRight: 8, fontWeight: 400 }}>
-                      {formatUSD(t.standard.perGuest)}
+                      {formatUSD(b.standard.perGuest)}
                     </span>
                   )}
-                  {formatUSD(effectiveRates(t).perGuest)} per guest
+                  {formatUSD(effectiveRates(b).perGuest)} per guest
                 </div>
                 {LAUNCH_ACTIVE && (
                   <div style={{ fontFamily: FONT_UI, fontSize: 10.5, fontWeight: 600, color: "rgba(var(--gold-rgb),0.95)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 8 }}>
-                    founding rate, first 10 events, through October 31
+                    launch discount
                   </div>
                 )}
               </div>
 
               {/* Deposit line */}
-              <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--text-rgb),0.6)", marginBottom: 18 }}>
-                {formatUSD(effectiveRates(t).deposit)} deposit to reserve
+              <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(var(--text-rgb),0.6)", marginBottom: 22 }}>
+                {formatUSD(DEPOSIT)} deposit to reserve
               </div>
 
-              {/* Divider */}
-              <div style={{ height: 1, background: "rgba(255,255,255,0.16)", marginBottom: 18 }} />
-
-              {/* Description */}
-              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 14, color: "rgba(var(--text-rgb),0.85)", lineHeight: 1.7, margin: "0 0 24px" }}>
-                {t.tagline}
-              </p>
               <div style={{ flex: 1 }} />
 
               {/* CTA */}
-              <a href={`/book?guests=${t.minGuests}`} className="glass-btn" style={{ alignSelf: "flex-start", padding: "0 26px", minHeight: 46 }}>
+              <a href={`/book?guests=${MIN_GUESTS}&board=${b.id}`} className="glass-btn" style={{ alignSelf: "flex-start", padding: "0 26px", minHeight: 46 }}>
                 Reserve <span className="sk-arrow">→</span>
               </a>
               </div>
@@ -1004,10 +1112,10 @@ function ExperiencesSection() {
           ))}
         </div>
 
-        {/* One clarifying line about minimums */}
+        {/* Clarifying lines about minimums + serviceware */}
         <Reveal delay={0.1}>
           <p style={{ fontFamily: FONT_UI, fontSize: 12.5, fontWeight: 500, color: "rgba(var(--text-rgb),0.72)", letterSpacing: "0.02em", textAlign: "center", margin: 0, lineHeight: 1.6 }}>
-            Every event has a minimum, so smaller groups pay a set price rather than a per-guest rate.
+            Each board has an event minimum, so smaller parties pay a set price rather than a per-guest rate. Both include platters, chopsticks, and small plates, and serve at any hour.
           </p>
         </Reveal>
 

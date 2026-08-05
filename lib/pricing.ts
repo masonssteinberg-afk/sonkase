@@ -1,176 +1,189 @@
 // ── Sonakase pricing — single source of truth ─────────────────────────
 // Every price on every surface (pages, emails, payment intents) must come
 // from this module. No dollar literals anywhere else.
+//
+// The model is two BOARDS, not guest-count tiers. The guest chooses a menu
+// (Full or Short); the per-guest rate is flat within a board. An event
+// minimum floors small parties, a flat deposit reserves any booking, and a
+// second-chef fee applies to large parties.
 
-export type TierId = "kitchentable" | "countertop" | "longtable" | "fullspread";
+export type BoardId = "full" | "short";
 
-/** One set of rates for a tier. Every tier carries a `standard` and a `launch` set. */
-export interface TierRates {
+/** One set of rates for a board. Every board carries a `standard` and a `launch` set. */
+export interface BoardRates {
   perGuest: number;   // dollars per head
-  minimum: number;    // event floor: total = max(perGuest × guests, minimum)
-  deposit: number;    // flat deposit charged at booking
+  minimum: number;    // event floor: base total = max(perGuest × guests, minimum)
 }
 
-export interface Tier {
-  id: TierId;
+/**
+ * A board's nigiri offering. Either `fixed` to a set list (guest can't
+ * change it) or the guest's `choice` of `count` styles from `options`.
+ * Exactly one of fixed/options is set.
+ */
+export interface NigiriMenu {
+  count: number;                    // how many nigiri styles come with the board
+  fixed?: readonly string[];        // locked to these exact fish
+  options?: readonly string[];      // guest picks `count` from these
+}
+
+export interface Board {
+  id: BoardId;
   name: string;
-  minGuests: number;
-  maxGuests: number;
+  /** One-line menu description shown in the quote finder and booking flow. */
+  menu: string;
+  /** Number of roll styles — drives the roll icons on the board card. */
+  rolls: number;
+  /** Nigiri offering — fixed to a set list, or the guest's choice from options. */
+  nigiri: NigiriMenu;
   /** Displayed struck-through rate. */
-  standard: TierRates;
+  standard: BoardRates;
   /** Founding rate — what is actually charged while LAUNCH_ACTIVE. */
-  launch: TierRates;
-  /** One-line format description shown on tier cards. */
+  launch: BoardRates;
+  /** One-line tagline shown in the booking flow. */
   tagline: string;
 }
 
 // ── Founding-rate launch ──────────────────────────────────────────────
-// While LAUNCH_ACTIVE, every total/minimum/deposit calculates from each
-// tier's `launch` rates and the standard rate shows struck through.
-// Flip LAUNCH_ACTIVE to false to restore standard pricing everywhere with
-// no other edits and no strike-through.
+// While LAUNCH_ACTIVE, every total/minimum calculates from each board's
+// `launch` rates and the standard rate shows struck through. Flip
+// LAUNCH_ACTIVE to false to restore standard pricing everywhere with no
+// other edits and no strike-through.
 export const LAUNCH_ACTIVE = true;
 export const LAUNCH_ENDS = "2026-10-31";
 
-// Authored tiers. Per-guest rates and deposits are final. The `minimum` on
-// every tier below Kitchen Table is re-derived from the tier below at module
-// load (see TIERS) — the authored values here are only the Kitchen Table
-// floor; the rest are placeholders the ladder overrides.
-const AUTHORED_TIERS: readonly Tier[] = [
+// The two boards. Per-guest rates and minimums are final for each rate set.
+export const BOARDS: readonly Board[] = [
   {
-    id: "kitchentable",
-    name: "Kitchen Table",
-    minGuests: 2,
-    maxGuests: 5,
-    standard: { perGuest: 135, minimum: 450, deposit: 150 },
-    launch:   { perGuest: 85,  minimum: 275, deposit: 75 },
-    tagline: "An intimate dinner. One chef at your kitchen table.",
+    id: "full",
+    name: "Full Board",
+    menu: "Your choice of nigiri and six roll styles",
+    rolls: 6,
+    nigiri: { count: 4, options: ["Salmon", "Tuna", "Yellowtail", "Eel", "Spicy tuna", "Shrimp"] },
+    standard: { perGuest: 135, minimum: 850 },
+    launch:   { perGuest: 95,  minimum: 600 },
+    tagline: "The full counter, built in front of your guests.",
   },
   {
-    id: "countertop",
-    name: "Countertop",
-    minGuests: 6,
-    maxGuests: 12,
-    standard: { perGuest: 115, minimum: 690, deposit: 200 },
-    launch:   { perGuest: 75,  minimum: 450, deposit: 125 },
-    tagline: "A dinner party around the counter. One chef, cutting in front of your guests.",
-  },
-  {
-    id: "longtable",
-    name: "Long Table",
-    minGuests: 13,
-    maxGuests: 24,
-    standard: { perGuest: 95, minimum: 1235, deposit: 350 },
-    launch:   { perGuest: 65, minimum: 845,  deposit: 250 },
-    tagline: "A larger crowd. A full spread laid out down the table.",
-  },
-  {
-    id: "fullspread",
-    name: "Full Spread",
-    minGuests: 25,
-    maxGuests: 50,
-    standard: { perGuest: 80, minimum: 2000, deposit: 500 },
-    launch:   { perGuest: 55, minimum: 1375, deposit: 350 },
-    tagline: "Large events. Multiple chefs and a full display.",
+    id: "short",
+    name: "Short Board",
+    menu: "Salmon & tuna nigiri and four roll styles",
+    rolls: 4,
+    nigiri: { count: 2, fixed: ["Salmon", "Tuna"] },
+    standard: { perGuest: 95, minimum: 600 },
+    launch:   { perGuest: 65, minimum: 410 },
+    tagline: "A focused spread of the essentials.",
   },
 ] as const;
 
-/** Top total of a tier's band, at its full per-guest rate: perGuest × maxGuests. */
-const tierTop = (r: TierRates, tier: Tier): number => r.perGuest * tier.maxGuests;
-
-// Ladder the minimums so the total never decreases across a tier boundary:
-// each tier's minimum = the top total of the tier below (prev.perGuest ×
-// prev.maxGuests). Kitchen Table has no tier below, so it keeps its authored
-// minimum. Derived at load, so any future rate change re-ladders on its own.
-export const TIERS: readonly Tier[] = AUTHORED_TIERS.map((t, i) => {
-  if (i === 0) return t;
-  const below = AUTHORED_TIERS[i - 1];
-  return {
-    ...t,
-    standard: { ...t.standard, minimum: tierTop(below.standard, below) },
-    launch:   { ...t.launch,   minimum: tierTop(below.launch, below) },
-  };
-});
-
-/** Effective rates for a tier — launch while active, otherwise standard. Every consumer reads through this. */
-export function effectiveRates(tier: Tier): TierRates {
-  return LAUNCH_ACTIVE ? tier.launch : tier.standard;
-}
-
 /** Bookable range. Below MIN_GUESTS is invalid; above MAX_GUESTS goes to the contact form. */
-export const MIN_GUESTS = 2;
+export const MIN_GUESTS = 4;
 export const MAX_GUESTS = 50;
 
-/** Lowest published event price across all tiers (for "from $X" copy). */
-export const FROM_PRICE = Math.min(...TIERS.map((t) => effectiveRates(t).minimum));
+/** Flat deposit charged at booking — same on every board and both rate sets. Balance due day of service. */
+export const DEPOSIT = 200;
 
-// The menu itself is never itemized — it is the chef's choice at every
-// tier. Only the categories, quantity, and extras below are promised.
-export const MENU_LINE = "rolls, nigiri, sashimi, and more";
-export const PIECES_PER_GUEST = 16;
+// ── Second chef ───────────────────────────────────────────────────────
+// A party ABOVE this many guests needs a second chef; a flat fee is added
+// on top of the per-guest total. It is a labor cost, so it is the same at
+// launch and standard rates and is never touched by promo discounts.
+export const SECOND_CHEF_THRESHOLD = 24;
+export const SECOND_CHEF_FEE = 250;
+
+/** Effective rates for a board — launch while active, otherwise standard. Every consumer reads through this. */
+export function effectiveRates(board: Board): BoardRates {
+  return LAUNCH_ACTIVE ? board.launch : board.standard;
+}
+
+export function boardById(id: string): Board | null {
+  return BOARDS.find((b) => b.id === id) ?? null;
+}
+
+/** Lowest published event price across all boards (for "from $X" copy). */
+export const FROM_PRICE = Math.min(...BOARDS.map((b) => effectiveRates(b).minimum));
+
+// Both boards include the same serviceware; the menu itself is never
+// itemized beyond the board's roll/nigiri counts — it is the chef's choice.
 export const EVENT_INCLUDES: readonly string[] = [
-  "Edamame appetizer",
-  "Plates, chopsticks & serviceware",
+  "Platters",
+  "Chopsticks",
+  "Small plates",
 ] as const;
 
 export interface Quote {
-  tier: Tier;
+  board: Board;
   guests: number;
-  total: number;            // max(guests × effective perGuest, effective minimum)
-  deposit: number;          // effective deposit
+  perGuest: number;         // effective per-guest rate
+  baseTotal: number;        // max(guests × perGuest, minimum) — before the second-chef fee
+  secondChefFee: number;    // 0, or SECOND_CHEF_FEE for parties above the threshold
+  total: number;            // baseTotal + secondChefFee
+  deposit: number;          // flat DEPOSIT
   balance: number;          // due at the event
-  minimumApplied: boolean;  // true when the minimum set the total
+  minimumApplied: boolean;  // true when the minimum set the base total
+  secondChefApplied: boolean;
+}
+
+/** True when a guest count is inside the directly-bookable range. */
+export function isBookable(guests: number): boolean {
+  const g = Math.floor(guests);
+  return Number.isFinite(g) && g >= MIN_GUESTS && g <= MAX_GUESTS;
 }
 
 /**
- * Tier for a guest count. Below MIN_GUESTS is invalid (null); above
- * MAX_GUESTS returns null too (route to the contact form). Every count
- * from MIN_GUESTS to MAX_GUESTS maps to a tier and books directly.
+ * Total + deposit for a board at a guest count, or null when out of the
+ * bookable range. The event minimum floors the per-guest total; the
+ * second-chef fee is added on top for large parties.
  */
-export function tierForGuests(guests: number): Tier | null {
+export function quoteForBoard(boardId: string, guests: number): Quote | null {
+  const board = boardById(boardId);
+  if (!board || !isBookable(guests)) return null;
   const g = Math.floor(guests);
-  if (!Number.isFinite(g) || g < MIN_GUESTS) return null;
-  if (g > MAX_GUESTS) return null;
-  return TIERS.find((t) => g <= t.maxGuests) ?? null;
-}
-
-/** Total + deposit for a guest count, or null when out of bookable range. */
-export function quoteForGuests(guests: number): Quote | null {
-  const tier = tierForGuests(guests);
-  if (!tier) return null;
-  const g = Math.floor(guests);
-  const r = effectiveRates(tier);
+  const r = effectiveRates(board);
   const raw = g * r.perGuest;
-  const total = Math.max(raw, r.minimum);
+  const baseTotal = Math.max(raw, r.minimum);
+  const secondChefFee = g > SECOND_CHEF_THRESHOLD ? SECOND_CHEF_FEE : 0;
+  const total = baseTotal + secondChefFee;
   return {
-    tier,
+    board,
     guests: g,
+    perGuest: r.perGuest,
+    baseTotal,
+    secondChefFee,
     total,
-    deposit: r.deposit,
-    balance: total - r.deposit,
-    minimumApplied: total > raw,
+    deposit: DEPOSIT,
+    balance: total - DEPOSIT,
+    minimumApplied: baseTotal > raw,
+    secondChefApplied: secondChefFee > 0,
   };
 }
 
+/** Every board's quote for a guest count, or null when out of range. Same order as BOARDS. */
+export function quotesForGuests(guests: number): Quote[] | null {
+  if (!isBookable(guests)) return null;
+  return BOARDS.map((b) => quoteForBoard(b.id, guests)!);
+}
+
 /**
- * Low and high event totals for a tier — the quoted totals at the band
- * edges. Each tier's low edge is floored by its event minimum, so the low
- * equals the tier's "starting at" price.
+ * Low and high event totals for a board across the bookable range — the low
+ * is the board's "starting at" price (its event minimum), the high is a full
+ * house. Used for card copy.
  */
-export function tierTotalRange(tier: Tier): { low: number; high: number } {
-  const low  = quoteForGuests(tier.minGuests);
-  const high = quoteForGuests(tier.maxGuests);
-  if (!low || !high) throw new Error(`tier ${tier.id} band is outside the bookable range`);
+export function boardTotalRange(board: Board): { low: number; high: number } {
+  const low  = quoteForBoard(board.id, MIN_GUESTS);
+  const high = quoteForBoard(board.id, MAX_GUESTS);
+  if (!low || !high) throw new Error(`board ${board.id} range is outside the bookable range`);
   return { low: low.total, high: high.total };
 }
 
 /**
- * Total after a promo discount. The effective minimum is applied LAST —
- * after every discount — so no booking ever settles below its tier floor.
+ * Total after a promo discount. The discount reduces the per-guest base
+ * total only; the event minimum floors it (applied LAST, so no booking
+ * settles below its board floor) and the second-chef fee is added back on
+ * top untouched.
  */
 export function totalAfterDiscount(quote: Quote, discountAmount: number): number {
   const d = Math.max(0, Number(discountAmount) || 0);
-  return Math.max(quote.total - d, effectiveRates(quote.tier).minimum);
+  const flooredBase = Math.max(quote.baseTotal - d, effectiveRates(quote.board).minimum);
+  return flooredBase + quote.secondChefFee;
 }
 
 export function formatUSD(amount: number): string {
