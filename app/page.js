@@ -11,7 +11,7 @@ const GlassMotion = dynamic(() => import("./components/GlassMotion"), { ssr: fal
 // can generate blur placeholders at build time.
 import imgHeroWide        from "@/public/images/hero-wide.jpg";
 import imgHeroMobile      from "@/public/images/hero-mobile.jpg";
-import imgHowCutout       from "@/public/images/how-it-works-cutout.png";
+import imgHowCutout       from "@/public/images/how-it-works.jpg";
 import imgTileEvent       from "@/public/images/tile-event.jpg";
 import imgTileTray        from "@/public/images/tile-tray.jpg";
 import imgSourcing        from "@/public/images/sourcing.jpg";
@@ -1043,7 +1043,7 @@ function ExperiencesSection() {
                 placeholder="blur"
                 decoding="async"
                 sizes="(max-width: 768px) 90vw, 420px"
-                style={{ width: "100%", height: "auto", display: "block" }}
+                style={{ width: "100%", height: "auto", display: "block", borderRadius: 14, boxShadow: "0 18px 40px rgba(0,0,0,0.45)" }}
               />
             </div>
           </div>
