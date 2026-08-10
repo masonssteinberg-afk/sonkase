@@ -653,6 +653,13 @@ function PageStyles() {
       .sk-hero-fit { object-fit: contain; object-position: center; }
       @media (max-width: 700px) { .sk-hero-fit { object-fit: cover; } }
 
+      /* Subtle "scroll up" hint at the top of the hero */
+      .sk-scroll-up { transform: translateX(-50%); opacity: 0.5; transition: opacity 0.3s ease; }
+      .sk-scroll-up:hover { opacity: 0.9; }
+      .sk-scroll-up-icon { animation: skUpBob 2.4s ease-in-out infinite; }
+      @keyframes skUpBob { 0%, 100% { transform: translateY(2px); } 50% { transform: translateY(-4px); } }
+      @media (prefers-reduced-motion: reduce) { .sk-scroll-up-icon { animation: none; } }
+
       /* Philosophy band */
       .sk-philo-terms { display: flex; justify-content: center; align-items: flex-start; gap: clamp(48px, 9vw, 96px); }
       @media (max-width: 600px) { .sk-philo-terms { flex-direction: column; gap: 30px; align-items: center; } }
@@ -966,11 +973,27 @@ function Hero({ onLetsRoll }) {
       </div>
 
 
+      {/* Subtle up-hint — there's a philosophy band above the fold */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" })}
+        aria-label="Scroll up"
+        className="sk-scroll-up"
+        style={{
+          position: "absolute",
+          top: "calc(var(--header-h, 118px) + var(--banner-h, 0px) + 26px)",
+          left: "50%",
+          background: "none", border: "none", padding: 10, cursor: "pointer",
+          color: CREAM, lineHeight: 0, zIndex: 3,
+        }}
+      >
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" className="sk-scroll-up-icon">
+          <path d="M6 14l6-6 6 6" />
+          <path d="M6 19l6-6 6 6" opacity="0.4" />
+        </svg>
+      </button>
+
       {/* Content sits low so the sushi owns the frame */}
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", width: "100%", marginTop: "auto" }}>
-
-        {/* Gold line */}
-        <div style={{ width: 120, height: 1, background: GOLD, opacity: 0.6, margin: "0 auto 32px" }} />
 
         {/* Headline */}
         <h1 style={{
@@ -981,15 +1004,6 @@ function Hero({ onLetsRoll }) {
         }}>
           the sonakase experience
         </h1>
-
-        {/* Tagline */}
-        <div style={{
-          fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(14px, 2vw, 18px)",
-          color: GOLD, letterSpacing: "0.15em", fontStyle: "italic",
-          marginBottom: 12,
-        }}>
-          American Omakase Where You Are
-        </div>
 
         {/* From-price — derived from the lowest tier minimum */}
         <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(245,240,232,0.7)", letterSpacing: "0.06em", marginBottom: 36 }}>
