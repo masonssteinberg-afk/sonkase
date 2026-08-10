@@ -9,24 +9,15 @@ const GlassMotion = dynamic(() => import("./components/GlassMotion"), { ssr: fal
 
 // Static imports so next/image knows dimensions (no layout shift) and
 // can generate blur placeholders at build time.
-import hd1 from "@/public/images/hero/hd1.jpg";
-import hd2 from "@/public/images/hero/hd2.jpg";
-import hd3 from "@/public/images/hero/hd3.jpg";
-import hd4 from "@/public/images/hero/hd4.jpg";
-import hd5 from "@/public/images/hero/hd5.jpg";
-import hd6 from "@/public/images/hero/hd6.jpg";
-import hd7 from "@/public/images/hero/hd7.jpg";
-import hd8 from "@/public/images/hero/hd8.jpg";
-import hd9 from "@/public/images/hero/hd9.jpg";
-import hm1 from "@/public/images/hero/hm1.jpg";
-import hm2 from "@/public/images/hero/hm2.jpg";
-import hm3 from "@/public/images/hero/hm3.jpg";
-import hm4 from "@/public/images/hero/hm4.jpg";
-import hm5 from "@/public/images/hero/hm5.jpg";
-import hm6 from "@/public/images/hero/hm6.jpg";
-import hm7 from "@/public/images/hero/hm7.jpg";
-import hm8 from "@/public/images/hero/hm8.jpg";
-import hm9 from "@/public/images/hero/hm9.jpg";
+import u1 from "@/public/images/hero/u1.jpg";
+import u2 from "@/public/images/hero/u2.jpg";
+import u3 from "@/public/images/hero/u3.jpg";
+import u4 from "@/public/images/hero/u4.jpg";
+import u5 from "@/public/images/hero/u5.jpg";
+import u6 from "@/public/images/hero/u6.jpg";
+import u7 from "@/public/images/hero/u7.jpg";
+import u8 from "@/public/images/hero/u8.jpg";
+import u9 from "@/public/images/hero/u9.jpg";
 import gNew1 from "@/public/images/hero/g1.jpg";
 import gNew3 from "@/public/images/hero/g3.jpg";
 import gNew4 from "@/public/images/hero/g4.jpg";
@@ -56,10 +47,10 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
 // ── Hero slideshow — 10 curated frames, desktop (wide) + mobile (tall) crops ──
-const HERO_D = [hd1, hd2, hd3, hd4, hd5, hd6, hd7, hd8, hd9];
-const HERO_M = [hm1, hm2, hm3, hm4, hm5, hm6, hm7, hm8, hm9];
-const HERO_N = HERO_D.length;   // 10
-const HERO_PER = 6;             // seconds each frame holds
+// Pre-framed portrait heroes; torch shot (u3) leads. Shown uncropped (contain).
+const HERO = [u3, u1, u2, u4, u5, u6, u7, u8, u9];
+const HERO_N = HERO.length;
+const HERO_PER = 3.5;           // seconds each frame holds
 
 // ── Boards — all pricing comes from lib/pricing, no literals here ──
 import { BOARDS, boardTotalRange, quotesForGuests, effectiveRates, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS, LAUNCH_ACTIVE, DEPOSIT, SECOND_CHEF_THRESHOLD, SECOND_CHEF_FEE } from "@/lib/pricing";
@@ -619,16 +610,15 @@ function PageStyles() {
       .sk-hero-slide {
         position: absolute; inset: 0;
         opacity: 0;
-        animation: skHeroKen ${HERO_N * HERO_PER}s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        will-change: opacity, transform;
+        animation: skHeroKen ${(HERO_N * HERO_PER).toFixed(2)}s linear infinite;
+        will-change: opacity;
       }
       @keyframes skHeroKen {
-        0%                                                           { opacity: 0; transform: scale(1.00); }
-        ${(1 / (HERO_N * HERO_PER) * 100).toFixed(3)}%               { opacity: 1; transform: scale(1.01); }
-        ${(HERO_PER / (HERO_N * HERO_PER) * 100).toFixed(3)}%        { opacity: 1; transform: scale(1.05); }
-        ${((HERO_PER + 1) / (HERO_N * HERO_PER) * 100).toFixed(3)}%  { opacity: 0; transform: scale(1.06); }
-        ${((HERO_PER + 1.4) / (HERO_N * HERO_PER) * 100).toFixed(3)}% { opacity: 0; transform: scale(1.00); }
-        100%                                                         { opacity: 0; transform: scale(1.00); }
+        0%                                                            { opacity: 0; }
+        ${(0.8 / (HERO_N * HERO_PER) * 100).toFixed(3)}%              { opacity: 1; }
+        ${(HERO_PER / (HERO_N * HERO_PER) * 100).toFixed(3)}%         { opacity: 1; }
+        ${((HERO_PER + 0.8) / (HERO_N * HERO_PER) * 100).toFixed(3)}% { opacity: 0; }
+        100%                                                          { opacity: 0; }
       }
 
       /* ── Meet-your-chef cutout — kitchen removed, blend baked into the image ── */
@@ -888,26 +878,21 @@ function Hero({ onLetsRoll }) {
     >
       {/* Hero photo — wide crop above 700px, tall crop below */}
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }} aria-hidden="false">
-        {/* Desktop slideshow — slow Ken Burns crossfade through real event frames */}
-        <div className="sk-hero-photo-d sk-hero-slides">
-          {HERO_D.map((src, i) => (
+        {/* Slideshow — pre-framed portrait shots shown uncropped (contain),
+            with a blurred fill of the same shot behind so wide screens have no bars */}
+        <div className="sk-hero-slides">
+          {HERO.map((src, i) => (
             <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * HERO_PER}s` }}>
               <Image
                 src={src}
-                alt="Specialty sushi from a private Sonakase event in Gainesville."
+                alt=""
+                aria-hidden="true"
                 fill
                 priority={i === 0}
                 placeholder="blur"
                 sizes="100vw"
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: "cover", transform: "scale(1.12)", filter: "blur(30px) brightness(0.5)" }}
               />
-            </div>
-          ))}
-        </div>
-        {/* Mobile slideshow — portrait frames */}
-        <div className="sk-hero-photo-m sk-hero-slides">
-          {HERO_M.map((src, i) => (
-            <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * HERO_PER}s` }}>
               <Image
                 src={src}
                 alt="Specialty sushi from a private Sonakase event in Gainesville."
@@ -915,7 +900,7 @@ function Hero({ onLetsRoll }) {
                 priority={i === 0}
                 placeholder="blur"
                 sizes="100vw"
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: "contain" }}
               />
             </div>
           ))}
