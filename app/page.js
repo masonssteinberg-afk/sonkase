@@ -241,7 +241,7 @@ function PhilosophyBand() {
               <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
               <text x="138" y="88" fontFamily="'Shippori Mincho', Georgia, serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
             </svg>
-            <div style={{ fontFamily: FONT_UI, fontSize: "clamp(11px, 1.4vw, 12px)", letterSpacing: "0.02em", color: "rgba(var(--text-rgb),0.5)", marginTop: "0.95em", lineHeight: 1.5 }}>prepared and offered, entrusted to the chef</div>
+            <div style={{ fontFamily: FONT_UI, fontSize: "clamp(11px, 1.4vw, 12px)", letterSpacing: "0.02em", color: "rgba(var(--text-rgb),0.5)", marginTop: "0.95em", lineHeight: 1.6, maxWidth: 340 }}>A meal prepared and offered with care, its choices entrusted to the chef.</div>
           </div>
         </div>
       </div>
