@@ -204,6 +204,34 @@ const N = (f, o) =>
    lib/pricing.ts.
    ====================================================================== */
 
+// ── Philosophy band — flat dark ground under the header, above the hero ──
+function PhilosophyBand() {
+  const CJK = "'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', serif";
+  const Term = ({ kanji, romaji, gloss }) => (
+    <div style={{ textAlign: "center" }}>
+      <div style={{ fontFamily: CJK, fontSize: "clamp(30px, 4.6vw, 42px)", color: CREAM, fontWeight: 400, lineHeight: 1.1, letterSpacing: "0.05em" }}>{kanji}</div>
+      <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12.5, color: "rgba(var(--text-rgb),0.82)", letterSpacing: "0.32em", textTransform: "uppercase", marginTop: 14 }}>{romaji}</div>
+      <div style={{ fontFamily: FONT_UI, fontSize: 12, color: "rgba(var(--text-rgb),0.6)", letterSpacing: "0.02em", marginTop: 7 }}>{gloss}</div>
+    </div>
+  );
+  return (
+    <section aria-label="Sonakase" style={{ background: BG, position: "relative", zIndex: 1 }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "calc(var(--header-h, 118px) + var(--banner-h, 0px) + 60px) 40px 56px", boxSizing: "border-box" }}>
+        <div className="sk-philo-in">
+          <div style={{ height: 1, background: GOLD, opacity: 0.13, marginBottom: "clamp(36px, 6vw, 54px)" }} />
+          <div className="sk-philo-terms">
+            <Term kanji="供える" romaji="sonaeru" gloss="to prepare and offer" />
+            <Term kanji="まかせる" romaji="makaseru" gloss="to entrust" />
+          </div>
+          <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(15px, 2vw, 17px)", color: CREAM, textAlign: "center", margin: "clamp(30px, 5vw, 44px) auto 0", lineHeight: 1.75, maxWidth: 660, fontWeight: 400 }}>
+            Sonakase. Prepared and offered, entrusted to the chef.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────
 export default function Home() {
   const router = useRouter();
@@ -221,6 +249,7 @@ export default function Home() {
       <PageStyles />
       <ScrollRoll />
       <Nav />
+      <PhilosophyBand />
       <Hero onLetsRoll={() => router.push("/book")} />
       <ExperiencesSection />
       <PhotoSection />
@@ -607,6 +636,16 @@ function PageStyles() {
 
       /* ── Hero slideshow — crossfading Ken Burns through real event frames ── */
       .sk-hero-slides { position: absolute; inset: 0; }
+      /* Mobile fills the screen (crops sides slightly); desktop shows the full portrait */
+      .sk-hero-fit { object-fit: contain; object-position: center; }
+      @media (max-width: 700px) { .sk-hero-fit { object-fit: cover; } }
+
+      /* Philosophy band */
+      .sk-philo-terms { display: flex; justify-content: center; align-items: flex-start; gap: clamp(48px, 9vw, 96px); }
+      @media (max-width: 600px) { .sk-philo-terms { flex-direction: column; gap: 30px; align-items: center; } }
+      .sk-philo-in { opacity: 0; transform: translateY(10px); animation: skPhiloIn 0.9s cubic-bezier(0.16,1,0.3,1) 0.15s forwards; }
+      @keyframes skPhiloIn { to { opacity: 1; transform: none; } }
+      @media (prefers-reduced-motion: reduce) { .sk-philo-in { opacity: 1; transform: none; animation: none; } }
       .sk-hero-slide {
         position: absolute; inset: 0;
         opacity: 0;
@@ -661,8 +700,9 @@ function Nav() {
       const y = window.scrollY;
       setScrolled(y > 30);                       // logo shrinks as soon as you scroll
       const hero = document.querySelector(".sk-hero");
-      const heroH = hero ? hero.offsetHeight : window.innerHeight;
-      setPastHero(y > heroH - 130);              // nav goes glass past the hero
+      let heroBottom = window.innerHeight;
+      if (hero) { const r = hero.getBoundingClientRect(); heroBottom = r.bottom + window.scrollY; }
+      setPastHero(y > heroBottom - 130);         // nav goes glass past the hero
       // Fixed-light: header specular drifts as the page scrolls (low intensity)
       if (!reduce && navRef.current) {
         const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -900,7 +940,7 @@ function Hero({ onLetsRoll }) {
                 priority={i === 0}
                 placeholder="blur"
                 sizes="100vw"
-                style={{ objectFit: "contain" }}
+                className="sk-hero-fit"
               />
             </div>
           ))}
