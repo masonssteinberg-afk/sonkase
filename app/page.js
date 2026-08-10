@@ -610,25 +610,9 @@ function PageStyles() {
         100%   { opacity: 0; transform: scale(1.00); }
       }
 
-      /* ── Meet-your-chef portrait — dissolve the bright frame into the dark section ── */
-      .sk-chef-photo {
-        position: relative;
-        overflow: hidden;
-        -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 82%, transparent 100%);
-                mask-image: linear-gradient(180deg, #000 0%, #000 82%, transparent 100%);
-      }
-      .sk-chef-photo img {
-        filter: brightness(0.82) saturate(0.9) contrast(1.04);
-        transition: filter 0.6s ease;
-      }
-      .sk-chef-photo:hover img { filter: brightness(0.9) saturate(0.95) contrast(1.03); }
-      .sk-chef-photo::after {
-        content: "";
-        position: absolute; inset: 0; pointer-events: none;
-        background:
-          radial-gradient(78% 70% at 50% 37%, rgba(20,20,20,0) 38%, rgba(20,20,20,0.5) 76%, rgba(20,20,20,0.9) 100%),
-          linear-gradient(180deg, rgba(20,20,20,0.5) 0%, rgba(20,20,20,0) 20%, rgba(20,20,20,0) 52%, rgba(20,20,20,0.98) 100%);
-      }
+      /* ── Meet-your-chef cutout — kitchen removed, blend baked into the image ── */
+      .sk-chef-photo { position: relative; }
+      .sk-chef-photo img { display: block; }
 
       @media (prefers-reduced-motion: reduce) {
         .sk-hero-slide { animation: none; opacity: 0; transform: none; }
