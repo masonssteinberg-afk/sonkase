@@ -887,6 +887,7 @@ function Hero({ onLetsRoll }) {
                 alt="Sushi spread laid out along a kitchen counter at a private event in Gainesville."
                 fill
                 priority={i === 0}
+                loading={i === 0 ? undefined : "eager"}
                 placeholder="blur"
                 sizes="100vw"
                 style={{ objectFit: "cover" }}
@@ -903,6 +904,7 @@ function Hero({ onLetsRoll }) {
                 alt="Chef preparing sushi at a private event in Gainesville."
                 fill
                 priority={i === 0}
+                loading={i === 0 ? undefined : "eager"}
                 placeholder="blur"
                 sizes="100vw"
                 style={{ objectFit: "cover" }}
