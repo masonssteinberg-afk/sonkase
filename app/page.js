@@ -11,6 +11,12 @@ const GlassMotion = dynamic(() => import("./components/GlassMotion"), { ssr: fal
 // can generate blur placeholders at build time.
 import imgHeroWide        from "@/public/images/hero-wide.jpg";
 import imgHeroMobile      from "@/public/images/hero-mobile.jpg";
+import imgHero2           from "@/public/images/hero-2.jpg";
+import imgHero3           from "@/public/images/hero-3.jpg";
+import imgHero4           from "@/public/images/hero-4.jpg";
+import imgHeroM2          from "@/public/images/hero-m-2.jpg";
+import imgHeroM3          from "@/public/images/hero-m-3.jpg";
+import imgHeroM4          from "@/public/images/hero-m-4.jpg";
 import imgHowCutout       from "@/public/images/how-it-works.jpg";
 import imgTileEvent       from "@/public/images/tile-event.jpg";
 import imgTileTray        from "@/public/images/tile-tray.jpg";
@@ -587,6 +593,48 @@ function PageStyles() {
         .sk-hero-photo-m { display: block; }
       }
 
+      /* ── Hero slideshow — crossfading Ken Burns through real event frames ── */
+      .sk-hero-slides { position: absolute; inset: 0; }
+      .sk-hero-slide {
+        position: absolute; inset: 0;
+        opacity: 0;
+        animation: skHeroKen 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        will-change: opacity, transform;
+      }
+      @keyframes skHeroKen {
+        0%     { opacity: 0; transform: scale(1.00); }
+        4.17%  { opacity: 1; transform: scale(1.012); }
+        25%    { opacity: 1; transform: scale(1.055); }
+        29.17% { opacity: 0; transform: scale(1.07); }
+        30%    { opacity: 0; transform: scale(1.00); }
+        100%   { opacity: 0; transform: scale(1.00); }
+      }
+
+      /* ── Meet-your-chef portrait — dissolve the bright frame into the dark section ── */
+      .sk-chef-photo {
+        position: relative;
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 82%, transparent 100%);
+                mask-image: linear-gradient(180deg, #000 0%, #000 82%, transparent 100%);
+      }
+      .sk-chef-photo img {
+        filter: brightness(0.82) saturate(0.9) contrast(1.04);
+        transition: filter 0.6s ease;
+      }
+      .sk-chef-photo:hover img { filter: brightness(0.9) saturate(0.95) contrast(1.03); }
+      .sk-chef-photo::after {
+        content: "";
+        position: absolute; inset: 0; pointer-events: none;
+        background:
+          radial-gradient(78% 70% at 50% 37%, rgba(20,20,20,0) 38%, rgba(20,20,20,0.5) 76%, rgba(20,20,20,0.9) 100%),
+          linear-gradient(180deg, rgba(20,20,20,0.5) 0%, rgba(20,20,20,0) 20%, rgba(20,20,20,0) 52%, rgba(20,20,20,0.98) 100%);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .sk-hero-slide { animation: none; opacity: 0; transform: none; }
+        .sk-hero-slide:first-child { opacity: 1; }
+      }
+
       @media (max-width: 768px) {
         .sk-nav-links { display: none !important; }
         .sk-how-grid  { grid-template-columns: 1fr !important; }
@@ -830,27 +878,37 @@ function Hero({ onLetsRoll }) {
     >
       {/* Hero photo — wide crop above 700px, tall crop below */}
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }} aria-hidden="false">
-        <div className="sk-hero-photo-d" style={{ position: "absolute", inset: 0 }}>
-          <Image
-            src={imgHeroWide}
-            alt="Sushi spread laid out along a kitchen counter at a private event in Gainesville."
-            fill
-            priority
-            placeholder="blur"
-            sizes="100vw"
-            style={{ objectFit: "cover" }}
-          />
+        {/* Desktop slideshow — slow Ken Burns crossfade through real event frames */}
+        <div className="sk-hero-photo-d sk-hero-slides">
+          {[imgHeroWide, imgHero2, imgHero3, imgHero4].map((src, i) => (
+            <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * 6}s` }}>
+              <Image
+                src={src}
+                alt="Sushi spread laid out along a kitchen counter at a private event in Gainesville."
+                fill
+                priority={i === 0}
+                placeholder="blur"
+                sizes="100vw"
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+          ))}
         </div>
-        <div className="sk-hero-photo-m" style={{ position: "absolute", inset: 0 }}>
-          <Image
-            src={imgHeroMobile}
-            alt="Sushi spread laid out along a kitchen counter at a private event in Gainesville."
-            fill
-            priority
-            placeholder="blur"
-            sizes="100vw"
-            style={{ objectFit: "cover" }}
-          />
+        {/* Mobile slideshow — portrait frames */}
+        <div className="sk-hero-photo-m sk-hero-slides">
+          {[imgHeroMobile, imgHeroM2, imgHeroM3, imgHeroM4].map((src, i) => (
+            <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * 6}s` }}>
+              <Image
+                src={src}
+                alt="Chef preparing sushi at a private event in Gainesville."
+                fill
+                priority={i === 0}
+                placeholder="blur"
+                sizes="100vw"
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+          ))}
         </div>
         {/* Readability gradient — the sushi carries the middle; text zones darken */}
         <div style={{
@@ -1133,8 +1191,8 @@ function AboutChefSection() {
         <Reveal>
           <div className="sk-about-grid">
 
-            {/* Left — Chef portrait */}
-            <div>
+            {/* Left — Chef portrait, blended into the dark section */}
+            <div className="sk-chef-photo">
               <Image
                 src={imgChefPortrait}
                 alt="Mason Steinberg, Founder & Executive Chef"
