@@ -18,7 +18,6 @@ import hd6 from "@/public/images/hero/hd6.jpg";
 import hd7 from "@/public/images/hero/hd7.jpg";
 import hd8 from "@/public/images/hero/hd8.jpg";
 import hd9 from "@/public/images/hero/hd9.jpg";
-import hd10 from "@/public/images/hero/hd10.jpg";
 import hm1 from "@/public/images/hero/hm1.jpg";
 import hm2 from "@/public/images/hero/hm2.jpg";
 import hm3 from "@/public/images/hero/hm3.jpg";
@@ -28,9 +27,7 @@ import hm6 from "@/public/images/hero/hm6.jpg";
 import hm7 from "@/public/images/hero/hm7.jpg";
 import hm8 from "@/public/images/hero/hm8.jpg";
 import hm9 from "@/public/images/hero/hm9.jpg";
-import hm10 from "@/public/images/hero/hm10.jpg";
 import gNew1 from "@/public/images/hero/g1.jpg";
-import gNew2 from "@/public/images/hero/g2.jpg";
 import gNew3 from "@/public/images/hero/g3.jpg";
 import gNew4 from "@/public/images/hero/g4.jpg";
 import gNew5 from "@/public/images/hero/g5.jpg";
@@ -59,8 +56,8 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
 // ── Hero slideshow — 10 curated frames, desktop (wide) + mobile (tall) crops ──
-const HERO_D = [hd1, hd2, hd3, hd4, hd5, hd6, hd7, hd8, hd9, hd10];
-const HERO_M = [hm1, hm2, hm3, hm4, hm5, hm6, hm7, hm8, hm9, hm10];
+const HERO_D = [hd1, hd2, hd3, hd4, hd5, hd6, hd7, hd8, hd9];
+const HERO_M = [hm1, hm2, hm3, hm4, hm5, hm6, hm7, hm8, hm9];
 const HERO_N = HERO_D.length;   // 10
 const HERO_PER = 6;             // seconds each frame holds
 
@@ -1433,7 +1430,6 @@ const GALLERY = [
   { src: imgTileSpread,      alt: "A full sushi spread across the kitchen counter at an in-home event." },
   { src: imgTileBoardDetail, alt: "Close-up detail of sushi rolls on a wooden serving board." },
   { src: gNew1, alt: "Chef torching a specialty roll at a private sushi event in Gainesville." },
-  { src: gNew2, alt: "Close-up of a sushi roll being finished with a torch." },
   { src: gNew3, alt: "Chef torching sushi to order during an in-home omakase event." },
   { src: gNew4, alt: "Overhead view of an abundant sushi spread with garnishes." },
   { src: gNew5, alt: "Chef preparing a full sushi spread at a private event." },
