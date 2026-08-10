@@ -207,25 +207,31 @@ const N = (f, o) =>
 // ── Philosophy band — flat dark ground under the header, above the hero ──
 function PhilosophyBand() {
   const CJK = "'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', serif";
+  const SERIF = "'Shippori Mincho', Georgia, serif";
   const Term = ({ kanji, romaji, gloss }) => (
-    <div style={{ textAlign: "center" }}>
-      <div style={{ fontFamily: CJK, fontSize: "clamp(30px, 4.6vw, 42px)", color: CREAM, fontWeight: 400, lineHeight: 1.1, letterSpacing: "0.05em" }}>{kanji}</div>
-      <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12.5, color: "rgba(var(--text-rgb),0.82)", letterSpacing: "0.32em", textTransform: "uppercase", marginTop: 14 }}>{romaji}</div>
-      <div style={{ fontFamily: FONT_UI, fontSize: 12, color: "rgba(var(--text-rgb),0.6)", letterSpacing: "0.02em", marginTop: 7 }}>{gloss}</div>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div style={{ fontFamily: CJK, fontSize: "clamp(28px, 4.2vw, 38px)", lineHeight: 1.12, letterSpacing: "0.05em", color: "rgba(var(--text-rgb),0.9)" }}>{kanji}</div>
+      <div style={{ fontFamily: SERIF, fontSize: "clamp(12px, 1.5vw, 13px)", letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(var(--text-rgb),0.7)", marginTop: "0.75em" }}>{romaji}</div>
+      <div style={{ fontFamily: FONT_UI, fontSize: "clamp(11px, 1.4vw, 12px)", letterSpacing: "0.02em", color: "rgba(var(--text-rgb),0.5)", marginTop: "0.5em" }}>{gloss}</div>
     </div>
+  );
+  // Connective operators — smallest, faintest, body font (not a display weight)
+  const Op = ({ children }) => (
+    <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(10px, 1.2vw, 11px)", lineHeight: 1, color: "rgba(var(--text-rgb),0.4)" }}>{children}</div>
   );
   return (
     <section aria-label="Sonakase" style={{ background: BG, position: "relative", zIndex: 1 }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "calc(var(--header-h, 118px) + var(--banner-h, 0px) + 60px) 40px 56px", boxSizing: "border-box" }}>
-        <div className="sk-philo-in">
-          <div style={{ height: 1, background: GOLD, opacity: 0.13, marginBottom: "clamp(36px, 6vw, 54px)" }} />
-          <div className="sk-philo-terms">
-            <Term kanji="供える" romaji="sonaeru" gloss="to prepare and offer" />
-            <Term kanji="まかせる" romaji="makaseru" gloss="to entrust" />
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(var(--header-h, 118px) + var(--banner-h, 0px) + 56px) 24px 56px", boxSizing: "border-box" }}>
+        <div className="sk-philo-in" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "clamp(17px, 3.2vw, 26px)" }}>
+          <Term kanji="供える" romaji="sonaeru" gloss="to prepare and offer" />
+          <Op>+</Op>
+          <Term kanji="まかせる" romaji="makaseru" gloss="to entrust" />
+          <Op>=</Op>
+          {/* Resolution — the only full-opacity element, given extra space above */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "clamp(8px, 1.6vw, 15px)" }}>
+            <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(19px, 2.6vw, 23px)", letterSpacing: "0.02em", lineHeight: 1.2, color: CREAM }}>Sonakase</div>
+            <div style={{ fontFamily: FONT_UI, fontSize: "clamp(11px, 1.4vw, 12px)", letterSpacing: "0.02em", color: "rgba(var(--text-rgb),0.5)", marginTop: "0.6em", lineHeight: 1.5 }}>prepared and offered, entrusted to the chef</div>
           </div>
-          <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(15px, 2vw, 17px)", color: CREAM, textAlign: "center", margin: "clamp(30px, 5vw, 44px) auto 0", lineHeight: 1.75, maxWidth: 660, fontWeight: 400 }}>
-            Sonakase. Prepared and offered, entrusted to the chef.
-          </p>
         </div>
       </div>
     </section>
