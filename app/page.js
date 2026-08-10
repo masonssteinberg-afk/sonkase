@@ -243,6 +243,19 @@ export default function Home() {
     }
   }, []);
 
+  // Land on the hero photos; the philosophy band sits hidden above (scroll up to see it).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash) return;                    // respect deep-links / anchors
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    const toHero = () => {
+      const hero = document.querySelector(".sk-hero");
+      if (hero) window.scrollTo({ top: hero.getBoundingClientRect().top + window.scrollY, left: 0, behavior: "auto" });
+    };
+    toHero();
+    requestAnimationFrame(toHero);                        // re-apply after first layout
+  }, []);
+
   // Photo-first flow: content and photography alternate all the way down.
   return (
     <div style={{ background: BG, color: CREAM, fontFamily: "'Shippori Mincho', Georgia, serif", overflowX: "hidden" }}>
@@ -952,20 +965,6 @@ function Hero({ onLetsRoll }) {
         }} />
       </div>
 
-      {/* Gold horizontal accent lines */}
-      <div style={{
-        position: "absolute",
-        top: "calc(var(--header-h, 100px) + var(--banner-h, 0px) + 18px)",
-        left: 0, right: 0, height: 1,
-        background: "rgba(var(--gold-rgb),0.30)",
-        zIndex: 2, pointerEvents: "none",
-      }} />
-      <div style={{
-        position: "absolute", bottom: 24,
-        left: 0, right: 0, height: 1,
-        background: "rgba(var(--gold-rgb),0.30)",
-        zIndex: 2, pointerEvents: "none",
-      }} />
 
       {/* Content sits low so the sushi owns the frame */}
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", width: "100%", marginTop: "auto" }}>
