@@ -9,14 +9,32 @@ const GlassMotion = dynamic(() => import("./components/GlassMotion"), { ssr: fal
 
 // Static imports so next/image knows dimensions (no layout shift) and
 // can generate blur placeholders at build time.
-import imgHeroWide        from "@/public/images/hero-wide.jpg";
-import imgHeroMobile      from "@/public/images/hero-mobile.jpg";
-import imgHero2           from "@/public/images/hero-2.jpg";
-import imgHero3           from "@/public/images/hero-3.jpg";
-import imgHero4           from "@/public/images/hero-4.jpg";
-import imgHeroM2          from "@/public/images/hero-m-2.jpg";
-import imgHeroM3          from "@/public/images/hero-m-3.jpg";
-import imgHeroM4          from "@/public/images/hero-m-4.jpg";
+import hd1 from "@/public/images/hero/hd1.jpg";
+import hd2 from "@/public/images/hero/hd2.jpg";
+import hd3 from "@/public/images/hero/hd3.jpg";
+import hd4 from "@/public/images/hero/hd4.jpg";
+import hd5 from "@/public/images/hero/hd5.jpg";
+import hd6 from "@/public/images/hero/hd6.jpg";
+import hd7 from "@/public/images/hero/hd7.jpg";
+import hd8 from "@/public/images/hero/hd8.jpg";
+import hd9 from "@/public/images/hero/hd9.jpg";
+import hd10 from "@/public/images/hero/hd10.jpg";
+import hm1 from "@/public/images/hero/hm1.jpg";
+import hm2 from "@/public/images/hero/hm2.jpg";
+import hm3 from "@/public/images/hero/hm3.jpg";
+import hm4 from "@/public/images/hero/hm4.jpg";
+import hm5 from "@/public/images/hero/hm5.jpg";
+import hm6 from "@/public/images/hero/hm6.jpg";
+import hm7 from "@/public/images/hero/hm7.jpg";
+import hm8 from "@/public/images/hero/hm8.jpg";
+import hm9 from "@/public/images/hero/hm9.jpg";
+import hm10 from "@/public/images/hero/hm10.jpg";
+import gNew1 from "@/public/images/hero/g1.jpg";
+import gNew2 from "@/public/images/hero/g2.jpg";
+import gNew3 from "@/public/images/hero/g3.jpg";
+import gNew4 from "@/public/images/hero/g4.jpg";
+import gNew5 from "@/public/images/hero/g5.jpg";
+import gNew6 from "@/public/images/hero/g6.jpg";
 import imgHowCutout       from "@/public/images/how-it-works.jpg";
 import imgTileEvent       from "@/public/images/tile-event.jpg";
 import imgTileTray        from "@/public/images/tile-tray.jpg";
@@ -39,6 +57,12 @@ const CREAM = "var(--text)";
 const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif";
 // iOS-style spring for transforms; standard ease-out for everything else
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
+
+// ── Hero slideshow — 10 curated frames, desktop (wide) + mobile (tall) crops ──
+const HERO_D = [hd1, hd2, hd3, hd4, hd5, hd6, hd7, hd8, hd9, hd10];
+const HERO_M = [hm1, hm2, hm3, hm4, hm5, hm6, hm7, hm8, hm9, hm10];
+const HERO_N = HERO_D.length;   // 10
+const HERO_PER = 6;             // seconds each frame holds
 
 // ── Boards — all pricing comes from lib/pricing, no literals here ──
 import { BOARDS, boardTotalRange, quotesForGuests, effectiveRates, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS, LAUNCH_ACTIVE, DEPOSIT, SECOND_CHEF_THRESHOLD, SECOND_CHEF_FEE } from "@/lib/pricing";
@@ -598,16 +622,16 @@ function PageStyles() {
       .sk-hero-slide {
         position: absolute; inset: 0;
         opacity: 0;
-        animation: skHeroKen 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        animation: skHeroKen ${HERO_N * HERO_PER}s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         will-change: opacity, transform;
       }
       @keyframes skHeroKen {
-        0%     { opacity: 0; transform: scale(1.00); }
-        4.17%  { opacity: 1; transform: scale(1.012); }
-        25%    { opacity: 1; transform: scale(1.055); }
-        29.17% { opacity: 0; transform: scale(1.07); }
-        30%    { opacity: 0; transform: scale(1.00); }
-        100%   { opacity: 0; transform: scale(1.00); }
+        0%                                                           { opacity: 0; transform: scale(1.00); }
+        ${(1 / (HERO_N * HERO_PER) * 100).toFixed(3)}%               { opacity: 1; transform: scale(1.01); }
+        ${(HERO_PER / (HERO_N * HERO_PER) * 100).toFixed(3)}%        { opacity: 1; transform: scale(1.05); }
+        ${((HERO_PER + 1) / (HERO_N * HERO_PER) * 100).toFixed(3)}%  { opacity: 0; transform: scale(1.06); }
+        ${((HERO_PER + 1.4) / (HERO_N * HERO_PER) * 100).toFixed(3)}% { opacity: 0; transform: scale(1.00); }
+        100%                                                         { opacity: 0; transform: scale(1.00); }
       }
 
       /* ── Meet-your-chef cutout — kitchen removed, blend baked into the image ── */
@@ -641,13 +665,17 @@ function PageStyles() {
 // ── Nav ───────────────────────────────────────────────────────
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
   const navRef = useRef(null);
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const fn = () => {
       const y = window.scrollY;
-      setScrolled(y > 10);
+      setScrolled(y > 30);                       // logo shrinks as soon as you scroll
+      const hero = document.querySelector(".sk-hero");
+      const heroH = hero ? hero.offsetHeight : window.innerHeight;
+      setPastHero(y > heroH - 130);              // nav goes glass past the hero
       // Fixed-light: header specular drifts as the page scrolls (low intensity)
       if (!reduce && navRef.current) {
         const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -657,27 +685,28 @@ function Nav() {
     };
     fn();
     window.addEventListener("scroll", fn, { passive: true });
-    return () => window.removeEventListener("scroll", fn);
+    window.addEventListener("resize", fn, { passive: true });
+    return () => { window.removeEventListener("scroll", fn); window.removeEventListener("resize", fn); };
   }, []);
 
   return (
-    <nav ref={navRef} className={`sk-glass-nav${scrolled ? " is-scrolled" : ""}`} style={{
+    <nav ref={navRef} className={`sk-glass-nav${pastHero ? " is-scrolled" : ""}`} style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-      background: scrolled ? "var(--header-bg)" : "transparent",
-      backdropFilter: scrolled ? "blur(22px) saturate(200%) brightness(1.15)" : "none",
-      WebkitBackdropFilter: scrolled ? "blur(22px) saturate(200%) brightness(1.15)" : "none",
-      borderBottom: `1px solid ${scrolled ? "var(--header-border)" : "transparent"}`,
-      transition: "border-color 0.3s, background 0.3s, backdrop-filter 0.3s",
+      background: pastHero ? "var(--header-bg)" : "var(--bg)",
+      backdropFilter: pastHero ? "blur(22px) saturate(200%) brightness(1.15)" : "none",
+      WebkitBackdropFilter: pastHero ? "blur(22px) saturate(200%) brightness(1.15)" : "none",
+      borderBottom: `1px solid ${pastHero ? "var(--header-border)" : "transparent"}`,
+      transition: "border-color 0.4s, background 0.4s, backdrop-filter 0.4s",
     }}>
       <div className="sk-nav-inner" style={{
         maxWidth: 1240, margin: "0 auto",
-        padding: "0 44px", height: scrolled ? 90 : 118,
+        padding: "0 44px", height: scrolled ? 84 : 134,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         boxSizing: "border-box",
-        transition: "height 0.35s cubic-bezier(0.16,1,0.3,1)",
+        transition: "height 0.4s cubic-bezier(0.16,1,0.3,1)",
       }}>
         <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-          <svg className="sk-nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="360" height="100" role="img" aria-label="Sonakase Private Dining">
+          <svg className="sk-nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="360" height="100" role="img" aria-label="Sonakase Private Dining" style={{ transform: scrolled ? "scale(1)" : "scale(1.32)", transformOrigin: "left center", transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)" }}>
             <defs>
               <style>{"@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Cormorant+Garamond:wght@300&display=swap');"}</style>
             </defs>
@@ -864,14 +893,13 @@ function Hero({ onLetsRoll }) {
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }} aria-hidden="false">
         {/* Desktop slideshow — slow Ken Burns crossfade through real event frames */}
         <div className="sk-hero-photo-d sk-hero-slides">
-          {[imgHeroWide, imgHero2, imgHero3, imgHero4].map((src, i) => (
-            <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * 6}s` }}>
+          {HERO_D.map((src, i) => (
+            <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * HERO_PER}s` }}>
               <Image
                 src={src}
-                alt="Sushi spread laid out along a kitchen counter at a private event in Gainesville."
+                alt="Specialty sushi from a private Sonakase event in Gainesville."
                 fill
                 priority={i === 0}
-                loading={i === 0 ? undefined : "eager"}
                 placeholder="blur"
                 sizes="100vw"
                 style={{ objectFit: "cover" }}
@@ -881,14 +909,13 @@ function Hero({ onLetsRoll }) {
         </div>
         {/* Mobile slideshow — portrait frames */}
         <div className="sk-hero-photo-m sk-hero-slides">
-          {[imgHeroMobile, imgHeroM2, imgHeroM3, imgHeroM4].map((src, i) => (
-            <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * 6}s` }}>
+          {HERO_M.map((src, i) => (
+            <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * HERO_PER}s` }}>
               <Image
                 src={src}
-                alt="Chef preparing sushi at a private event in Gainesville."
+                alt="Specialty sushi from a private Sonakase event in Gainesville."
                 fill
                 priority={i === 0}
-                loading={i === 0 ? undefined : "eager"}
                 placeholder="blur"
                 sizes="100vw"
                 style={{ objectFit: "cover" }}
@@ -1405,6 +1432,12 @@ const GALLERY = [
   { src: imgSourcing,        alt: "Fresh ingredients prepped for a private sushi event." },
   { src: imgTileSpread,      alt: "A full sushi spread across the kitchen counter at an in-home event." },
   { src: imgTileBoardDetail, alt: "Close-up detail of sushi rolls on a wooden serving board." },
+  { src: gNew1, alt: "Chef torching a specialty roll at a private sushi event in Gainesville." },
+  { src: gNew2, alt: "Close-up of a sushi roll being finished with a torch." },
+  { src: gNew3, alt: "Chef torching sushi to order during an in-home omakase event." },
+  { src: gNew4, alt: "Overhead view of an abundant sushi spread with garnishes." },
+  { src: gNew5, alt: "Chef preparing a full sushi spread at a private event." },
+  { src: gNew6, alt: "Hand-cutting fresh sushi rolls on the board during service." },
 ];
 
 function PhotoSection() {
