@@ -660,6 +660,9 @@ function PageStyles() {
       @keyframes skUpBob { 0%, 100% { transform: translateY(2px); } 50% { transform: translateY(-4px); } }
       @media (prefers-reduced-motion: reduce) { .sk-scroll-up-icon { animation: none; } }
 
+      /* Hero headline breaks to two lines on phones */
+      @media (max-width: 640px) { .sk-hero-l1, .sk-hero-l2 { display: block; } }
+
       /* Philosophy band */
       .sk-philo-terms { display: flex; justify-content: center; align-items: flex-start; gap: clamp(48px, 9vw, 96px); }
       @media (max-width: 600px) { .sk-philo-terms { flex-direction: column; gap: 30px; align-items: center; } }
@@ -1000,9 +1003,10 @@ function Hero({ onLetsRoll }) {
           fontFamily: "'Shippori Mincho', Georgia, serif", fontWeight: 400,
           fontSize: "clamp(28px, 5vw, 52px)",
           color: CREAM, letterSpacing: "0.04em",
-          margin: "0 0 20px", lineHeight: 1.1,
+          margin: "0 0 20px", lineHeight: 1.15,
         }}>
-          the sonakase experience
+          <span className="sk-hero-l1">the sonakase</span>{" "}
+          <span className="sk-hero-l2">experience</span>
         </h1>
 
         {/* From-price — derived from the lowest tier minimum */}
