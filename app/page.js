@@ -694,7 +694,7 @@ function PageStyles() {
         .sk-how-grid  { grid-template-columns: 1fr !important; }
         .sk-hero-logo { width: 220px !important; }
         .sk-section   { padding: 60px 20px !important; }
-        .sk-hero      { padding: calc(110px + var(--banner-h, 0px)) 20px 60px !important; }
+        .sk-hero      { min-height: 100svh !important; padding: calc(100px + var(--banner-h, 0px)) 20px 46px !important; }
         .sk-footer-inner { flex-direction: column !important; gap: 32px !important; align-items: flex-start !important; }
         .sk-nav-inner { height: 78px !important; padding: 0 18px !important; }
         .sk-nav-logo  { width: 150px !important; height: 44px !important; }
