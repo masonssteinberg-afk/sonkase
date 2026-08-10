@@ -229,8 +229,19 @@ function PhilosophyBand() {
           <Op>=</Op>
           {/* Resolution — the only full-opacity element, given extra space above */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "clamp(8px, 1.6vw, 15px)" }}>
-            <div style={{ fontFamily: SERIF, fontWeight: 400, fontSize: "clamp(19px, 2.6vw, 23px)", letterSpacing: "0.02em", lineHeight: 1.2, color: CREAM }}>Sonakase</div>
-            <div style={{ fontFamily: FONT_UI, fontSize: "clamp(11px, 1.4vw, 12px)", letterSpacing: "0.02em", color: "rgba(var(--text-rgb),0.5)", marginTop: "0.6em", lineHeight: 1.5 }}>prepared and offered, entrusted to the chef</div>
+            <svg viewBox="0 0 500 140" role="img" aria-label="Sonakase" style={{ width: "clamp(196px, 48vw, 250px)", height: "auto", display: "block" }}>
+              <g transform="translate(18, 10) scale(0.9)">
+                <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+                <line x1="55" y1="12" x2="48" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
+                <circle cx="45" cy="19" r="3" fill="#b8892a"/>
+                <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke="#b8892a" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke="#b8892a" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5"/>
+                <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke="#b8892a" strokeWidth="0.8" strokeLinecap="round" fill="none" opacity="0.22"/>
+              </g>
+              <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
+              <text x="138" y="88" fontFamily="'Shippori Mincho', Georgia, serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
+            </svg>
+            <div style={{ fontFamily: FONT_UI, fontSize: "clamp(11px, 1.4vw, 12px)", letterSpacing: "0.02em", color: "rgba(var(--text-rgb),0.5)", marginTop: "0.95em", lineHeight: 1.5 }}>prepared and offered, entrusted to the chef</div>
           </div>
         </div>
       </div>
@@ -706,7 +717,7 @@ function PageStyles() {
         .sk-hero      { min-height: 100svh !important; padding: calc(100px + var(--banner-h, 0px)) 20px 46px !important; }
         .sk-footer-inner { flex-direction: column !important; gap: 32px !important; align-items: flex-start !important; }
         .sk-nav-inner { height: 78px !important; padding: 0 18px !important; }
-        .sk-nav-logo  { width: 150px !important; height: 44px !important; }
+        .sk-nav-name  { font-size: 20px !important; letter-spacing: 0.18em !important; }
         .sk-nav-cta   { min-height: 42px !important; padding: 0 22px !important; }
         .sk-pkg-card__body { padding: 28px 20px 24px !important; }
         .sk-about-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
@@ -762,21 +773,19 @@ function Nav() {
         transition: "height 0.4s cubic-bezier(0.16,1,0.3,1)",
       }}>
         <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-          <svg className="sk-nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" width="360" height="100" role="img" aria-label="Sonakase Private Dining" style={{ transform: scrolled ? "scale(1)" : "scale(1.32)", transformOrigin: "left center", transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)" }}>
-            <defs>
-              <style>{"@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400&family=Cormorant+Garamond:wght@300&display=swap');"}</style>
-            </defs>
-            <g transform="translate(18, 10) scale(0.9)">
-              <line x1="35" y1="12" x2="42" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
-              <line x1="55" y1="12" x2="48" y2="108" stroke="#e6dac8" strokeWidth="1.6" strokeLinecap="round"/>
-              <circle cx="45" cy="19" r="3" fill="#b8892a"/>
-              <path d="M8 48 C18 34, 30 30, 45 38 C60 46, 72 42, 82 30" stroke="#b8892a" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M8 58 C18 44, 30 40, 45 48 C60 56, 72 52, 82 40" stroke="#b8892a" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5"/>
-              <path d="M8 68 C18 54, 30 50, 45 58 C60 66, 72 62, 82 50" stroke="#b8892a" strokeWidth="0.8" strokeLinecap="round" fill="none" opacity="0.22"/>
-            </g>
-            <line x1="118" y1="28" x2="118" y2="112" stroke="#b8892a" strokeWidth="0.7" opacity="0.6"/>
-            <text x="138" y="88" fontFamily="'Shippori Mincho', 'Hiragino Mincho Pro', 'Times New Roman', serif" fontWeight="400" fontSize="52" letterSpacing="11" fill="#e6dac8">sonakase</text>
-          </svg>
+          <span
+            className="sk-nav-name"
+            style={{
+              fontFamily: "'Shippori Mincho', Georgia, serif",
+              fontWeight: 400, fontSize: 30, letterSpacing: "0.24em",
+              color: "#e6dac8", whiteSpace: "nowrap", display: "inline-block",
+              transform: scrolled ? "scale(1)" : "scale(1.26)",
+              transformOrigin: "left center",
+              transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
+            }}
+          >
+            sonakase
+          </span>
         </a>
 
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
