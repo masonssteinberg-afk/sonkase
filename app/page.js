@@ -1140,25 +1140,28 @@ function Hero({ onLetsRoll }) {
             fontFamily: "'Shippori Mincho', Georgia, serif", fontWeight: 400,
             fontSize: "clamp(30px, 6vw, 60px)",
             color: CREAM, letterSpacing: "0.04em",
-            margin: "0 0 30px", lineHeight: 1.14,
+            margin: 0, lineHeight: 1.14,
             textShadow: "0 2px 26px rgba(0,0,0,0.75), 0 1px 5px rgba(0,0,0,0.6)",
           }}>
             <span className="sk-hero-l1">the sonakase</span>{" "}
             <span className="sk-hero-l2">experience</span>
           </h1>
+        </div>
+      </div>
 
-          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, width: "100%", maxWidth: 440, pointerEvents: "auto" }}>
-            <button
-              onClick={onLetsRoll}
-              className="glass-btn on-photo"
-              style={{ width: "100%" }}
-            >
-              Let's Roll <span className="sk-arrow">→</span>
-            </button>
-            <div style={{ display: "flex", gap: 12, width: "100%", flexWrap: "wrap", justifyContent: "center" }}>
-              <a href="#experiences" className="glass-btn-sec" style={{ flex: "1 1 150px", textAlign: "center" }}>See Pricing</a>
-              <a href="#the-service" className="glass-btn-sec" style={{ flex: "1 1 150px", textAlign: "center" }}>How It Works</a>
-            </div>
+      {/* Primary actions — anchored to the bottom of the hero */}
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: "clamp(28px, 6vh, 54px)", zIndex: 2, display: "flex", justifyContent: "center", padding: "0 24px", pointerEvents: "none" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, width: "100%", maxWidth: 440, pointerEvents: "auto" }}>
+          <button
+            onClick={onLetsRoll}
+            className="glass-btn on-photo"
+            style={{ width: "100%" }}
+          >
+            Let's Roll <span className="sk-arrow">→</span>
+          </button>
+          <div style={{ display: "flex", gap: 12, width: "100%", flexWrap: "wrap", justifyContent: "center" }}>
+            <a href="#experiences" className="glass-btn-sec" style={{ flex: "1 1 150px", textAlign: "center" }}>See Pricing</a>
+            <a href="#the-service" className="glass-btn-sec" style={{ flex: "1 1 150px", textAlign: "center" }}>How It Works</a>
           </div>
         </div>
       </div>
