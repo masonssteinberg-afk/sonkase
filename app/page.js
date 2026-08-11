@@ -1147,7 +1147,7 @@ function Hero({ onLetsRoll }) {
             <span className="sk-hero-l2">experience</span>
           </h1>
 
-          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%", maxWidth: 340, pointerEvents: "auto" }}>
+          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, width: "100%", maxWidth: 440, pointerEvents: "auto" }}>
             <button
               onClick={onLetsRoll}
               className="glass-btn on-photo"
@@ -1155,6 +1155,10 @@ function Hero({ onLetsRoll }) {
             >
               Let's Roll <span className="sk-arrow">→</span>
             </button>
+            <div style={{ display: "flex", gap: 12, width: "100%", flexWrap: "wrap", justifyContent: "center" }}>
+              <a href="#experiences" className="glass-btn-sec" style={{ flex: "1 1 150px", textAlign: "center" }}>See Pricing</a>
+              <a href="#the-service" className="glass-btn-sec" style={{ flex: "1 1 150px", textAlign: "center" }}>How It Works</a>
+            </div>
           </div>
         </div>
       </div>
