@@ -7,8 +7,10 @@ export async function POST(req) {
       email, confirmationId, packageName, eventDate, guestCount,
       total, deposit, appetizers, promoCode, discountAmount,
       serviceType, appetizerChoice, chefNotes, eventTime, appetizersSelected,
-      pricePerGuest, guestName,
+      pricePerGuest, guestName, rolls, nigiri, sashimi,
     } = await req.json();
+
+    const listStr = (arr) => (Array.isArray(arr) && arr.length ? arr.join(", ") : null);
 
     if (!email || !email.includes("@")) {
       return Response.json({ error: "Invalid email" }, { status: 400 });
@@ -112,6 +114,13 @@ export async function POST(req) {
         row("Deposit Charged", fmt2(deposit)) +
         row("Balance Due",     `$${balance} — due at the event`) +
         `</div>` +
+        (listStr(rolls) || sashimi
+          ? `<div style="background:#fff;border:1px solid rgba(184,137,42,0.25);padding:16px 24px;margin-bottom:24px;">` +
+            `<div style="font-size:10px;color:#b8892a;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:10px;">Your Menu</div>` +
+            (listStr(rolls) ? `<div style="font-size:14px;color:#1a1208;margin-bottom:6px;line-height:1.5;"><strong>Rolls:</strong> ${listStr(rolls)}</div>` : "") +
+            `<div style="font-size:14px;color:#1a1208;margin-bottom:6px;line-height:1.5;"><strong>Nigiri:</strong> Chef's choice at the event</div>` +
+            `<div style="font-size:14px;color:#1a1208;line-height:1.5;"><strong>Sashimi course:</strong> ${sashimi ? "Yes" : "No"}</div>` +
+            `</div>` : "") +
         `<p style="font-size:13px;color:#5a4f3c;margin:0 0 24px;line-height:1.6;">View this booking anytime at ` +
         `<a href="https://www.sonakase.com/lookup?c=${encodeURIComponent(confirmationId || "")}&e=${encodeURIComponent(email)}" style="color:#b8892a;">sonakase.com/lookup</a> ` +
         `using your confirmation number and this email address.</p>` +

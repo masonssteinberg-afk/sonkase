@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { rollById } from "@/lib/pricing";
 
 const AUTH_KEY = "sk_admin_token";
 
@@ -535,7 +536,11 @@ function BookingsTab({ bookings, filtered, counts, filter, setFilter, onUpdateSt
 // ── Booking row ───────────────────────────────────────────────────────────────
 function BookingRow({ booking: b, onUpdateStatus }) {
   const [open, setOpen] = useState(false);
+  const [showPrep, setShowPrep] = useState(false);
   const statusColor = STATUS_COLORS[b.status] || FAINT;
+  const rollSels   = Array.isArray(b.selections) ? b.selections.filter((s) => s.item_type === "roll") : [];
+  const nigiriSels = Array.isArray(b.selections) ? b.selections.filter((s) => s.item_type === "nigiri") : [];
+  const hasSashimi = Array.isArray(b.addons) && b.addons.some((a) => a.addon_id === "sashimi");
   const fmt = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" }) : "—";
 
   return (
@@ -638,6 +643,23 @@ function BookingRow({ booking: b, onUpdateStatus }) {
             );
           })()}
 
+          {(rollSels.length > 0 || nigiriSels.length > 0 || hasSashimi) && (
+            <div style={{ marginBottom: 20 }}>
+              <Label>Menu Selection</Label>
+              {rollSels.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "8px 0" }}>
+                  {rollSels.map((s, i) => <Tag key={`r${i}`}>{s.name_snapshot}</Tag>)}
+                </div>
+              )}
+              {nigiriSels.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "8px 0" }}>
+                  {nigiriSels.map((s, i) => <Tag key={`n${i}`} color={GREEN}>{s.name_snapshot} nigiri</Tag>)}
+                </div>
+              )}
+              {hasSashimi && <div style={{ marginTop: 8 }}><Tag color={GOLD}>+ Sashimi course</Tag></div>}
+            </div>
+          )}
+
           {b.special_requests && (
             <div style={{ marginBottom: 20 }}>
               <Label>Chef's Notes</Label>
@@ -646,7 +668,7 @@ function BookingRow({ booking: b, onUpdateStatus }) {
           )}
 
           {/* Status buttons */}
-          <div style={{ display: "flex", gap: 8, paddingTop: 16, borderTop: `1px solid ${BORDER}` }}>
+          <div style={{ display: "flex", gap: 8, paddingTop: 16, borderTop: `1px solid ${BORDER}`, flexWrap: "wrap" }}>
             {["pending", "confirmed", "cancelled"].map((s) => (
               <button key={s} onClick={() => onUpdateStatus(b.id, s)} style={{
                 background: b.status === s ? STATUS_COLORS[s] : "transparent",
@@ -658,9 +680,128 @@ function BookingRow({ booking: b, onUpdateStatus }) {
                 {s}
               </button>
             ))}
+            <button onClick={() => setShowPrep(true)} style={{
+              marginLeft: "auto", background: "transparent", color: GOLD,
+              border: `1px solid ${GOLD}`, padding: "7px 16px", fontFamily: F, fontSize: 11,
+              letterSpacing: "0.12em", textTransform: "uppercase", cursor: "pointer",
+            }}>
+              Prep sheet
+            </button>
           </div>
         </div>
       )}
+
+      {showPrep && <PrepSheet booking={b} onClose={() => setShowPrep(false)} />}
+    </div>
+  );
+}
+
+// ── Printable prep sheet — one booking per page, grouped by production step ────
+// Counts are planning estimates from the guest count (one roll per ~3 guests
+// per style; one nigiri piece per guest per fish; one sashimi portion per
+// guest). The allergy/notes field is surfaced in red at the top.
+function computePrep(b) {
+  const guests     = Number(b.guest_count) || 0;
+  const sels       = Array.isArray(b.selections) ? b.selections : [];
+  const rollSels   = sels.filter((s) => s.item_type === "roll");
+  const hasSashimi = Array.isArray(b.addons) && b.addons.some((a) => a.addon_id === "sashimi");
+
+  const perStyleRolls = Math.max(1, Math.ceil(guests / 3));
+  const GARNISH_VOCAB = ["masago", "tobiko", "scallion", "sesame", "eel sauce", "spicy mayo", "kewpie mayo", "fried onion", "jalapeño", "cream cheese"];
+  const garnishes = new Set(["fresh wasabi", "pickled ginger", "soy sauce"]);
+
+  const rollStyles = rollSels.map((s) => {
+    const roll = rollById(s.item_id);
+    (roll?.contains || []).forEach((c) => { if (GARNISH_VOCAB.includes(c)) garnishes.add(c); });
+    const m = roll ? roll.description.match(/Topped with ([^.]+)/i) : null;
+    return { name: s.name_snapshot, count: perStyleRolls, topping: m ? m[1].trim() : null };
+  });
+
+  return {
+    guests,
+    perStyleRolls,
+    totalBaseRolls: perStyleRolls * rollStyles.length,
+    rollStyles,
+    sashimiPortions: hasSashimi ? guests : 0,
+    garnishes: [...garnishes],
+  };
+}
+
+function PrepSheet({ booking: b, onClose }) {
+  const p = computePrep(b);
+  const dateStr = b.event_date ? new Date(b.event_date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "—";
+  const timeStr = b.event_time ? (() => { const [h, m] = b.event_time.split(":").map(Number); const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h); return `${h12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`; })() : "";
+  const SEC = { margin: "0 0 18px" };
+  const H   = { fontFamily: F, fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", color: "#000", fontWeight: 700, borderBottom: "2px solid #000", paddingBottom: 4, margin: "0 0 10px" };
+  const LI  = { fontFamily: F, fontSize: 15, color: "#111", lineHeight: 1.7 };
+
+  return (
+    <div className="prep-overlay" onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, overflowY: "auto", padding: 24 }}>
+      <style>{`
+        @media print {
+          body * { visibility: hidden !important; }
+          .prep-sheet, .prep-sheet * { visibility: visible !important; }
+          .prep-sheet { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; margin: 0 !important; }
+          .prep-noprint { display: none !important; }
+        }
+      `}</style>
+      <div className="prep-sheet" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720, margin: "0 auto", background: "#fff", color: "#111", borderRadius: 8, padding: "40px 44px", pageBreakAfter: "always" }}>
+        <div className="prep-noprint" style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginBottom: 16 }}>
+          <button onClick={() => window.print()} style={{ background: "#000", color: "#fff", border: "none", padding: "8px 18px", fontFamily: F, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", borderRadius: 4 }}>Print</button>
+          <button onClick={onClose} style={{ background: "transparent", color: "#000", border: "1px solid #000", padding: "8px 18px", fontFamily: F, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer", borderRadius: 4 }}>Close</button>
+        </div>
+
+        {/* Allergy banner — red at the top when non-empty */}
+        {b.special_requests && (
+          <div style={{ border: "2px solid #c5241d", background: "#fdeceb", padding: "12px 16px", marginBottom: 20 }}>
+            <div style={{ fontFamily: F, fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#c5241d", fontWeight: 700, marginBottom: 4 }}>⚠ Allergies / Restrictions / Notes</div>
+            <div style={{ fontFamily: F, fontSize: 16, color: "#c5241d", fontWeight: 600 }}>{b.special_requests}</div>
+          </div>
+        )}
+
+        {/* Header */}
+        <div style={{ borderBottom: "3px solid #000", paddingBottom: 12, marginBottom: 22 }}>
+          <div style={{ fontFamily: F, fontSize: 24, fontWeight: 700, color: "#000" }}>Prep Sheet — {b.package || "Event"}</div>
+          <div style={{ fontFamily: F, fontSize: 14, color: "#333", marginTop: 6 }}>
+            {dateStr}{timeStr ? ` · ${timeStr}` : ""} · {p.guests} guests · #{b.confirmation_number || b.id}
+          </div>
+          {b.contact_name && <div style={{ fontFamily: F, fontSize: 13, color: "#555", marginTop: 3 }}>{b.contact_name}{b.delivery_address ? ` · ${b.delivery_address}` : ""}</div>}
+        </div>
+
+        {/* Base rolls */}
+        <div style={SEC}>
+          <div style={H}>Base rolls — {p.totalBaseRolls} total</div>
+          {p.rollStyles.length ? p.rollStyles.map((r, i) => (
+            <div key={i} style={LI}>{r.count} × {r.name}</div>
+          )) : <div style={LI}>—</div>}
+        </div>
+
+        {/* Toppings by roll style */}
+        <div style={SEC}>
+          <div style={H}>Toppings by roll style</div>
+          {p.rollStyles.some((r) => r.topping) ? p.rollStyles.filter((r) => r.topping).map((r, i) => (
+            <div key={i} style={LI}><strong>{r.name}:</strong> {r.topping}</div>
+          )) : <div style={LI}>No topped rolls in this order.</div>}
+        </div>
+
+        {/* Nigiri — chef's choice at the event */}
+        <div style={SEC}>
+          <div style={H}>Nigiri — chef&rsquo;s choice</div>
+          <div style={LI}>Shaped to order at the event · plan for {p.guests} guests</div>
+        </div>
+
+        {/* Sashimi */}
+        <div style={SEC}>
+          <div style={H}>Sashimi portions</div>
+          <div style={LI}>{p.sashimiPortions > 0 ? `${p.sashimiPortions} portions` : "Not added"}</div>
+        </div>
+
+        {/* Garnish */}
+        <div style={{ margin: 0 }}>
+          <div style={H}>Garnish list</div>
+          <div style={LI}>{p.garnishes.join(" · ")}</div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -86,6 +86,11 @@ export default function LookupPage() {
     ? Number(booking.total_price) - Number(booking.deposit_amount)
     : null;
 
+  const sels        = booking && Array.isArray(booking.selections) ? booking.selections : [];
+  const lookupRolls = sels.filter((s) => s.item_type === "roll").map((s) => s.name_snapshot);
+  const hasSashimi  = booking && Array.isArray(booking.addons) && booking.addons.some((a) => a.addon_id === "sashimi");
+  const hasMenu     = lookupRolls.length || hasSashimi;
+
   return (
     <div style={{ minHeight: "100vh", background: NAVY, fontFamily: FONT_BODY, color: CREAM, paddingTop: "calc(100px + var(--banner-h, 0px))" }}>
       <style>{`
@@ -166,6 +171,23 @@ export default function LookupPage() {
             <Row label="Deposit Paid" value={fmt2(booking.deposit_amount)} highlight />
             <Row label="Balance Due"  value={fmt2(balance)} />
             <Row label="Notes"        value={booking.special_requests} />
+
+            {hasMenu ? (
+              <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid rgba(232,201,126,0.15)" }}>
+                <div style={{ fontFamily: FONT_UI, fontSize: 11, color: GOLD, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600, marginBottom: 12 }}>your menu</div>
+                {lookupRolls.length > 0 && (
+                  <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6, marginBottom: 6 }}>
+                    <span style={{ color: "rgba(232,201,126,0.8)" }}>Rolls:</span> {lookupRolls.join(", ")}
+                  </div>
+                )}
+                <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6, marginBottom: 6 }}>
+                  <span style={{ color: "rgba(232,201,126,0.8)" }}>Nigiri:</span> Chef&rsquo;s choice at the event
+                </div>
+                <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6 }}>
+                  <span style={{ color: "rgba(232,201,126,0.8)" }}>Sashimi course:</span> {hasSashimi ? "Yes" : "No"}
+                </div>
+              </div>
+            ) : null}
 
             <div style={{ marginTop: 24, fontFamily: FONT_BODY, fontSize: 12, color: INK_FAINT, lineHeight: 1.6 }}>
               Cancel 72 hours or more before the event for a full deposit refund. Cancellations within 72 hours forfeit the deposit.

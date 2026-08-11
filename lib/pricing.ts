@@ -56,7 +56,7 @@ export const BOARDS: readonly Board[] = [
   {
     id: "full",
     name: "Full Board",
-    menu: "Your choice of nigiri and six roll styles",
+    menu: "Six roll styles of your choice, plus chef's-choice nigiri",
     rolls: 6,
     nigiri: { count: 4, options: ["Salmon", "Tuna", "Yellowtail", "Eel", "Spicy tuna", "Shrimp"] },
     standard: { perGuest: 135, minimum: 850 },
@@ -66,7 +66,7 @@ export const BOARDS: readonly Board[] = [
   {
     id: "short",
     name: "Short Board",
-    menu: "Salmon & tuna nigiri and four roll styles",
+    menu: "Four roll styles of your choice, plus chef's-choice nigiri",
     rolls: 4,
     nigiri: { count: 2, fixed: ["Salmon", "Tuna"] },
     standard: { perGuest: 95, minimum: 600 },
@@ -193,4 +193,246 @@ export function formatUSD(amount: number): string {
     minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
     maximumFractionDigits: 2,
   });
+}
+
+// ── Menu: the roll library ────────────────────────────────────────────
+// The guest builds their board from these at booking. Nothing here carries
+// a price — the board's per-guest rate covers the whole selection; a guest
+// picks ROLL_ALLOWANCE styles for their board.
+//
+//  · `contains`    — screenable ingredients, surfaced for allergy review.
+//  · `cooked`      — true when the roll carries NO raw fish (safe for the
+//                    no-raw-fish crowd): the three cooked rolls plus, by
+//                    virtue of having no seafood at all, the vegetarian one.
+//  · `vegetarian`  — true when the roll contains no seafood.
+//  · `available`   — gates a roll out of the picker without deleting it;
+//                    past bookings keep their choice via the name snapshot.
+export interface Roll {
+  id: string;
+  name: string;
+  description: string;
+  contains: readonly string[];
+  cooked: boolean;
+  vegetarian: boolean;
+  available: boolean;
+}
+
+export const ROLL_LIBRARY: readonly Roll[] = [
+  {
+    id: "california",
+    name: "California",
+    description: "Crab salad, cucumber, avocado. Topped with crunchy fried onion.",
+    contains: ["crab", "cucumber", "avocado", "fried onion", "mayonnaise"],
+    cooked: true, vegetarian: false, available: true,
+  },
+  {
+    id: "salmon-avocado",
+    name: "Salmon Avocado",
+    description: "Salmon, cucumber, avocado.",
+    contains: ["salmon", "cucumber", "avocado"],
+    cooked: false, vegetarian: false, available: true,
+  },
+  {
+    id: "spicy-tuna",
+    name: "Spicy Tuna",
+    description: "Spicy tuna, cucumber. Topped with scallion and spicy mayo.",
+    contains: ["tuna", "cucumber", "scallion", "spicy mayo", "mayonnaise", "egg"],
+    cooked: false, vegetarian: false, available: true,
+  },
+  {
+    id: "rainbow",
+    name: "Rainbow",
+    description: "California base topped with salmon, tuna, yellowtail, and avocado.",
+    contains: ["crab", "cucumber", "avocado", "salmon", "tuna", "yellowtail", "mayonnaise"],
+    cooked: false, vegetarian: false, available: true,
+  },
+  {
+    id: "spider",
+    name: "Spider",
+    description: "Soft shell crab, cucumber, avocado. Topped with eel sauce and masago.",
+    contains: ["soft shell crab", "cucumber", "avocado", "eel sauce", "masago", "soy", "wheat"],
+    cooked: true, vegetarian: false, available: true,
+  },
+  {
+    id: "sonakase",
+    name: "Sonakase Roll",
+    description: "Shrimp, cucumber, salmon, avocado. Topped with tuna, fresh wasabi, and masago.",
+    contains: ["shrimp", "cucumber", "salmon", "avocado", "tuna", "wasabi", "masago"],
+    cooked: false, vegetarian: false, available: true,
+  },
+  {
+    id: "dragon",
+    name: "Dragon",
+    description: "California base of crab salad, cucumber, and avocado. Topped with eel and eel sauce.",
+    contains: ["crab", "cucumber", "avocado", "eel", "eel sauce", "mayonnaise", "soy", "wheat"],
+    cooked: true, vegetarian: false, available: true,
+  },
+  {
+    id: "philadelphia",
+    name: "Philadelphia",
+    description: "Salmon, cream cheese, cucumber.",
+    contains: ["salmon", "cream cheese", "cucumber", "dairy"],
+    cooked: false, vegetarian: false, available: true,
+  },
+  {
+    id: "torched-yellowtail",
+    name: "Torched Yellowtail",
+    description: "Tuna, avocado, jalapeño. Topped with torched yellowtail and kewpie mayo.",
+    contains: ["tuna", "avocado", "jalapeño", "yellowtail", "kewpie mayo", "mayonnaise", "egg"],
+    cooked: false, vegetarian: false, available: true,
+  },
+  {
+    id: "garden",
+    name: "Garden",
+    description: "Avocado, cucumber, jalapeño. Topped with spicy mayo and sesame.",
+    contains: ["avocado", "cucumber", "jalapeño", "spicy mayo", "mayonnaise", "egg", "sesame"],
+    cooked: true, vegetarian: true, available: true,
+  },
+] as const;
+
+export function rollById(id: string): Roll | null {
+  return ROLL_LIBRARY.find((r) => r.id === id) ?? null;
+}
+
+// ── Menu: nigiri ──────────────────────────────────────────────────────
+// Full Board guests choose NIGIRI_ALLOWANCE styles from these six. Short
+// Board is a fixed salmon & tuna pairing with no selection.
+export const NIGIRI_OPTIONS: readonly string[] = [
+  "Salmon", "Tuna", "Yellowtail", "Eel", "Spicy tuna", "Shrimp",
+] as const;
+
+/** Short Board's locked nigiri pairing. */
+export const SHORT_BOARD_NIGIRI: readonly string[] = ["Salmon", "Tuna"] as const;
+
+/** Roll seed for the Short Board "chef's selection" shortcut (4 = the Short allowance). */
+export const SHORT_BOARD_DEFAULTS: readonly string[] = [
+  "california", "salmon-avocado", "spicy-tuna", "rainbow",
+] as const;
+
+/** How many roll styles a board includes: Full 6, Short 4. */
+export function ROLL_ALLOWANCE(boardId: string): number {
+  return boardId === "short" ? 4 : 6;
+}
+
+/**
+ * A board's nigiri offering. Full: pick `count` from `options` (selectable).
+ * Short: a `fixed` pairing, no selection.
+ */
+export interface NigiriAllowance {
+  count: number;
+  selectable: boolean;
+  options?: readonly string[];
+  fixed?: readonly string[];
+}
+export function NIGIRI_ALLOWANCE(boardId: string): NigiriAllowance {
+  if (boardId === "short") {
+    return { count: SHORT_BOARD_NIGIRI.length, selectable: false, fixed: SHORT_BOARD_NIGIRI };
+  }
+  return { count: 4, selectable: true, options: NIGIRI_OPTIONS };
+}
+
+/**
+ * The "chef's selection" one-tap fill. Short uses the authored defaults;
+ * Full takes the first `allowance` available rolls and the first `count`
+ * nigiri in list order — deterministic, so it never depends on render state.
+ */
+export function chefsSelection(boardId: string): { rolls: string[]; nigiri: string[] } {
+  const nig = NIGIRI_ALLOWANCE(boardId);
+  if (boardId === "short") {
+    return { rolls: [...SHORT_BOARD_DEFAULTS], nigiri: [...SHORT_BOARD_NIGIRI] };
+  }
+  const rolls = ROLL_LIBRARY.filter((r) => r.available).slice(0, ROLL_ALLOWANCE(boardId)).map((r) => r.id);
+  return { rolls, nigiri: (nig.options ?? NIGIRI_OPTIONS).slice(0, nig.count).map((n) => n) };
+}
+
+// ── Add-ons ───────────────────────────────────────────────────────────
+// Optional upgrades layered on top of a board. `priceType` "per_guest"
+// multiplies by the guest count; `minGuests` gates the upgrade off small
+// parties. Launch pricing mirrors the boards: while LAUNCH_ACTIVE the
+// `launchPrice` is charged and the `standardPrice` shows struck through.
+export interface AddOn {
+  id: string;
+  name: string;
+  description: string;
+  priceType: "per_guest";
+  launchPrice: number;
+  standardPrice: number;
+  minGuests: number;
+}
+
+export const ADD_ONS: readonly AddOn[] = [
+  {
+    id: "sashimi",
+    name: "Sashimi Course",
+    description: "A course of the day's freshest cuts, sliced thick and served without rice — plated and passed as its own wave during service.",
+    priceType: "per_guest",
+    launchPrice: 18,
+    standardPrice: 25,
+    minGuests: 6,
+  },
+] as const;
+
+export function addonById(id: string): AddOn | null {
+  return ADD_ONS.find((a) => a.id === id) ?? null;
+}
+
+/** Effective add-on unit price — launch while active, else standard (mirrors effectiveRates). */
+export function effectiveAddonPrice(addon: AddOn): number {
+  return LAUNCH_ACTIVE ? addon.launchPrice : addon.standardPrice;
+}
+
+/** True when a party is large enough to be offered this add-on. */
+export function addonAvailable(addon: AddOn, guests: number): boolean {
+  const g = Math.floor(guests);
+  return Number.isFinite(g) && g >= addon.minGuests;
+}
+
+/** Total for one add-on at a guest count (per_guest × guests), or 0 below its minimum. */
+export function addonTotal(addon: AddOn, guests: number): number {
+  if (!addonAvailable(addon, guests)) return 0;
+  return effectiveAddonPrice(addon) * Math.floor(guests);
+}
+
+// ── The full booking charge ───────────────────────────────────────────
+// The one place a booking's money is assembled: board base (+ second chef),
+// any add-ons, and an optional promo discount that reduces only the board
+// base (floored at the minimum, never touching add-ons or the second-chef
+// fee). Both the client display and the server write read through this, so
+// they cannot drift. The flat DEPOSIT is unaffected by add-ons or promos.
+export interface BookingCharge {
+  boardId: BoardId;
+  guests: number;
+  baseTotal: number;    // board sushi & service, incl. second chef, before discount/add-ons
+  discount: number;     // amount the promo actually removed from the base
+  addonsTotal: number;  // sum of selected add-on totals
+  subtotal: number;     // (baseTotal − discount) + addonsTotal — the grand total charged
+  deposit: number;      // flat DEPOSIT
+  balance: number;      // subtotal − deposit, due at the event
+}
+
+export function bookingCharge(
+  boardId: string,
+  guests: number,
+  addonIds: readonly string[] = [],
+  discountAmount = 0,
+): BookingCharge | null {
+  const q = quoteForBoard(boardId, guests);
+  if (!q) return null;
+  const addonsTotal = (addonIds || []).reduce((sum, id) => {
+    const a = addonById(id);
+    return a ? sum + addonTotal(a, q.guests) : sum;
+  }, 0);
+  const discountedBase = discountAmount > 0 ? totalAfterDiscount(q, discountAmount) : q.total;
+  const discount = q.total - discountedBase;
+  const subtotal = discountedBase + addonsTotal;
+  return {
+    boardId: q.board.id,
+    guests: q.guests,
+    baseTotal: q.total,
+    discount,
+    addonsTotal,
+    subtotal,
+    deposit: q.deposit,
+    balance: subtotal - q.deposit,
+  };
 }

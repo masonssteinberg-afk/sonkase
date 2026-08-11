@@ -53,7 +53,7 @@ const HERO_N = HERO.length;
 const HERO_PER = 3.5;           // seconds each frame holds
 
 // ── Boards — all pricing comes from lib/pricing, no literals here ──
-import { BOARDS, boardTotalRange, quotesForGuests, effectiveRates, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS, LAUNCH_ACTIVE, DEPOSIT, SECOND_CHEF_THRESHOLD, SECOND_CHEF_FEE } from "@/lib/pricing";
+import { BOARDS, boardTotalRange, quotesForGuests, effectiveRates, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS, LAUNCH_ACTIVE, DEPOSIT, SECOND_CHEF_THRESHOLD, SECOND_CHEF_FEE, ROLL_LIBRARY, ADD_ONS, effectiveAddonPrice } from "@/lib/pricing";
 
 // Fixed blurred-photo background per board card. Assigned as a constant
 // (never Math.random during render) so server and client first paint agree.
@@ -150,7 +150,6 @@ function MenuSpecRow({ label, value, icons, fine }) {
 // preferences and disclosed afterward, which the closing line makes clear.
 function BoardMenuIcons({ board }) {
   const { nigiri } = board;
-  const isChoice   = !!nigiri.options;
   const nigiriFish = nigiri.fixed ?? nigiri.options.slice(0, nigiri.count);
   const hair = { height: 1, background: "linear-gradient(90deg, rgba(232,201,126,0.28), rgba(232,201,126,0.04) 85%)", margin: "15px 0" };
 
@@ -166,12 +165,12 @@ function BoardMenuIcons({ board }) {
       <div style={hair} />
       <MenuSpecRow
         label="Nigiri"
-        value={isChoice ? `Your choice of ${wordFor(nigiri.count)}` : nigiri.fixed.join(" & ")}
+        value="Chef's choice"
         icons={nigiriFish.map((f, i) => <NigiriIcon key={i} fill={fishColor(f, i)} />)}
-        fine={isChoice ? nigiri.options.join(" · ").toLowerCase() : "Set pairing"}
+        fine="Selected at your event"
       />
       <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontStyle: "italic", fontSize: 12, color: "rgba(var(--text-rgb),0.5)", marginTop: 15, lineHeight: 1.55 }}>
-        {isChoice ? "Rolls and nigiri are" : "Rolls are"} set to your booking preferences and shared with you after you book.
+        You select your rolls when you book. Nigiri is the chef&rsquo;s choice.
       </div>
     </div>
   );
@@ -282,6 +281,8 @@ export default function Home() {
       <PhilosophyBand />
       <Hero onLetsRoll={() => router.push("/book")} />
       <ExperiencesSection />
+      <MenuSection />
+      <ServiceSection />
       <PhotoSection />
       <AboutChefSection />
       <ContactSection />
@@ -299,6 +300,46 @@ function PageStyles() {
     <style>{`
       :root { --header-h: 118px; }
       @media (max-width: 768px)  { :root { --header-h: 78px; } .sk-scroll-roll { display: none !important; } }
+
+      /* Section jumps clear the fixed header */
+      html { scroll-behavior: smooth; }
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+      #top, #experiences, #the-menu, #the-service, #about, #contact { scroll-margin-top: 100px; }
+
+      /* Header section-nav + mobile dropdown */
+      .sk-nav-burger { display: none; }
+      .sk-nav-mobile { display: none; }
+      @media (max-width: 1000px) {
+        .sk-nav-links { display: none !important; }
+        .sk-nav-burger {
+          display: inline-flex; flex-direction: column; justify-content: center; gap: 4px;
+          width: 42px; height: 42px; padding: 0 9px; box-sizing: border-box;
+          background: none; border: none; cursor: pointer; margin-left: 2px;
+        }
+        .sk-nav-burger span {
+          display: block; height: 1.5px; width: 100%; background: #e6dac8; border-radius: 2px;
+          transition: transform 0.32s cubic-bezier(0.16,1,0.3,1), opacity 0.2s;
+        }
+        .sk-nav-burger.is-open span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+        .sk-nav-burger.is-open span:nth-child(2) { opacity: 0; }
+        .sk-nav-burger.is-open span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
+        .sk-nav-mobile {
+          display: flex; flex-direction: column;
+          position: absolute; top: 100%; left: 0; right: 0;
+          background: var(--header-bg);
+          backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%);
+          border-bottom: 1px solid var(--header-border);
+          max-height: 0; overflow: hidden; transition: max-height 0.38s cubic-bezier(0.16,1,0.3,1);
+        }
+        .sk-nav-mobile.is-open { max-height: 78vh; }
+        .sk-nav-mobile-link {
+          font-family: ${FONT_UI}; font-size: 15px; color: #e6dac8; text-decoration: none;
+          padding: 15px 24px; border-top: 1px solid rgba(232,201,126,0.1); letter-spacing: 0.02em;
+        }
+        .sk-nav-mobile-link:first-child { border-top: none; }
+        .sk-nav-mobile-link:active { background: rgba(232,201,126,0.1); }
+        .sk-nav-mobile-cta { color: var(--gold); font-weight: 600; }
+      }
       @media (max-width: 1100px) { .sk-scroll-roll { transform: translateY(-50%) scale(0.65) !important; left: 2px !important; transform-origin: left center; } }
 
       .sk-hero { padding: calc(140px + var(--banner-h, 0px)) 40px 100px; }
@@ -666,9 +707,8 @@ function PageStyles() {
 
       /* ── Hero slideshow — crossfading Ken Burns through real event frames ── */
       .sk-hero-slides { position: absolute; inset: 0; }
-      /* Mobile fills the screen (crops sides slightly); desktop shows the full portrait */
-      .sk-hero-fit { object-fit: contain; object-position: center; }
-      @media (max-width: 700px) { .sk-hero-fit { object-fit: cover; } }
+      /* Photos fill the whole hero on every screen (the crop the shots were framed for). */
+      .sk-hero-fit { object-fit: cover; object-position: center; }
 
       /* Subtle "scroll up" hint at the top of the hero */
       .sk-scroll-up { transform: translateX(-50%); opacity: 0.5; transition: opacity 0.3s ease; }
@@ -729,9 +769,22 @@ function PageStyles() {
 }
 
 // ── Nav ───────────────────────────────────────────────────────
+// One-page site: these jump to on-page sections (smooth-scroll + scroll-margin
+// so the fixed header never covers the target). Shown inline on desktop and in
+// a dropdown on mobile so the page is navigable without scrolling to hunt.
+const NAV_LINKS = [
+  { href: "#experiences", label: "packages" },
+  { href: "#the-menu",    label: "menu" },
+  { href: "#the-service", label: "service" },
+  { href: "#about",       label: "about" },
+  { href: "#contact",     label: "contact" },
+  { href: "/lookup",      label: "find a booking" },
+];
+
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [pastHero, setPastHero] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navRef = useRef(null);
 
   useEffect(() => {
@@ -789,15 +842,32 @@ function Nav() {
         </a>
 
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div className="sk-nav-links" style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <a href="#about"   className="sk-nav-link">about</a>
-            <a href="#contact" className="sk-nav-link">contact</a>
-            <a href="/lookup"  className="sk-nav-link">find a booking</a>
+          <div className="sk-nav-links" style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {NAV_LINKS.map((l) => (
+              <a key={l.href} href={l.href} className="sk-nav-link">{l.label}</a>
+            ))}
           </div>
           <a href="/book" className="glass-btn sk-nav-cta" style={{ minHeight: 46, padding: "0 30px", fontSize: 13 }}>
             Reserve
           </a>
+          <button
+            type="button"
+            className={`sk-nav-burger${menuOpen ? " is-open" : ""}`}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            <span /><span /><span />
+          </button>
         </div>
+      </div>
+
+      {/* Mobile dropdown — the same section jumps, stacked */}
+      <div className={`sk-nav-mobile${menuOpen ? " is-open" : ""}`}>
+        {NAV_LINKS.map((l) => (
+          <a key={l.href} href={l.href} className="sk-nav-mobile-link" onClick={() => setMenuOpen(false)}>{l.label}</a>
+        ))}
+        <a href="/book" className="sk-nav-mobile-link sk-nav-mobile-cta" onClick={() => setMenuOpen(false)}>reserve an event →</a>
       </div>
     </nav>
   );
@@ -1145,6 +1215,99 @@ function QuoteFinder() {
 }
 
 // ── Experiences Section ───────────────────────────────────────
+// ── The Service — how an event runs, between the hero and the boards ──
+const SERVICE_STEPS = [
+  "Your rolls are selected at booking and rolled the day of your event, then cut on your counter so every piece reaches your guests at peak texture.",
+  "Your chef arrives ahead of service and builds a station on your counter, dressed with banana leaves. Your selected rolls go out first, putting food in front of guests within minutes.",
+  "Nigiri follows, shaped to order while your guests eat.",
+  "Sashimi is served next for parties who add the course.",
+  "Hand rolls are made and passed one at a time, alongside requests from the room.",
+  "Service closes with private chef service. Your guests order directly from the chef, and he prepares whatever they ask for.",
+];
+
+function ServiceSection() {
+  return (
+    <section id="the-service" style={{ background: BG, backgroundImage: N(0.6, 0.035) }}>
+      <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
+      <div className="sk-section" style={{ padding: "64px 40px", maxWidth: 1000, margin: "0 auto", boxSizing: "border-box" }}>
+        <Reveal>
+          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(22px, 3vw, 34px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 40, lineHeight: 1.1 }}>
+            the service.
+          </h2>
+        </Reveal>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "clamp(28px, 5vw, 56px)", alignItems: "center" }}>
+          <Reveal>
+            <div style={{ position: "relative", width: "100%", aspectRatio: "4 / 5", borderRadius: 16, overflow: "hidden", boxShadow: "0 18px 40px rgba(0,0,0,0.45)" }}>
+              <Image src="/images/sushi4/s3.jpg" alt="A spiral platter of specialty rolls at a private Sonakase event." fill sizes="(max-width: 768px) 88vw, 440px" style={{ objectFit: "cover", objectPosition: "center" }} />
+            </div>
+          </Reveal>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {SERVICE_STEPS.map((text, i) => (
+              <Reveal key={i} delay={i * 0.04}>
+                <div style={{ display: "flex", gap: "clamp(14px, 2.4vw, 20px)", alignItems: "baseline" }}>
+                  <span style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(15px, 2.2vw, 20px)", color: "rgba(var(--gold-rgb),0.85)", fontWeight: 400, lineHeight: 1, flexShrink: 0, minWidth: "1.1em" }}>{i + 1}</span>
+                  <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(13.5px, 1.4vw, 15px)", color: "rgba(var(--text-rgb),0.66)", margin: 0, lineHeight: 1.6 }}>{text}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── The Menu — the roll library, shown as a compact printed-menu list ──
+function MenuSection() {
+  const sashimi = ADD_ONS[0];
+  const rolls = ROLL_LIBRARY.filter((r) => r.available);
+  return (
+    <section id="the-menu" style={{ background: BG2, backgroundImage: N(0.5, 0.04) }}>
+      <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
+      <div className="sk-section" style={{ padding: "64px 40px", maxWidth: 900, margin: "0 auto", boxSizing: "border-box" }}>
+        <Reveal>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "clamp(24px, 4vw, 52px)", alignItems: "center", marginBottom: 46 }}>
+            <div>
+              <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.85)", marginBottom: 14 }}>
+                the menu
+              </div>
+              <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(16px, 2.1vw, 21px)", color: "rgba(var(--text-rgb),0.72)", fontStyle: "italic", margin: 0, lineHeight: 1.6 }}>
+                Choose your roll styles when you book. Nigiri is the chef&rsquo;s choice, shaped to order at your event.
+              </p>
+            </div>
+            <div style={{ justifySelf: "center", width: "100%" }}>
+              <div style={{ position: "relative", width: "100%", maxWidth: 360, margin: "0 auto", aspectRatio: "4 / 5", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(232,201,126,0.18)", boxShadow: "0 18px 44px rgba(0,0,0,0.5)" }}>
+                <Image src="/images/sushi4/s6.jpg" alt="A rainbow roll at a private Sonakase event." fill sizes="(max-width: 768px) 88vw, 360px" style={{ objectFit: "cover", objectPosition: "center" }} />
+              </div>
+            </div>
+          </div>
+        </Reveal>
+        <div className="sk-menu-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", columnGap: 44, rowGap: 0 }}>
+          {rolls.map((r) => {
+            const badge = r.vegetarian ? "Veg" : r.cooked ? "Cooked" : null;
+            return (
+              <div key={r.id} style={{ padding: "13px 0", borderBottom: "1px solid rgba(232,201,126,0.12)" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 15.5, color: CREAM, letterSpacing: "0.01em" }}>{r.name}</span>
+                  {badge && (
+                    <span style={{ fontFamily: FONT_UI, fontSize: 8.5, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.7)" }}>{badge}</span>
+                  )}
+                </div>
+                <div style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12, color: "rgba(var(--text-rgb),0.5)", fontStyle: "italic", lineHeight: 1.45, marginTop: 3 }}>{r.description}</div>
+              </div>
+            );
+          })}
+        </div>
+        <Reveal delay={0.05}>
+          <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 12.5, color: "rgba(var(--text-rgb),0.5)", fontStyle: "italic", textAlign: "center", margin: "34px 0 0", lineHeight: 1.6 }}>
+            A sashimi course can be added from {formatUSD(effectiveAddonPrice(sashimi))} / guest for parties of {sashimi.minGuests}+.
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 function ExperiencesSection() {
   return (
     <section id="experiences" style={{ background: BG2, backgroundImage: N(0.55, 0.04) }}>
@@ -1159,7 +1322,7 @@ function ExperiencesSection() {
           {/* Body + how-it-works photo */}
           <div className="sk-how-grid" style={{ maxWidth: 960, margin: "0 auto 80px" }}>
             <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: 16, color: `rgba(var(--text-rgb),0.6)`, margin: 0, lineHeight: 1.8 }}>
-              A live countertop build in your home. Sushi made in front of your guests and laid out over banana leaves in waves — two hours of dinner service, start to finish.
+              A live countertop build in your home. Sushi made in front of your guests and laid out over banana leaves in waves, from the first roll to the last request.
             </p>
             <div className="sk-how-photo">
               <Image

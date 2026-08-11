@@ -9,8 +9,9 @@ export async function POST(req) {
       guestCount, total, deposit, rolls, appetizers, specialRequests,
       plattersOrdered, deliveryAddress, upchargeTotal,
       bookingId, appetizerChoice, chefNotes, eventTime, appetizersSelected,
-      pricePerGuest, clientName, clientPhone,
+      pricePerGuest, clientName, clientPhone, nigiri, sashimi,
     } = body;
+    const listStr = (arr) => (Array.isArray(arr) && arr.length ? arr.join(", ") : null);
 
     // ── Cancellation request ─────────────────────────────────────
     if (type === "cancellation_request") {
@@ -149,6 +150,13 @@ export async function POST(req) {
         row("Deposit",      fmt2(deposit)) +
         row("Balance Due",  fmt2(balance)) +
         `</table></div>` +
+        (listStr(rolls) || sashimi
+          ? `<div style="margin-bottom:20px;background:#fff;border:1px solid rgba(26,18,8,0.1);padding:16px 24px;">` +
+            `<div style="font-size:10px;color:#a07736;letter-spacing:0.2em;text-transform:uppercase;font-weight:bold;margin-bottom:10px;">Menu Selection</div>` +
+            (listStr(rolls) ? `<div style="font-size:14px;color:#1a1208;margin-bottom:6px;line-height:1.5;"><strong>Rolls:</strong> ${listStr(rolls)}</div>` : "") +
+            `<div style="font-size:14px;color:#1a1208;margin-bottom:6px;line-height:1.5;"><strong>Nigiri:</strong> Chef's choice at the event</div>` +
+            `<div style="font-size:14px;color:#1a1208;line-height:1.5;"><strong>Sashimi course:</strong> ${sashimi ? "Yes" : "No"}</div>` +
+            `</div>` : "") +
         (chefNotes ? `<div style="margin-bottom:20px;padding:14px 16px;background:rgba(197,85,45,0.06);border-left:3px solid #c5552d;">` +
           `<div style="font-size:10px;color:#a07736;letter-spacing:0.2em;text-transform:uppercase;font-weight:bold;margin-bottom:6px;">Guest Restrictions / Chef's Notes</div>` +
           `<div style="font-size:14px;color:#5a4f3c;font-style:italic;">${chefNotes}</div></div>` : "") +
