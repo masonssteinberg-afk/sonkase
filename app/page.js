@@ -1290,7 +1290,7 @@ function ServiceSection() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "clamp(28px, 5vw, 56px)", alignItems: "center" }}>
           <Reveal>
             <div style={{ position: "relative", width: "100%", aspectRatio: "4 / 5", borderRadius: 16, overflow: "hidden", boxShadow: "0 18px 40px rgba(0,0,0,0.45)" }}>
-              <Image src="/images/sushi4/s3.jpg" alt="A spiral platter of specialty rolls at a private Sonakase event." fill sizes="(max-width: 768px) 88vw, 440px" style={{ objectFit: "cover", objectPosition: "center" }} />
+              <Image src="/images/sushi4/s8.jpg" alt="A colorful platter of assorted specialty rolls at a private Sonakase event." fill sizes="(max-width: 768px) 88vw, 440px" style={{ objectFit: "cover", objectPosition: "center" }} />
             </div>
           </Reveal>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
