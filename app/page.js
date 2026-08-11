@@ -18,6 +18,15 @@ import u6 from "@/public/images/hero/u6.jpg";
 import u7 from "@/public/images/hero/u7.jpg";
 import u8 from "@/public/images/hero/u8.jpg";
 import u9 from "@/public/images/hero/u9.jpg";
+import d1 from "@/public/images/hero/d1.jpg";
+import d2 from "@/public/images/hero/d2.jpg";
+import d3 from "@/public/images/hero/d3.jpg";
+import d4 from "@/public/images/hero/d4.jpg";
+import d5 from "@/public/images/hero/d5.jpg";
+import d6 from "@/public/images/hero/d6.jpg";
+import d7 from "@/public/images/hero/d7.jpg";
+import d8 from "@/public/images/hero/d8.jpg";
+import d9 from "@/public/images/hero/d9.jpg";
 import gNew1 from "@/public/images/hero/g1.jpg";
 import gNew3 from "@/public/images/hero/g3.jpg";
 import gNew4 from "@/public/images/hero/g4.jpg";
@@ -46,14 +55,17 @@ const FONT_UI = "'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-s
 // iOS-style spring for transforms; standard ease-out for everything else
 const SPRING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
-// ── Hero slideshow — 10 curated frames, desktop (wide) + mobile (tall) crops ──
-// Pre-framed portrait heroes; torch shot (u3) leads. Shown uncropped (contain).
-const HERO = [u3, u1, u2, u4, u5, u6, u7, u8, u9];
-const HERO_N = HERO.length;
+// ── Hero slideshow — separate crops per device so each fills its screen crisp ──
+// Desktop: high-resolution landscape event shots (fill a wide screen with no
+// upscaling). Mobile: the portrait crops framed for a tall phone screen. Both
+// sets are the same length so the crossfade timing (HERO_N) is shared.
+const HERO_D = [d1, d2, d3, d4, d5, d6, d7, d8, d9];
+const HERO_M = [u3, u1, u2, u4, u5, u6, u7, u8, u9];
+const HERO_N = HERO_D.length;
 const HERO_PER = 3.5;           // seconds each frame holds
 
 // ── Boards — all pricing comes from lib/pricing, no literals here ──
-import { BOARDS, boardTotalRange, quotesForGuests, effectiveRates, formatUSD, FROM_PRICE, MIN_GUESTS, MAX_GUESTS, LAUNCH_ACTIVE, DEPOSIT, SECOND_CHEF_THRESHOLD, SECOND_CHEF_FEE, ROLL_LIBRARY, ADD_ONS, effectiveAddonPrice } from "@/lib/pricing";
+import { BOARDS, boardTotalRange, quotesForGuests, effectiveRates, formatUSD, MIN_GUESTS, MAX_GUESTS, LAUNCH_ACTIVE, DEPOSIT, SECOND_CHEF_THRESHOLD, SECOND_CHEF_FEE, ROLL_LIBRARY, ADD_ONS, effectiveAddonPrice } from "@/lib/pricing";
 
 // Fixed blurred-photo background per board card. Assigned as a constant
 // (never Math.random during render) so server and client first paint agree.
@@ -707,7 +719,8 @@ function PageStyles() {
 
       /* ── Hero slideshow — crossfading Ken Burns through real event frames ── */
       .sk-hero-slides { position: absolute; inset: 0; }
-      /* Photos fill the whole hero on every screen (the crop the shots were framed for). */
+      /* Each device has its own crop (landscape on desktop, portrait on mobile),
+         so cover fills the screen crisply on both without upscaling a mismatch. */
       .sk-hero-fit { object-fit: cover; object-position: center; }
 
       /* Subtle "scroll up" hint at the top of the hero */
@@ -1014,6 +1027,38 @@ function ChiyogamiPattern({ id, opacity = 0.04 }) {
 
 // ── Hero ──────────────────────────────────────────────────────
 function Hero({ onLetsRoll }) {
+  const heroTextRef = useRef(null);
+
+  // The headline starts centered and, as you scroll, drifts up faster than the
+  // page while shrinking and fading — a fluid "receding" hero. Direct DOM writes
+  // (rAF-throttled) keep it smooth; honors reduced-motion.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const sec = document.querySelector(".sk-hero");
+    let raf;
+    const onScroll = () => {
+      raf = requestAnimationFrame(() => {
+        const el = heroTextRef.current;
+        if (!el || !sec) return;
+        // Scroll measured from the hero's own top (the page auto-lands here, so
+        // window.scrollY isn't 0 at rest). 0 while the hero fills the screen.
+        const scrolled = Math.max(0, -sec.getBoundingClientRect().top);
+        const vh = window.innerHeight || 1;
+        const p = Math.min(1, scrolled / (vh * 0.85));
+        el.style.transform = `translateY(${(-scrolled * 0.4).toFixed(1)}px) scale(${(1 - p * 0.4).toFixed(3)})`;
+        el.style.opacity = (1 - p * 0.92).toFixed(3);
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
     <section style={{
       background: BG, minHeight: "100vh",
@@ -1024,23 +1069,28 @@ function Hero({ onLetsRoll }) {
       className="sk-hero on-dark"
       id="top"
     >
-      {/* Hero photo — wide crop above 700px, tall crop below */}
+      {/* Hero photo — landscape shots on desktop, portrait crops on mobile */}
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }} aria-hidden="false">
-        {/* Slideshow — pre-framed portrait shots shown uncropped (contain),
-            with a blurred fill of the same shot behind so wide screens have no bars */}
-        <div className="sk-hero-slides">
-          {HERO.map((src, i) => (
+        {/* Desktop slideshow — high-resolution landscape */}
+        <div className="sk-hero-photo-d sk-hero-slides">
+          {HERO_D.map((src, i) => (
             <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * HERO_PER}s` }}>
               <Image
                 src={src}
-                alt=""
-                aria-hidden="true"
+                alt="Specialty sushi from a private Sonakase event in Gainesville."
                 fill
                 priority={i === 0}
                 placeholder="blur"
                 sizes="100vw"
-                style={{ objectFit: "cover", transform: "scale(1.12)", filter: "blur(30px) brightness(0.5)" }}
+                className="sk-hero-fit"
               />
+            </div>
+          ))}
+        </div>
+        {/* Mobile slideshow — portrait crops framed for tall screens */}
+        <div className="sk-hero-photo-m sk-hero-slides">
+          {HERO_M.map((src, i) => (
+            <div key={i} className="sk-hero-slide" style={{ animationDelay: `${i * HERO_PER}s` }}>
               <Image
                 src={src}
                 alt="Specialty sushi from a private Sonakase event in Gainesville."
@@ -1080,34 +1130,32 @@ function Hero({ onLetsRoll }) {
         </svg>
       </button>
 
-      {/* Content sits low so the sushi owns the frame */}
-      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", width: "100%", marginTop: "auto" }}>
+      {/* Headline centered on load; drifts up and shrinks as you scroll */}
+      <div style={{ position: "absolute", top: "50%", left: 0, right: 0, transform: "translateY(-50%)", zIndex: 1, display: "flex", justifyContent: "center", padding: "0 24px", pointerEvents: "none" }}>
+        <div ref={heroTextRef} style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 660, willChange: "transform, opacity", transformOrigin: "center center" }}>
+          {/* Soft dark halo keeps the headline legible over bright frames */}
+          <div aria-hidden="true" style={{ position: "absolute", inset: "-70px -100px", background: "radial-gradient(ellipse at center, rgba(13,13,13,0.6) 0%, rgba(13,13,13,0.34) 42%, transparent 72%)", zIndex: 0, pointerEvents: "none" }} />
+          <h1 style={{
+            position: "relative", zIndex: 1,
+            fontFamily: "'Shippori Mincho', Georgia, serif", fontWeight: 400,
+            fontSize: "clamp(30px, 6vw, 60px)",
+            color: CREAM, letterSpacing: "0.04em",
+            margin: "0 0 30px", lineHeight: 1.14,
+            textShadow: "0 2px 26px rgba(0,0,0,0.75), 0 1px 5px rgba(0,0,0,0.6)",
+          }}>
+            <span className="sk-hero-l1">the sonakase</span>{" "}
+            <span className="sk-hero-l2">experience</span>
+          </h1>
 
-        {/* Headline */}
-        <h1 style={{
-          fontFamily: "'Shippori Mincho', Georgia, serif", fontWeight: 400,
-          fontSize: "clamp(28px, 5vw, 52px)",
-          color: CREAM, letterSpacing: "0.04em",
-          margin: "0 0 20px", lineHeight: 1.15,
-        }}>
-          <span className="sk-hero-l1">the sonakase</span>{" "}
-          <span className="sk-hero-l2">experience</span>
-        </h1>
-
-        {/* From-price — derived from the lowest tier minimum */}
-        <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: "rgba(245,240,232,0.7)", letterSpacing: "0.06em", marginBottom: 36 }}>
-          Private sushi catering from {formatUSD(FROM_PRICE)}
-        </div>
-
-        {/* CTAs */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%", maxWidth: 340 }}>
-          <button
-            onClick={onLetsRoll}
-            className="glass-btn on-photo"
-            style={{ width: "100%" }}
-          >
-            Let's Roll <span className="sk-arrow">→</span>
-          </button>
+          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%", maxWidth: 340, pointerEvents: "auto" }}>
+            <button
+              onClick={onLetsRoll}
+              className="glass-btn on-photo"
+              style={{ width: "100%" }}
+            >
+              Let's Roll <span className="sk-arrow">→</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
