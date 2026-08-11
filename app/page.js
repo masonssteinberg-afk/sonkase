@@ -1231,9 +1231,9 @@ function ServiceSection() {
       <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
       <div className="sk-section" style={{ padding: "64px 40px", maxWidth: 1000, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
-          <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(22px, 3vw, 34px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 40, lineHeight: 1.1 }}>
-            the service.
-          </h2>
+          <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.85)", textAlign: "center", marginBottom: 40 }}>
+            the service
+          </div>
         </Reveal>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "clamp(28px, 5vw, 56px)", alignItems: "center" }}>
           <Reveal>
