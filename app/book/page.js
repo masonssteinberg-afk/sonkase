@@ -412,7 +412,7 @@ function BoardPanel({ quote }) {
 
         <div style={{ height: 1, background: "rgba(232,201,126,0.15)", margin: "18px 0 14px" }} />
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.65, marginBottom: 14 }}>
-          {board.menu}. You choose your rolls after booking from your confirmation page; nigiri is the chef&rsquo;s choice, shaped to order around the freshest catch, served at any hour.
+          {board.menu}. You choose your rolls after you pay your deposit, from your confirmation page; nigiri is the chef&rsquo;s choice, shaped to order around the freshest catch, served at any hour.
         </div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 10 }}>
           also included
@@ -755,7 +755,7 @@ function PaymentForm({ clientSecret, quote, contact, menuOrder, addonsTotal, eve
 
   return (
     <div style={CS.card}>
-      <StepHeader kanji="払" eyebrow="secure payment" title="reserve with your deposit" subtitle="the balance is due at the event." />
+      <StepHeader kanji="払" eyebrow="secure payment" title="reserve with your deposit" subtitle="the balance is due at the event. you choose your rolls after payment, from your confirmation page." />
 
       {/* Review + deposit panel */}
       <div style={{ background: "rgba(13,13,13,0.6)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, color: CREAM, padding: "22px 26px", marginBottom: 28 }}>
@@ -787,7 +787,7 @@ function PaymentForm({ clientSecret, quote, contact, menuOrder, addonsTotal, eve
       <div style={{ marginBottom: 24 }}>
         <div style={CS.label}>your menu</div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6 }}>
-          You choose your rolls after booking.
+          You choose your rolls after payment, from your confirmation page.
         </div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", marginTop: 6, lineHeight: 1.6 }}>
           Nigiri: chef&rsquo;s choice{menuOrder.sashimi ? " · sashimi course" : ""}
