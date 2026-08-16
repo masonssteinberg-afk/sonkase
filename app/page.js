@@ -1223,7 +1223,7 @@ function BoardQuoteRow({ quote, guests }) {
 
 // ── Quote finder — enter a guest count, compare both boards live ──
 function QuoteFinder() {
-  const [guests, setGuests] = useState(4);
+  const [guests, setGuests] = useState(10);
   const quotes = quotesForGuests(guests);        // always valid: input is clamped to [MIN,MAX]
   const overThreshold = guests > SECOND_CHEF_THRESHOLD;
 
