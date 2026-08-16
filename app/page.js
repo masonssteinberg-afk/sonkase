@@ -293,9 +293,9 @@ export default function Home() {
       <PhilosophyBand />
       <Hero onLetsRoll={() => router.push("/book")} />
       <ServiceSection />
-      <MenuSection />
       <ExperiencesSection />
       <PhotoSection />
+      <MenuSection />
       <AboutChefSection />
       <ContactSection />
       <SiteFooter />
