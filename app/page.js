@@ -292,9 +292,9 @@ export default function Home() {
       <Nav />
       <PhilosophyBand />
       <Hero onLetsRoll={() => router.push("/book")} />
-      <ExperiencesSection />
-      <MenuSection />
       <ServiceSection />
+      <MenuSection />
+      <ExperiencesSection />
       <PhotoSection />
       <AboutChefSection />
       <ContactSection />
@@ -1269,15 +1269,13 @@ function QuoteFinder() {
   );
 }
 
-// ── Experiences Section ───────────────────────────────────────
-// ── The Service — how an event runs, between the hero and the boards ──
+// ── The Sonakase Experience: how an event runs, between the hero and the menu ──
 const SERVICE_STEPS = [
-  "Your rolls are selected at booking and rolled the day of your event, then cut on your counter so every piece reaches your guests at peak texture.",
-  "Your chef arrives ahead of service and builds a station on your counter, dressed with banana leaves. Your selected rolls go out first, putting food in front of guests within minutes.",
-  "Nigiri follows, shaped to order while your guests eat.",
-  "Sashimi is served next for parties who add the course.",
-  "Hand rolls are made and passed one at a time, alongside requests from the room.",
-  "Service closes with private chef service. Your guests order directly from the chef, and he prepares whatever they ask for.",
+  { lead: "Pick your rolls.", body: "After you reserve your date, you choose your rolls from the menu. Everything gets rolled fresh the morning of your event." },
+  { lead: "The chef sets up.", body: "Your counter becomes the sushi bar. Bamboo leaves down, station built, first course out before guests settle in." },
+  { lead: "The spread comes out.", body: "Rolls cut and laid out first so nobody waits on food. Edamame while you get started." },
+  { lead: "Nigiri, then sashimi.", body: "Cut to order as guests eat, straight from the counter to the plate." },
+  { lead: "Hand rolls and requests.", body: "The chef stays on the counter and makes pieces to order. Guests ask for what they want and watch it come together in front of them." },
 ];
 
 function ServiceSection() {
@@ -1287,21 +1285,23 @@ function ServiceSection() {
       <div className="sk-section" style={{ padding: "64px 40px", maxWidth: 1000, margin: "0 auto", boxSizing: "border-box" }}>
         <Reveal>
           <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(var(--gold-rgb),0.85)", textAlign: "center", marginBottom: 40 }}>
-            the service
+            The Sonakase Experience
           </div>
         </Reveal>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "clamp(28px, 5vw, 56px)", alignItems: "center" }}>
           <Reveal>
             <div style={{ position: "relative", width: "100%", aspectRatio: "4 / 5", borderRadius: 16, overflow: "hidden", boxShadow: "0 18px 40px rgba(0,0,0,0.45)" }}>
-              <Image src="/images/service.jpg" alt="A chef torching a colorful spread of specialty rolls at a private Sonakase event." fill sizes="(max-width: 768px) 88vw, 440px" style={{ objectFit: "cover", objectPosition: "center" }} />
+              <Image src="/images/service.jpg" alt="A chef torching a colorful spread of specialty rolls at a Sonakase event." fill sizes="(max-width: 768px) 88vw, 440px" style={{ objectFit: "cover", objectPosition: "center" }} />
             </div>
           </Reveal>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {SERVICE_STEPS.map((text, i) => (
+            {SERVICE_STEPS.map((step, i) => (
               <Reveal key={i} delay={i * 0.04}>
                 <div style={{ display: "flex", gap: "clamp(14px, 2.4vw, 20px)", alignItems: "baseline" }}>
                   <span style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(15px, 2.2vw, 20px)", color: "rgba(var(--gold-rgb),0.85)", fontWeight: 400, lineHeight: 1, flexShrink: 0, minWidth: "1.1em" }}>{i + 1}</span>
-                  <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(13.5px, 1.4vw, 15px)", color: "rgba(var(--text-rgb),0.66)", margin: 0, lineHeight: 1.6 }}>{text}</p>
+                  <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(13.5px, 1.4vw, 15px)", color: "rgba(var(--text-rgb),0.66)", margin: 0, lineHeight: 1.6 }}>
+                    <span style={{ color: CREAM, fontWeight: 500 }}>{step.lead}</span> {step.body}
+                  </p>
                 </div>
               </Reveal>
             ))}
@@ -1368,6 +1368,12 @@ function ExperiencesSection() {
     <section id="experiences" style={{ background: BG2, backgroundImage: N(0.55, 0.04) }}>
       <div style={{ height: 1, background: GOLD, opacity: 0.2 }} />
       <div className="sk-section" style={{ padding: "100px 40px", maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
+        {/* Dietary line — sits directly above the pricing tiers */}
+        <Reveal>
+          <p style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(14px, 1.7vw, 17px)", color: "rgba(var(--text-rgb),0.66)", textAlign: "center", maxWidth: 720, margin: "0 auto 48px", lineHeight: 1.7 }}>
+            Allergies, no-raw preferences, and vegetarian guests are handled. Tell us when you book and the menu adjusts.
+          </p>
+        </Reveal>
         <Reveal>
           {/* Headline */}
           <h2 style={{ fontFamily: "'Shippori Mincho', Georgia, serif", fontSize: "clamp(32px, 5vw, 68px)", color: CREAM, textAlign: "center", fontWeight: 400, marginBottom: 48, lineHeight: 1.1 }}>

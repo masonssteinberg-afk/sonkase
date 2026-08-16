@@ -9,6 +9,7 @@ import {
   ROLL_LIBRARY, rollById, ROLL_ALLOWANCE, chefsSelection,
   addonById, addonAvailable, addonTotal, effectiveAddonPrice,
 } from "@/lib/pricing";
+import { ROLL_SELECTION_FORM_URL } from "@/lib/config";
 
 // Number words for the roll-allowance headers ("six roll styles").
 const NUM_WORD = { 2: "two", 4: "four", 6: "six" };
@@ -1041,6 +1042,15 @@ function ConfirmationScreen({ confirmation, onReset }) {
           </div>
         </div>
       )}
+      <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, borderRadius: 14, padding: "16px 20px", marginBottom: 28, textAlign: "left" }}>
+        <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>Next step: choose your rolls</div>
+        <p style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.7, margin: "0 0 14px" }}>
+          Choose your rolls and tell us about any allergies. Selections lock 72 hours before your event so fish gets ordered against your final list.
+        </p>
+        <a href={ROLL_SELECTION_FORM_URL} style={{ fontFamily: FONT_BODY, fontSize: 14, color: GOLD, textDecoration: "underline" }}>
+          Choose your rolls
+        </a>
+      </div>
       <div style={{ background: "rgba(232,201,126,0.04)", border: `1px solid rgba(232,201,126,0.2)`, borderLeft: `2px solid ${GOLD}`, borderRadius: 14, padding: "16px 20px", marginBottom: 28, textAlign: "left" }}>
         <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 600, marginBottom: 10 }}>what happens next</div>
         <ul style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.9, paddingLeft: 18, fontStyle: "italic", margin: 0 }}>
