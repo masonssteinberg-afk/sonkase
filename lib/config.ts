@@ -1,5 +1,6 @@
 // Site-wide configuration constants shared by the app and email routes.
 
-// Placeholder link to the roll-selection form guests use after booking.
-// Swap this for the live form URL when it is ready.
-export const ROLL_SELECTION_FORM_URL = "https://forms.sonakase.com/choose-your-rolls";
+// Where guests choose their rolls after booking: the find-your-booking page,
+// which loads their order and opens the roll picker. Append ?c=<confirmation>
+// &e=<email> to prefill the lookup.
+export const ROLL_SELECTION_FORM_URL = "https://www.sonakase.com/lookup";

@@ -6,22 +6,8 @@ import { Elements, CardElement, useStripe, useElements } from "@stripe/react-str
 import {
   quoteForBoard, quotesForGuests, totalAfterDiscount, effectiveRates, EVENT_INCLUDES,
   BOARDS, boardById, MIN_GUESTS, MAX_GUESTS, SECOND_CHEF_THRESHOLD, SECOND_CHEF_FEE, formatUSD,
-  ROLL_LIBRARY, rollById, ROLL_ALLOWANCE, chefsSelection,
   addonById, addonAvailable, addonTotal, effectiveAddonPrice,
 } from "@/lib/pricing";
-import { ROLL_SELECTION_FORM_URL } from "@/lib/config";
-
-// Number words for the roll-allowance headers ("six roll styles").
-const NUM_WORD = { 2: "two", 4: "four", 6: "six" };
-const numWord = (n) => NUM_WORD[n] || String(n);
-
-// Smooth-scroll to a step card, clearing the fixed header.
-const scrollToStep = (id) => {
-  const el = typeof document !== "undefined" ? document.getElementById(id) : null;
-  if (!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY - 96;
-  window.scrollTo({ top, behavior: "smooth" });
-};
 
 // ── Design Tokens (Sonakase™ palette) ──────────────────────────
 const NAVY        = "#0d0d0d";   // primary background
@@ -84,7 +70,6 @@ export default function App() {
   const [contactPhone, setContactPhone]     = useState("");
   const [eventAddress, setEventAddress]     = useState("");
   const [chefNotes, setChefNotes]           = useState("");
-  const [selectedRolls, setSelectedRolls]   = useState([]);   // roll ids, capped at ROLL_ALLOWANCE
   const [sashimiAdded, setSashimiAdded]     = useState(false);
   const [confirmation, setConfirmation]     = useState(null);
 
@@ -109,10 +94,8 @@ export default function App() {
   const quote     = inRange ? quoteForBoard(boardId, guests) : null;
 
   // ── Menu selection ────────────────────────────────────────────────
-  // Guests pick their rolls; nigiri is the chef's choice, shaped to order at
-  // the event, so it isn't selected here.
-  const rollAllowance  = ROLL_ALLOWANCE(boardId);
-  const menuComplete   = selectedRolls.length === rollAllowance;
+  // Rolls are chosen after booking through find-your-booking, so no roll
+  // picker runs here. Nigiri is the chef's choice, shaped to order at the event.
 
   // Sashimi add-on — the only add-on, per-guest, gated by its 6-guest minimum.
   const sashimi         = addonById("sashimi");
@@ -120,30 +103,16 @@ export default function App() {
   const sashimiIncluded = sashimiEligible && sashimiAdded;
   const addonsTotal     = sashimiIncluded ? addonTotal(sashimi, guests) : 0;
 
-  // Changing the board changes the roll allowance, so a stale selection can no
-  // longer be valid — clear it and let the guest rechoose for the new board.
-  useEffect(() => { setSelectedRolls([]); }, [boardId]);
   // Drop sashimi if the party falls below its minimum.
   useEffect(() => { if (!sashimiEligible) setSashimiAdded(false); }, [sashimiEligible]);
 
-  const toggleRoll = (id) => setSelectedRolls((prev) =>
-    prev.includes(id) ? prev.filter((x) => x !== id)
-      : prev.length >= rollAllowance ? prev            // at the cap — ignore new picks
-      : [...prev, id]);
-
-  // Chef's selection: fill the board's default rolls and jump to the next step.
-  const applyChefsSelection = () => {
-    setSelectedRolls(chefsSelection(boardId).rolls);
-    setTimeout(() => scrollToStep(sashimiEligible ? "step-sashimi" : "step-contact"), 60);
-  };
-
-  // The chosen order, resolved to display names — passed to payment, the save
-  // payload, the receipt, and the confirmation screen. Nigiri is the chef's
-  // choice at the event, so it is not part of the guest's selection.
+  // The order passed to payment, the save payload, the receipt, and the
+  // confirmation screen. Rolls are chosen later through find-your-booking, so
+  // none are set here; nigiri is the chef's choice at the event.
   const menuOrder = {
     boardId,
-    rolls: selectedRolls,
-    rollNames: selectedRolls.map((id) => rollById(id)?.name ?? id),
+    rolls: [],
+    rollNames: [],
     sashimi: sashimiIncluded,
   };
 
@@ -156,13 +125,13 @@ export default function App() {
     return Math.round((new Date(eventDate + "T00:00:00") - today) / 86400000);
   })() : 0;
   const dateValid    = eventDate && eventTime && daysOut >= 7;
-  const readyForPay  = !!quote && dateValid && contactValid && menuComplete;
+  const readyForPay  = !!quote && dateValid && contactValid;
 
   const reset = () => {
     setGuestInput(""); setEventDate(""); setEventTime("");
     setContactName(""); setContactEmail(""); setContactPhone("");
     setEventAddress(""); setChefNotes("");
-    setSelectedRolls([]); setSashimiAdded(false);
+    setSashimiAdded(false);
     setConfirmation(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -260,14 +229,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Your menu — roll selection (nigiri is the chef's choice) */}
-            <MenuStep
-              rollAllowance={rollAllowance}
-              selectedRolls={selectedRolls}
-              onToggleRoll={toggleRoll}
-              onChefsSelection={applyChefsSelection}
-            />
-
             {/* Sashimi add-on — hidden entirely below its 6-guest minimum */}
             {sashimiEligible && (
               <SashimiStep
@@ -364,8 +325,6 @@ export default function App() {
                   ? "Events over 50 guests are booked through the contact form."
                   : !quote
                   ? "Enter your guest count, date, time, and contact details to continue to payment."
-                  : !menuComplete
-                  ? `Choose your ${numWord(rollAllowance)} rolls, then add your date, time, and contact details to continue to payment.`
                   : "Enter your date, time, and contact details to continue to payment."}
               </div>
             )}
@@ -453,7 +412,7 @@ function BoardPanel({ quote }) {
 
         <div style={{ height: 1, background: "rgba(232,201,126,0.15)", margin: "18px 0 14px" }} />
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.65, marginBottom: 14 }}>
-          {board.menu} — you choose your rolls in the next step; nigiri is the chef&rsquo;s choice, shaped to order around the freshest catch, served at any hour.
+          {board.menu}. You choose your rolls after booking from your confirmation page; nigiri is the chef&rsquo;s choice, shaped to order around the freshest catch, served at any hour.
         </div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 11, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 10 }}>
           also included
@@ -487,85 +446,6 @@ function Over50Panel() {
         Get in touch →
       </a>
     </div>
-  );
-}
-
-// ── Your menu — roll & nigiri selection ───────────────────────
-function MenuStep({ rollAllowance, selectedRolls, onToggleRoll, onChefsSelection }) {
-  const rollsAtCap = selectedRolls.length >= rollAllowance;
-
-  return (
-    <div id="step-menu" style={CS.card}>
-      <StepHeader
-        kanji="膳"
-        eyebrow="your menu"
-        title={`choose your ${numWord(rollAllowance)} roll styles`}
-        subtitle="build your board below — tap to add, tap again to swap."
-      />
-
-      {/* Chef's selection — one tap fills the board and moves on */}
-      <button type="button" onClick={onChefsSelection} className="book-chefs-btn" style={CS.chefsBtn}>
-        ✦ Chef&rsquo;s selection — fill my board
-      </button>
-
-      {/* Rolls */}
-      <div style={CS.pickerHead}>
-        <label style={{ ...CS.label, marginBottom: 0 }}>rolls</label>
-        <span style={CS.counter}>{selectedRolls.length} of {rollAllowance} selected</span>
-      </div>
-      <div style={{ display: "grid", gap: 10 }}>
-        {ROLL_LIBRARY.filter((r) => r.available).map((r) => {
-          const selected = selectedRolls.includes(r.id);
-          return (
-            <RollCard key={r.id} roll={r} selected={selected} disabled={!selected && rollsAtCap} onToggle={() => onToggleRoll(r.id)} />
-          );
-        })}
-      </div>
-
-      {/* Nigiri — the chef's choice at the event */}
-      <div style={{ marginTop: 26 }}>
-        <label style={CS.label}>nigiri</label>
-        <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.6, padding: "12px 16px", background: "rgba(245,240,232,0.03)", border: "1px solid rgba(232,201,126,0.18)", borderRadius: 14 }}>
-          Nigiri is the chef&rsquo;s choice — shaped to order at your counter during service.
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RollCard({ roll, selected, disabled, onToggle }) {
-  const tag = roll.vegetarian ? "Vegetarian" : roll.cooked ? "Cooked" : "Raw";
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      disabled={disabled}
-      aria-pressed={selected}
-      className="book-select-card"
-      style={{
-        textAlign: "left", width: "100%",
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.4 : 1,
-        background: selected ? "rgba(232,201,126,0.08)" : "rgba(245,240,232,0.03)",
-        border: `1px solid ${selected ? "rgba(232,201,126,0.55)" : "rgba(232,201,126,0.18)"}`,
-        borderRadius: 16, padding: "14px 16px",
-        display: "flex", alignItems: "flex-start", gap: 12,
-      }}
-    >
-      <span style={{
-        marginTop: 1, width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-        border: `1px solid ${selected ? GOLD : "rgba(232,201,126,0.4)"}`,
-        background: selected ? GOLD : "transparent",
-        color: NAVY, fontSize: 12, lineHeight: "17px", textAlign: "center", fontWeight: 700,
-      }}>{selected ? "✓" : ""}</span>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 16, color: selected ? GOLD : CREAM }}>{roll.name}</span>
-          <span style={{ fontFamily: FONT_UI, fontSize: 9.5, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(232,201,126,0.75)", border: "1px solid rgba(232,201,126,0.3)", borderRadius: 999, padding: "1px 7px" }}>{tag}</span>
-        </div>
-        <div style={{ fontFamily: FONT_BODY, fontSize: 12.5, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.45, marginTop: 4 }}>{roll.description}</div>
-      </div>
-    </button>
   );
 }
 
@@ -903,11 +783,11 @@ function PaymentForm({ clientSecret, quote, contact, menuOrder, addonsTotal, eve
         </div>
       </div>
 
-      {/* Menu recap */}
+      {/* Menu recap — rolls are chosen after booking through find-your-booking */}
       <div style={{ marginBottom: 24 }}>
         <div style={CS.label}>your menu</div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6 }}>
-          {menuOrder.rollNames.join(", ")}
+          You choose your rolls after booking.
         </div>
         <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", marginTop: 6, lineHeight: 1.6 }}>
           Nigiri: chef&rsquo;s choice{menuOrder.sashimi ? " · sashimi course" : ""}
@@ -1036,8 +916,7 @@ function ConfirmationScreen({ confirmation, onReset }) {
       {menuOrder && (
         <div style={{ background: "rgba(13,13,13,0.5)", border: "1px solid rgba(232,201,126,0.15)", borderRadius: 16, padding: "18px 24px", marginBottom: 28, textAlign: "left" }}>
           <div style={{ ...CS.label, marginBottom: 10 }}>your menu</div>
-          <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6 }}>{menuOrder.rollNames.join(", ")}</div>
-          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", marginTop: 6, lineHeight: 1.6 }}>
+          <div style={{ fontFamily: FONT_BODY, fontSize: 13, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.6 }}>
             Nigiri: chef&rsquo;s choice{menuOrder.sashimi ? " · sashimi course" : ""}
           </div>
         </div>
@@ -1047,7 +926,7 @@ function ConfirmationScreen({ confirmation, onReset }) {
         <p style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.7, margin: "0 0 14px" }}>
           Choose your rolls and tell us about any allergies. Selections lock 72 hours before your event so fish gets ordered against your final list.
         </p>
-        <a href={ROLL_SELECTION_FORM_URL} style={{ fontFamily: FONT_BODY, fontSize: 14, color: GOLD, textDecoration: "underline" }}>
+        <a href={`/lookup?c=${encodeURIComponent(id)}${email ? `&e=${encodeURIComponent(email)}` : ""}`} style={{ fontFamily: FONT_BODY, fontSize: 14, color: GOLD, textDecoration: "underline" }}>
           Choose your rolls
         </a>
       </div>

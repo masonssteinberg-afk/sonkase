@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { ROLL_LIBRARY, ROLL_ALLOWANCE } from "@/lib/pricing";
 
 const NAVY      = "#0d0d0d";
 const CREAM     = "#F5F0E8";
@@ -10,6 +11,16 @@ const INK_FAINT = "rgba(245,240,232,0.35)";
 const FONT_DISPLAY = `'Shippori Mincho', Georgia, serif`;
 const FONT_BODY    = `'Shippori Mincho', Georgia, serif`;
 const FONT_UI      = `'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif`;
+
+// Rolls freeze this many hours before the event (mirrors the server rule).
+const LOCK_HOURS = 72;
+const rollsLocked = (eventDate, eventTime) => {
+  if (!eventDate) return false;
+  const time  = /^\d{1,2}:\d{2}/.test(eventTime || "") ? eventTime : "00:00";
+  const event = new Date(`${eventDate}T${time}:00`);
+  if (Number.isNaN(event.getTime())) return false;
+  return Date.now() >= event.getTime() - LOCK_HOURS * 3600 * 1000;
+};
 
 const fmt2 = (n) => (n != null ? `$${Number(n).toFixed(2)}` : null);
 const fmtDate = (d) => {
@@ -33,6 +44,9 @@ export default function LookupPage() {
   const [error, setError]               = useState("");
   const [loading, setLoading]           = useState(false);
   const [cancelState, setCancelState]   = useState("idle"); // idle | sending | sent
+  const [rollPicks, setRollPicks]       = useState([]);     // roll ids chosen on this page
+  const [saveState, setSaveState]       = useState("idle"); // idle | saving | saved
+  const [saveError, setSaveError]       = useState("");
 
   // Prefill from confirmation email links: /lookup?c=CSXXXX&e=you@example.com
   useEffect(() => {
@@ -87,9 +101,56 @@ export default function LookupPage() {
     : null;
 
   const sels        = booking && Array.isArray(booking.selections) ? booking.selections : [];
-  const lookupRolls = sels.filter((s) => s.item_type === "roll").map((s) => s.name_snapshot);
+  const savedRollIds = sels.filter((s) => s.item_type === "roll").map((s) => String(s.item_id));
   const hasSashimi  = booking && Array.isArray(booking.addons) && booking.addons.some((a) => a.addon_id === "sashimi");
-  const hasMenu     = lookupRolls.length || hasSashimi;
+
+  // Roll selection: how many the board allows, whether editing is still open,
+  // and the roll library to choose from.
+  const availableRolls = ROLL_LIBRARY.filter((r) => r.available);
+  const allowance      = booking ? ROLL_ALLOWANCE(booking.board_type) : 0;
+  const locked         = booking ? rollsLocked(booking.event_date, booking.event_time) : false;
+  const canPickRolls   = !!booking && allowance > 0;
+  const atCap          = rollPicks.length >= allowance;
+  const dirty          = JSON.stringify([...rollPicks].sort()) !== JSON.stringify([...savedRollIds].sort());
+
+  // Seed the picker from the saved order whenever a booking loads or changes.
+  useEffect(() => {
+    setRollPicks(savedRollIds);
+    setSaveState("idle");
+    setSaveError("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booking && booking.confirmation_number]);
+
+  const toggleRoll = (id) => {
+    setSaveState("idle"); setSaveError("");
+    setRollPicks((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id)
+        : prev.length >= allowance ? prev
+        : [...prev, id]);
+  };
+
+  const saveRolls = async () => {
+    if (!booking || saveState === "saving") return;
+    setSaveState("saving"); setSaveError("");
+    try {
+      const res = await fetch("/api/update-selections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmation: booking.confirmation_number, email, rolls: rollPicks }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setSaveError(data.error || "Could not save. Please try again."); setSaveState("idle"); return; }
+      // Reflect the saved order back into the booking so the recap stays in sync.
+      setBooking((b) => b ? { ...b, selections: [
+        ...(Array.isArray(b.selections) ? b.selections.filter((s) => s.item_type !== "roll") : []),
+        ...(data.rolls || []),
+      ] } : b);
+      setSaveState("saved");
+    } catch {
+      setSaveError("Could not save. Please try again.");
+      setSaveState("idle");
+    }
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: NAVY, fontFamily: FONT_BODY, color: CREAM, paddingTop: "calc(100px + var(--banner-h, 0px))" }}>
@@ -172,22 +233,93 @@ export default function LookupPage() {
             <Row label="Balance Due"  value={fmt2(balance)} />
             <Row label="Notes"        value={booking.special_requests} />
 
-            {hasMenu ? (
-              <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid rgba(232,201,126,0.15)" }}>
-                <div style={{ fontFamily: FONT_UI, fontSize: 11, color: GOLD, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600, marginBottom: 12 }}>your menu</div>
-                {lookupRolls.length > 0 && (
-                  <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6, marginBottom: 6 }}>
-                    <span style={{ color: "rgba(232,201,126,0.8)" }}>Rolls:</span> {lookupRolls.join(", ")}
-                  </div>
+            <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid rgba(232,201,126,0.15)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 12 }}>
+                <div style={{ fontFamily: FONT_UI, fontSize: 11, color: GOLD, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600 }}>choose your rolls</div>
+                {canPickRolls && !locked && (
+                  <span style={{ fontFamily: FONT_UI, fontSize: 11, color: INK_SOFT, letterSpacing: "0.04em" }}>{rollPicks.length} of {allowance} selected</span>
                 )}
-                <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6, marginBottom: 6 }}>
-                  <span style={{ color: "rgba(232,201,126,0.8)" }}>Nigiri:</span> Chef&rsquo;s choice at the event
-                </div>
-                <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6 }}>
-                  <span style={{ color: "rgba(232,201,126,0.8)" }}>Sashimi course:</span> {hasSashimi ? "Yes" : "No"}
-                </div>
               </div>
-            ) : null}
+
+              {canPickRolls && !locked && (
+                <>
+                  <p style={{ fontFamily: FONT_BODY, fontSize: 13.5, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.6, margin: "0 0 16px" }}>
+                    Pick your {allowance} rolls below. You can change them until 72 hours before your event, when selections lock so fish gets ordered against your final list.
+                  </p>
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {availableRolls.map((r) => {
+                      const selected = rollPicks.includes(r.id);
+                      const disabled = !selected && atCap;
+                      const tag = r.vegetarian ? "Vegetarian" : r.cooked ? "Cooked" : "Raw";
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => toggleRoll(r.id)}
+                          disabled={disabled}
+                          aria-pressed={selected}
+                          style={{
+                            textAlign: "left", width: "100%",
+                            cursor: disabled ? "not-allowed" : "pointer",
+                            opacity: disabled ? 0.4 : 1,
+                            background: selected ? "rgba(232,201,126,0.08)" : "rgba(245,240,232,0.03)",
+                            border: `1px solid ${selected ? "rgba(232,201,126,0.55)" : "rgba(232,201,126,0.18)"}`,
+                            borderRadius: 16, padding: "14px 16px",
+                            display: "flex", alignItems: "flex-start", gap: 12,
+                          }}
+                        >
+                          <span style={{
+                            marginTop: 1, width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                            border: `1px solid ${selected ? GOLD : "rgba(232,201,126,0.4)"}`,
+                            background: selected ? GOLD : "transparent",
+                            color: NAVY, fontSize: 12, lineHeight: "17px", textAlign: "center", fontWeight: 700,
+                          }}>{selected ? "✓" : ""}</span>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                              <span style={{ fontFamily: FONT_DISPLAY, fontSize: 16, color: selected ? GOLD : CREAM }}>{r.name}</span>
+                              <span style={{ fontFamily: FONT_UI, fontSize: 9.5, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(232,201,126,0.75)", border: "1px solid rgba(232,201,126,0.3)", borderRadius: 999, padding: "1px 7px" }}>{tag}</span>
+                            </div>
+                            <div style={{ fontFamily: FONT_BODY, fontSize: 12.5, color: INK_SOFT, fontStyle: "italic", lineHeight: 1.45, marginTop: 4 }}>{r.description}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {saveError && (
+                    <div style={{ fontFamily: FONT_BODY, fontSize: 13.5, color: GOLD, fontStyle: "italic", marginTop: 14 }}>{saveError}</div>
+                  )}
+                  {saveState === "saved" && !dirty && (
+                    <div style={{ fontFamily: FONT_BODY, fontSize: 13.5, color: GOLD, fontStyle: "italic", marginTop: 14 }}>Your rolls are saved.</div>
+                  )}
+                  <button
+                    onClick={saveRolls}
+                    disabled={saveState === "saving" || !dirty}
+                    style={{ ...CS.cta, marginTop: 16, opacity: saveState === "saving" || !dirty ? 0.5 : 1, cursor: saveState === "saving" || !dirty ? "default" : "pointer" }}
+                  >
+                    {saveState === "saving" ? "Saving…" : dirty ? "Save my rolls" : "Rolls saved"}
+                  </button>
+                </>
+              )}
+
+              {canPickRolls && locked && (
+                <>
+                  <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6, marginBottom: 6 }}>
+                    <span style={{ color: "rgba(232,201,126,0.8)" }}>Rolls:</span> {savedRollIds.length ? sels.filter((s) => s.item_type === "roll").map((s) => s.name_snapshot).join(", ") : "Not selected"}
+                  </div>
+                  <div style={{ fontFamily: FONT_BODY, fontSize: 12.5, color: INK_FAINT, fontStyle: "italic", lineHeight: 1.6, marginBottom: 12 }}>
+                    Roll selections locked 72 hours before the event. Contact us to make a change.
+                  </div>
+                </>
+              )}
+
+              <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6, marginTop: canPickRolls ? 14 : 0, marginBottom: 6 }}>
+                <span style={{ color: "rgba(232,201,126,0.8)" }}>Nigiri:</span> Chef&rsquo;s choice at the event
+              </div>
+              <div style={{ fontFamily: FONT_BODY, fontSize: 14, color: CREAM, lineHeight: 1.6 }}>
+                <span style={{ color: "rgba(232,201,126,0.8)" }}>Sashimi course:</span> {hasSashimi ? "Yes" : "No"}
+              </div>
+            </div>
 
             <div style={{ marginTop: 24, fontFamily: FONT_BODY, fontSize: 12, color: INK_FAINT, lineHeight: 1.6 }}>
               Cancel 72 hours or more before the event for a full deposit refund. Cancellations within 72 hours forfeit the deposit.

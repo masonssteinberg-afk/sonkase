@@ -126,7 +126,7 @@ export async function POST(req) {
         `<div style="padding:18px 22px;background:rgba(184,137,42,0.07);border-left:2px solid #E8C97E;margin-bottom:24px;">` +
         `<div style="font-size:10px;color:#b8892a;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:10px;">Next step: choose your rolls</div>` +
         `<p style="font-size:14px;color:#5a4f3c;line-height:1.7;margin:0 0 14px;">Choose your rolls and tell us about any allergies. Selections lock 72 hours before your event so fish gets ordered against your final list.</p>` +
-        `<a href="${ROLL_SELECTION_FORM_URL}" style="font-size:14px;color:#b8892a;text-decoration:underline;">Choose your rolls</a>` +
+        `<a href="${ROLL_SELECTION_FORM_URL}?c=${encodeURIComponent(confirmationId || "")}&e=${encodeURIComponent(email)}" style="font-size:14px;color:#b8892a;text-decoration:underline;">Choose your rolls</a>` +
         `</div>` +
         `<p style="font-size:13px;color:#5a4f3c;margin:0 0 24px;line-height:1.6;">View this booking anytime at ` +
         `<a href="https://www.sonakase.com/lookup?c=${encodeURIComponent(confirmationId || "")}&e=${encodeURIComponent(email)}" style="color:#b8892a;">sonakase.com/lookup</a> ` +
